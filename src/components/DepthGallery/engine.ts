@@ -13,6 +13,7 @@ export class Engine {
   private scroll: Scroll
   private animationFrameId: number | null = null
   private isRunning = false
+  private disposed = false
   private onActivePlaneChange: (index: number) => void
   private lastActivePlaneIndex = -1
 
@@ -61,6 +62,8 @@ export class Engine {
         }
       })
     )
+
+    if (this.disposed) return
 
     this.gallery.setPreloadedTextures(loadedTextures)
     this.gallery.init(this.scene, projects)
@@ -120,6 +123,7 @@ export class Engine {
   }
 
   dispose() {
+    this.disposed = true
     this.isRunning = false
 
     if (this.animationFrameId !== null) {

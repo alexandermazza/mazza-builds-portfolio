@@ -13,14 +13,16 @@ interface DepthGalleryProps {
 export function DepthGallery({ projects }: DepthGalleryProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<Engine | null>(null)
+  const overlayTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
   const [activePlaneIndex, setActivePlaneIndex] = useState(0)
   const [overlayVisible, setOverlayVisible] = useState(true)
 
   const onActivePlaneChange = useCallback((index: number) => {
     setOverlayVisible(false)
+    if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current)
 
     // Brief fade out, then update and fade in
-    setTimeout(() => {
+    overlayTimerRef.current = setTimeout(() => {
       setActivePlaneIndex(index)
       setOverlayVisible(true)
     }, 150)
@@ -38,17 +40,20 @@ export function DepthGallery({ projects }: DepthGalleryProps) {
     return () => {
       engine.dispose()
       engineRef.current = null
+      if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current)
     }
   }, [projects, onActivePlaneChange])
 
   const activeProject = projects[activePlaneIndex]
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden" aria-label="Projects gallery">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"
         style={{ background: "var(--black)" }}
+        role="img"
+        aria-hidden="true"
       />
 
       {/* DOM overlay for active project info */}

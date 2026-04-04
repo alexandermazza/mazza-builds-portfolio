@@ -14,6 +14,7 @@ import {
 
 export class Gallery {
   private planes: THREE.Mesh[] = []
+  private projects: GalleryProject[] = []
   private texturesBySource = new Map<string, THREE.Texture>()
   private pointerTarget = new THREE.Vector2(0, 0)
   private pointerCurrent = new THREE.Vector2(0, 0)
@@ -38,6 +39,7 @@ export class Gallery {
   }
 
   init(scene: THREE.Scene, projects: GalleryProject[]) {
+    this.projects = projects
     const planeGeometry = new THREE.PlaneGeometry(3, 2) // 3:2 aspect
 
     projects.forEach((project, index) => {
@@ -74,9 +76,8 @@ export class Gallery {
   applyTextures() {
     this.planes.forEach((plane) => {
       const material = plane.material as THREE.MeshBasicMaterial
-      const texture = this.texturesBySource.get(
-        Array.from(this.texturesBySource.keys())[plane.userData.index]
-      )
+      const project = this.projects[plane.userData.index]
+      const texture = project ? this.texturesBySource.get(project.screenshot) : undefined
       if (texture) {
         material.map = texture
         material.color.set("#ffffff")

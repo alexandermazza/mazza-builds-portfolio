@@ -27,8 +27,8 @@ export class Scroll {
 
   // Velocity
   private rawVelocity = 0
-  velocity = 0
-  velocityMax = VELOCITY_MAX
+  private velocity = 0
+  private velocityMax = VELOCITY_MAX
 
   // Bounds
   private minCameraZ = -Infinity
@@ -161,8 +161,13 @@ export class Scroll {
     // Skip if already within deadzone
     if (nearestDistance < SNAP_DEADZONE) return
 
+    // Snap to viewing position (plane Z + offset), not the plane itself
     const targetZ = this.gallery.getPlaneZ(nearestIndex)
-    this.scrollTarget = this.scrollFromCameraZ(targetZ)
+    const viewingOffset = nearestIndex === 0 ? FIRST_PLANE_VIEW_OFFSET : LAST_PLANE_VIEW_OFFSET
+    const snapCameraZ = targetZ + viewingOffset
+    this.scrollTarget = this.scrollFromCameraZ(
+      THREE.MathUtils.clamp(snapCameraZ, this.minCameraZ, this.maxCameraZ)
+    )
     this.isSnapping = true
   }
 
