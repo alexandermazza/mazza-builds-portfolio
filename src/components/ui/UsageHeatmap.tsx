@@ -354,7 +354,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
                 {week.map((cell, dIdx) => {
                   const key = toDateKey(cell.date);
                   const tokens = tokenMap.get(key) ?? 0;
-                  const color = cell.inFuture ? "transparent" : cellColor(tokens);
+                  const color = cell.inFuture ? "rgba(255,255,255,0.06)" : cellColor(tokens);
 
                   return (
                     <div
