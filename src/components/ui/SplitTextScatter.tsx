@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import {
+  CHAR_SCATTER_STAGGER,
   DURATION,
   EASE_OUT_MOTION,
   LINE_REVEAL_STAGGER,
@@ -21,7 +22,6 @@ function seededOffset(index: number, range: number): number {
   return (normalized - 0.5) * 2 * range; // -range..+range
 }
 
-const CHAR_STAGGER = 0.02;
 
 export function SplitTextScatter({
   text,
@@ -98,7 +98,7 @@ export function SplitTextScatter({
                 }}
                 transition={{
                   ...SPRING_FLUID,
-                  delay: ci * CHAR_STAGGER,
+                  delay: ci * CHAR_SCATTER_STAGGER,
                 }}
                 style={{ display: "inline-block" }}
               >
