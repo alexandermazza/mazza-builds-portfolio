@@ -1,4 +1,4 @@
-import { Button, ProjectCard, StatusBadge, TagChip, UsageCard } from "@/components/ui";
+import { Button, GitHubCard, ProjectCard, StatusBadge, TagChip, UsageCard } from "@/components/ui";
 
 export default function Home() {
   return (
@@ -75,11 +75,19 @@ export default function Home() {
       </section>
 
       {/* Usage heatmap */}
-      <section>
+      <section className="mb-[var(--space-3xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
           USAGE HEATMAP
         </p>
         <UsageCard />
+      </section>
+
+      {/* GitHub contributions */}
+      <section>
+        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+          GITHUB CONTRIBUTIONS
+        </p>
+        <GitHubCard />
       </section>
     </main>
   );
