@@ -79,10 +79,10 @@ function formatDateLabel(d: Date): string {
 
 function cellColor(tokens: number): string {
   if (tokens <= 0) return "rgba(255,255,255,0.06)";
-  if (tokens <= 50_000) return "rgba(255,255,255,0.20)";
-  if (tokens <= 200_000) return "rgba(255,255,255,0.50)";
-  if (tokens <= 500_000) return "rgba(255,255,255,0.80)";
-  return "var(--accent)";
+  if (tokens <= 50_000) return "rgba(255,107,53,0.20)";
+  if (tokens <= 200_000) return "rgba(255,107,53,0.45)";
+  if (tokens <= 500_000) return "rgba(255,107,53,0.70)";
+  return "#FF6B35";
 }
 
 function toSunday(d: Date): Date {
