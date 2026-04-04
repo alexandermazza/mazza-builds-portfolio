@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { projects } from "@/data/projects"
-import { Button, MagneticFilings, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
+import { Button, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
 
 const DepthGallery = dynamic(
   () =>
@@ -15,11 +15,6 @@ const DepthGallery = dynamic(
 export default function Home() {
   return (
     <main>
-      {/* Magnetic filings */}
-      <section className="relative">
-        <MagneticFilings className="h-[80vh]" />
-      </section>
-
       <DepthGallery projects={projects} />
 
       {/* Split text scatter */}
