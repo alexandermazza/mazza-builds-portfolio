@@ -40,7 +40,8 @@ export interface UsageHeatmapProps
 const CELL_SIZE = 10;
 const GAP = 2;
 const CELL_STEP = CELL_SIZE + GAP;
-const WEEKS = 53;
+// Computed dynamically based on Jan 1 → today
+let WEEKS = 53;
 const DAYS = 7;
 
 const MONTH_LABEL_HEIGHT = 16;
@@ -90,10 +91,12 @@ function toSunday(d: Date): Date {
   return copy;
 }
 
-function buildStartDate(today: Date): Date {
-  const d = new Date(today);
-  d.setDate(d.getDate() - 52 * 7);
-  return toSunday(d);
+function buildStartDate(today: Date): { start: Date; weeks: number } {
+  const jan1 = new Date(today.getFullYear(), 0, 1);
+  const start = toSunday(jan1);
+  const diffMs = today.getTime() - start.getTime();
+  const weeks = Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return { start, weeks };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -150,13 +153,14 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
   // ── Grid geometry (memoized) ─────────────────────────────────────────────
 
-  const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
+  const { weeks, monthLabels, gridWidth, gridHeight, numWeeks } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startDate = buildStartDate(today);
+    const { start: startDate, weeks: totalWeeks } = buildStartDate(today);
+    WEEKS = totalWeeks;
 
     const w: Cell[][] = [];
-    for (let wi = 0; wi < WEEKS; wi++) {
+    for (let wi = 0; wi < totalWeeks; wi++) {
       const week: Cell[] = [];
       for (let d = 0; d < DAYS; d++) {
         const date = new Date(startDate);
@@ -168,11 +172,11 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
     const labels: MonthLabel[] = [];
     let lastMonth = -1;
-    for (let wi = 0; wi < WEEKS; wi++) {
+    for (let wi = 0; wi < totalWeeks; wi++) {
       const firstDayOfWeek = w[wi][0].date;
       const month = firstDayOfWeek.getMonth();
       if (month !== lastMonth) {
-        if (wi > 0 || firstDayOfWeek.getDate() === 1) {
+        if (wi > 0 || firstDayOfWeek.getDate() <= 7) {
           labels.push({ weekIndex: wi, label: MONTH_ABBREVS[month] });
         }
         lastMonth = month;
@@ -182,7 +186,8 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
     return {
       weeks: w,
       monthLabels: labels,
-      gridWidth: WEEKS * CELL_STEP - GAP,
+      numWeeks: totalWeeks,
+      gridWidth: totalWeeks * CELL_STEP - GAP,
       gridHeight: DAYS * CELL_STEP - GAP,
     };
   }, []);
