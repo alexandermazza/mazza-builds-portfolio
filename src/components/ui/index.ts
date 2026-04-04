@@ -3,6 +3,7 @@ export { GitHubCard } from "./GitHubCard";
 export { GitHubHeatmap } from "./GitHubHeatmap";
 export { ProjectCard } from "./ProjectCard";
 export { ScrollTextLines } from "./ScrollTextLines";
+export { SplitTextScatter } from "./SplitTextScatter";
 export { StatusBadge } from "./StatusBadge";
 export { TagChip } from "./TagChip";
 export { TextReveal } from "./TextReveal";
