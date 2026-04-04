@@ -1,4 +1,4 @@
-import { Button, ProjectCard, StatusBadge, TagChip } from "@/components/ui";
+import { Button, ProjectCard, StatusBadge, TagChip, UsageCard } from "@/components/ui";
 
 export default function Home() {
   return (
@@ -45,7 +45,7 @@ export default function Home() {
       </section>
 
       {/* Project cards */}
-      <section>
+      <section className="mb-[var(--space-3xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
           PROJECT CARDS
         </p>
@@ -72,6 +72,14 @@ export default function Home() {
             status="ARCHIVED"
           />
         </div>
+      </section>
+
+      {/* Usage heatmap */}
+      <section>
+        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+          USAGE HEATMAP
+        </p>
+        <UsageCard />
       </section>
     </main>
   );
