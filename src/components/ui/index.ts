@@ -2,6 +2,7 @@ export { Button } from "./Button";
 export { GitHubCard } from "./GitHubCard";
 export { GitHubHeatmap } from "./GitHubHeatmap";
 export { ProjectCard } from "./ProjectCard";
+export { ScrollTextLines } from "./ScrollTextLines";
 export { StatusBadge } from "./StatusBadge";
 export { TagChip } from "./TagChip";
 export { TextReveal } from "./TextReveal";
