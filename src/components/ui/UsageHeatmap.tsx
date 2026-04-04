@@ -1,8 +1,8 @@
 "use client";
 
-import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { DURATION, LINE_REVEAL_STAGGER, SPRING_SNAPPY } from "@/lib/motion";
+import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER, SPRING_SNAPPY } from "@/lib/motion";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -29,6 +29,9 @@ interface TooltipState {
   tokens: number;
 }
 
+type Cell = { date: Date; inFuture: boolean };
+type MonthLabel = { weekIndex: number; label: string };
+
 export interface UsageHeatmapProps
   extends Omit<ComponentProps<"div">, "children"> {}
 
@@ -40,29 +43,21 @@ const CELL_STEP = CELL_SIZE + GAP;
 const WEEKS = 53;
 const DAYS = 7;
 
+const MONTH_LABEL_HEIGHT = 16;
+const DAY_LABEL_WIDTH = 28;
+
+const DAY_LABEL_ROWS: { index: number; label: string }[] = [
+  { index: 1, label: "MON" },
+  { index: 3, label: "WED" },
+  { index: 5, label: "FRI" },
+];
+
 const MONTH_ABBREVS = [
-  "JAN",
-  "FEB",
-  "MAR",
-  "APR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AUG",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function parseDate(s: string): Date {
-  const y = parseInt(s.slice(0, 4));
-  const m = parseInt(s.slice(4, 6)) - 1;
-  const d = parseInt(s.slice(6, 8));
-  return new Date(y, m, d);
-}
 
 function toDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -89,14 +84,12 @@ function cellColor(tokens: number): string {
   return "var(--accent)";
 }
 
-/** Returns the Sunday on or before the given date */
 function toSunday(d: Date): Date {
   const copy = new Date(d);
   copy.setDate(copy.getDate() - copy.getDay());
   return copy;
 }
 
-/** Build the grid start date: the Sunday ~52 weeks ago */
 function buildStartDate(today: Date): Date {
   const d = new Date(today);
   d.setDate(d.getDate() - 52 * 7);
@@ -106,9 +99,7 @@ function buildStartDate(today: Date): Date {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
-  const [status, setStatus] = useState<"loading" | "error" | "done">(
-    "loading",
-  );
+  const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
   const [tokenMap, setTokenMap] = useState<Map<string, number>>(new Map());
   const [totalTokens, setTotalTokens] = useState(0);
   const [activeDays, setActiveDays] = useState(0);
@@ -157,56 +148,48 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
     };
   }, []);
 
-  // ── Grid geometry ─────────────────────────────────────────────────────────
+  // ── Grid geometry (memoized) ─────────────────────────────────────────────
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startDate = buildStartDate(today);
+  const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = buildStartDate(today);
 
-  // Build weeks: array of 53 arrays of 7 cells
-  type Cell = { date: Date; inFuture: boolean };
-  const weeks: Cell[][] = [];
-  for (let w = 0; w < WEEKS; w++) {
-    const week: Cell[] = [];
-    for (let d = 0; d < DAYS; d++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + w * 7 + d);
-      week.push({ date, inFuture: date > today });
-    }
-    weeks.push(week);
-  }
-
-  // Month labels: find first week where a new month appears
-  type MonthLabel = { weekIndex: number; label: string };
-  const monthLabels: MonthLabel[] = [];
-  let lastMonth = -1;
-  for (let w = 0; w < WEEKS; w++) {
-    const firstDayOfWeek = weeks[w][0].date;
-    const month = firstDayOfWeek.getMonth();
-    if (month !== lastMonth) {
-      // Only add if it's not cut off at the very start (week 0 can be partial)
-      if (w > 0 || firstDayOfWeek.getDate() === 1) {
-        monthLabels.push({
-          weekIndex: w,
-          label: MONTH_ABBREVS[month],
-        });
+    const w: Cell[][] = [];
+    for (let wi = 0; wi < WEEKS; wi++) {
+      const week: Cell[] = [];
+      for (let d = 0; d < DAYS; d++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + wi * 7 + d);
+        week.push({ date, inFuture: date > today });
       }
-      lastMonth = month;
+      w.push(week);
     }
-  }
 
-  // ── Grid dimensions ───────────────────────────────────────────────────────
+    const labels: MonthLabel[] = [];
+    let lastMonth = -1;
+    for (let wi = 0; wi < WEEKS; wi++) {
+      const firstDayOfWeek = w[wi][0].date;
+      const month = firstDayOfWeek.getMonth();
+      if (month !== lastMonth) {
+        if (wi > 0 || firstDayOfWeek.getDate() === 1) {
+          labels.push({ weekIndex: wi, label: MONTH_ABBREVS[month] });
+        }
+        lastMonth = month;
+      }
+    }
 
-  const gridWidth = WEEKS * CELL_STEP - GAP;
-  const gridHeight = DAYS * CELL_STEP - GAP;
+    return {
+      weeks: w,
+      monthLabels: labels,
+      gridWidth: WEEKS * CELL_STEP - GAP,
+      gridHeight: DAYS * CELL_STEP - GAP,
+    };
+  }, []);
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
-  function handleCellMouseEnter(
-    e: React.MouseEvent,
-    cell: Cell,
-    tokens: number,
-  ) {
+  function handleCellMouseEnter(e: React.MouseEvent, cell: Cell, tokens: number) {
     if (cell.inFuture) return;
     const rect = gridRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -220,14 +203,12 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
   }
 
   function handleCellMouseMove(e: React.MouseEvent) {
-    if (!tooltip.visible) return;
-    const rect = gridRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setTooltip((prev) => ({
-      ...prev,
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }));
+    setTooltip((prev) => {
+      if (!prev.visible) return prev;
+      const rect = gridRef.current?.getBoundingClientRect();
+      if (!rect) return prev;
+      return { ...prev, x: e.clientX - rect.left, y: e.clientY - rect.top };
+    });
   }
 
   function handleCellMouseLeave() {
@@ -241,7 +222,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
   if (status === "loading") {
     return (
-      <div className={`${className}`} {...props}>
+      <div className={className} {...props}>
         <span className={monoLabel}>[LOADING...]</span>
       </div>
     );
@@ -249,7 +230,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
   if (status === "error") {
     return (
-      <div className={`${className}`} {...props}>
+      <div className={className} {...props}>
         <span className={monoLabel}>[USAGE DATA UNAVAILABLE]</span>
       </div>
     );
@@ -257,18 +238,8 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const MONTH_LABEL_HEIGHT = 16; // px reserved above the grid for month labels
-  const DAY_LABEL_WIDTH = 28; // px reserved left of the grid for day labels
-
-  // Day labels: only MON (index 1), WED (index 3), FRI (index 5)
-  const DAY_LABEL_ROWS: { index: number; label: string }[] = [
-    { index: 1, label: "MON" },
-    { index: 3, label: "WED" },
-    { index: 5, label: "FRI" },
-  ];
-
   return (
-    <div className={`${className}`} {...props}>
+    <div className={className} {...props}>
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
       <div className="mb-[var(--space-2xl)] flex gap-[var(--space-2xl)]">
         <div>
@@ -290,13 +261,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
       </div>
 
       {/* ── Grid wrapper ─────────────────────────────────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: 0,
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "row" }}>
         {/* Day labels column */}
         <div
           style={{
@@ -352,6 +317,8 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
           {/* Cell grid */}
           <div
             ref={gridRef}
+            role="grid"
+            aria-label="Claude token usage heatmap for the past year"
             style={{
               position: "relative",
               width: gridWidth,
@@ -368,7 +335,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
                 transition={{
                   duration: DURATION.transition,
                   delay: wIdx * LINE_REVEAL_STAGGER,
-                  ease: [0.25, 0.1, 0.25, 1],
+                  ease: EASE_OUT_MOTION,
                 }}
                 style={{
                   position: "absolute",
@@ -381,13 +348,17 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
                 {week.map((cell, dIdx) => {
                   const key = toDateKey(cell.date);
                   const tokens = tokenMap.get(key) ?? 0;
-                  const color = cell.inFuture
-                    ? "transparent"
-                    : cellColor(tokens);
+                  const color = cell.inFuture ? "transparent" : cellColor(tokens);
 
                   return (
                     <div
                       key={dIdx}
+                      role="gridcell"
+                      aria-label={
+                        cell.inFuture
+                          ? undefined
+                          : `${formatDateLabel(cell.date)}: ${tokens > 0 ? `${formatTokens(tokens)} tokens` : "no activity"}`
+                      }
                       style={{
                         position: "absolute",
                         left: 0,
@@ -398,9 +369,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
                         borderRadius: 2,
                         cursor: cell.inFuture ? "default" : "crosshair",
                       }}
-                      onMouseEnter={(e) =>
-                        handleCellMouseEnter(e, cell, tokens)
-                      }
+                      onMouseEnter={(e) => handleCellMouseEnter(e, cell, tokens)}
                     />
                   );
                 })}
