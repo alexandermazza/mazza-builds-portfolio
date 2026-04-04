@@ -27,9 +27,10 @@ export const PLANE_GAP = 5
 export const VELOCITY_DAMPING = 0.12
 export const VELOCITY_MAX = 1.5
 export const VELOCITY_STOP_THRESHOLD = 0.0001
-export const SNAP_VELOCITY_THRESHOLD = 0.001
-export const SNAP_IDLE_DELAY_MS = 150
-export const SNAP_DEADZONE = 0.3
+export const SNAP_VELOCITY_THRESHOLD = 0.02
+export const SNAP_IDLE_DELAY_MS = 50
+export const SNAP_DEADZONE = 0.15
+export const SNAP_SMOOTHING = 0.16
 export const FIRST_PLANE_VIEW_OFFSET = 5
 export const LAST_PLANE_VIEW_OFFSET = 5
 

@@ -17,13 +17,17 @@ export class Engine {
   private onActivePlaneChange: (index: number) => void
   private lastActivePlaneIndex = -1
 
+  private container: HTMLElement
+
   constructor(
     canvas: HTMLCanvasElement,
+    container: HTMLElement,
     projects: GalleryProject[],
     onActivePlaneChange: (index: number) => void,
     reducedMotion: boolean
   ) {
     this.canvas = canvas
+    this.container = container
     this.onActivePlaneChange = onActivePlaneChange
     this.scene = new THREE.Scene()
 
@@ -71,8 +75,8 @@ export class Engine {
     this.scroll.init()
     this.resize()
 
-    // Bind events
-    this.scroll.bindEvents()
+    // Bind scroll events to the container (not window) so rest of page scrolls normally
+    this.scroll.bindEvents(this.container)
     window.addEventListener("resize", this.onResize)
 
     // Notify initial active plane

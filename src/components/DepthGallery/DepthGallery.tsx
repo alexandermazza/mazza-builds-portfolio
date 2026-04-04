@@ -11,6 +11,7 @@ interface DepthGalleryProps {
 }
 
 export function DepthGallery({ projects }: DepthGalleryProps) {
+  const sectionRef = useRef<HTMLElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<Engine | null>(null)
   const overlayTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
@@ -30,11 +31,12 @@ export function DepthGallery({ projects }: DepthGalleryProps) {
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    const section = sectionRef.current
+    if (!canvas || !section) return
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-    const engine = new Engine(canvas, projects, onActivePlaneChange, reducedMotion)
+    const engine = new Engine(canvas, section, projects, onActivePlaneChange, reducedMotion)
     engineRef.current = engine
 
     return () => {
@@ -47,7 +49,7 @@ export function DepthGallery({ projects }: DepthGalleryProps) {
   const activeProject = projects[activePlaneIndex]
 
   return (
-    <section className="relative h-screen w-full overflow-hidden" aria-label="Projects gallery">
+    <section ref={sectionRef} className="relative h-screen w-full overflow-hidden" aria-label="Projects gallery">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"

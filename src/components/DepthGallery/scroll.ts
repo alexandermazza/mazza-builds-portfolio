@@ -10,6 +10,7 @@ import {
   SNAP_VELOCITY_THRESHOLD,
   SNAP_IDLE_DELAY_MS,
   SNAP_DEADZONE,
+  SNAP_SMOOTHING,
   FIRST_PLANE_VIEW_OFFSET,
   LAST_PLANE_VIEW_OFFSET,
 } from "./types"
@@ -18,6 +19,7 @@ export class Scroll {
   private camera: THREE.PerspectiveCamera
   private gallery: Gallery
   private reducedMotion: boolean
+  private container: HTMLElement | null = null
 
   // Scroll state
   private scrollTarget = 0
@@ -87,11 +89,12 @@ export class Scroll {
     this.velocity = 0
   }
 
-  bindEvents() {
-    window.addEventListener("wheel", this.onWheel, { passive: false })
-    window.addEventListener("touchstart", this.onTouchStart, { passive: true })
-    window.addEventListener("touchmove", this.onTouchMove, { passive: false })
-    window.addEventListener("touchend", this.onTouchEnd, { passive: true })
+  bindEvents(container: HTMLElement) {
+    this.container = container
+    container.addEventListener("wheel", this.onWheel, { passive: false })
+    container.addEventListener("touchstart", this.onTouchStart, { passive: true })
+    container.addEventListener("touchmove", this.onTouchMove, { passive: false })
+    container.addEventListener("touchend", this.onTouchEnd, { passive: true })
   }
 
   private normalizeWheelDelta(event: WheelEvent): number {
@@ -193,13 +196,13 @@ export class Scroll {
     this.updateCameraBounds()
 
     if (this.reducedMotion) {
-      // Instant snap: scrollCurrent = scrollTarget
       this.scrollCurrent = this.scrollTarget
     } else {
+      const smoothing = this.isSnapping ? SNAP_SMOOTHING : SCROLL_SMOOTHING
       this.scrollCurrent = THREE.MathUtils.lerp(
         this.scrollCurrent,
         this.scrollTarget,
-        SCROLL_SMOOTHING
+        smoothing
       )
     }
 
@@ -220,9 +223,12 @@ export class Scroll {
   }
 
   dispose() {
-    window.removeEventListener("wheel", this.onWheel)
-    window.removeEventListener("touchstart", this.onTouchStart)
-    window.removeEventListener("touchmove", this.onTouchMove)
-    window.removeEventListener("touchend", this.onTouchEnd)
+    if (this.container) {
+      this.container.removeEventListener("wheel", this.onWheel)
+      this.container.removeEventListener("touchstart", this.onTouchStart)
+      this.container.removeEventListener("touchmove", this.onTouchMove)
+      this.container.removeEventListener("touchend", this.onTouchEnd)
+      this.container = null
+    }
   }
 }
