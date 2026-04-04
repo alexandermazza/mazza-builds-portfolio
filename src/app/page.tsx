@@ -1,4 +1,4 @@
-import { Button, GitHubCard, ProjectCard, StatusBadge, TagChip, UsageCard } from "@/components/ui";
+import { Button, GitHubCard, ProjectCard, StatusBadge, TagChip, TextReveal, UsageCard } from "@/components/ui";
 
 export default function Home() {
   return (
@@ -42,6 +42,20 @@ export default function Home() {
           <TagChip>Claude API</TagChip>
           <TagChip>Tailwind</TagChip>
         </div>
+      </section>
+
+      {/* Text reveal */}
+      <section className="mb-[var(--space-3xl)]">
+        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+          TEXT REVEAL
+        </p>
+        <TextReveal as="h2" className="font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
+          // PROJECTS
+        </TextReveal>
+        <div className="mt-[var(--space-md)]" />
+        <TextReveal as="h3" className="font-sans text-[var(--subheading)] leading-[1.3] text-[var(--text-primary)]">
+          Words reveal one at a time on scroll
+        </TextReveal>
       </section>
 
       {/* Project cards */}

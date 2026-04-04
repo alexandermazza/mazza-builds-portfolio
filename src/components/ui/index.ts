@@ -4,5 +4,6 @@ export { GitHubHeatmap } from "./GitHubHeatmap";
 export { ProjectCard } from "./ProjectCard";
 export { StatusBadge } from "./StatusBadge";
 export { TagChip } from "./TagChip";
+export { TextReveal } from "./TextReveal";
 export { UsageCard } from "./UsageCard";
 export { UsageHeatmap } from "./UsageHeatmap";
