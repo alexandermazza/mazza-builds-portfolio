@@ -1,7 +1,24 @@
 import { type NextRequest } from "next/server";
-import { upsertUsage, type DailyUsage } from "@/lib/db";
+import { upsertUsage, getUsageLast365, type DailyUsage } from "@/lib/db";
 
 export const runtime = "nodejs";
+
+export async function GET() {
+  const data = getUsageLast365();
+
+  const totalTokens = data.reduce((sum, d) => sum + d.total_tokens, 0);
+  const totalCostUsd = data.reduce((sum, d) => sum + d.cost_usd, 0);
+
+  return Response.json({
+    data,
+    meta: {
+      totalTokens,
+      totalCostUsd: Math.round(totalCostUsd * 100) / 100,
+      firstDate: data[0]?.date ?? null,
+      lastDate: data[data.length - 1]?.date ?? null,
+    },
+  });
+}
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
