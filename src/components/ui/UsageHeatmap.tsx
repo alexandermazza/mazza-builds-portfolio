@@ -91,12 +91,13 @@ function toSunday(d: Date): Date {
   return copy;
 }
 
-function buildStartDate(today: Date): { start: Date; weeks: number } {
+function buildGrid(today: Date): { start: Date; end: Date; weeks: number } {
   const jan1 = new Date(today.getFullYear(), 0, 1);
+  const dec31 = new Date(today.getFullYear(), 11, 31);
   const start = toSunday(jan1);
-  const diffMs = today.getTime() - start.getTime();
+  const diffMs = dec31.getTime() - start.getTime();
   const weeks = Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return { start, weeks };
+  return { start, end: dec31, weeks };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -156,7 +157,7 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
   const { weeks, monthLabels, gridWidth, gridHeight, numWeeks } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { start: startDate, weeks: totalWeeks } = buildStartDate(today);
+    const { start: startDate, weeks: totalWeeks } = buildGrid(today);
     WEEKS = totalWeeks;
 
     const w: Cell[][] = [];
