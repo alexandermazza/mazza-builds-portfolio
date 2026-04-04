@@ -18,10 +18,14 @@ export function TickerText({
   const [duration, setDuration] = useState<number>(0);
 
   useEffect(() => {
-    if (!trackRef.current) return;
-    // Measure the width of one set of items (first half of children)
-    const firstHalf = trackRef.current.scrollWidth / 2;
-    setDuration(firstHalf / speed);
+    // Defer measurement to ensure layout is stable (fonts loaded, etc.)
+    const measure = () => {
+      if (!trackRef.current) return;
+      const firstHalf = trackRef.current.scrollWidth / 2;
+      if (firstHalf > 0) setDuration(firstHalf / speed);
+    };
+    const raf = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(raf);
   }, [items, speed]);
 
   const itemElements = items.map((item, i) => (
