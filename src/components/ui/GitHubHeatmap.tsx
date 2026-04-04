@@ -26,8 +26,7 @@ interface TooltipState {
 type Cell = { date: Date; inFuture: boolean };
 type MonthLabel = { weekIndex: number; label: string };
 
-export interface GitHubHeatmapProps
-  extends Omit<ComponentProps<"div">, "children"> {}
+export type GitHubHeatmapProps = Omit<ComponentProps<"div">, "children">;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

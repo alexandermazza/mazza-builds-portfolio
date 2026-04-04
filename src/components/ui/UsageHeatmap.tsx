@@ -32,16 +32,13 @@ interface TooltipState {
 type Cell = { date: Date; inFuture: boolean };
 type MonthLabel = { weekIndex: number; label: string };
 
-export interface UsageHeatmapProps
-  extends Omit<ComponentProps<"div">, "children"> {}
+export type UsageHeatmapProps = Omit<ComponentProps<"div">, "children">;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CELL_SIZE = 10;
 const GAP = 2;
 const CELL_STEP = CELL_SIZE + GAP;
-// Computed dynamically based on Jan 1 → today
-let WEEKS = 53;
 const DAYS = 7;
 
 const MONTH_LABEL_HEIGHT = 16;
@@ -154,11 +151,10 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
 
   // ── Grid geometry (memoized) ─────────────────────────────────────────────
 
-  const { weeks, monthLabels, gridWidth, gridHeight, numWeeks } = useMemo(() => {
+  const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const { start: startDate, weeks: totalWeeks } = buildGrid(today);
-    WEEKS = totalWeeks;
 
     const w: Cell[][] = [];
     for (let wi = 0; wi < totalWeeks; wi++) {
@@ -187,7 +183,6 @@ export function UsageHeatmap({ className = "", ...props }: UsageHeatmapProps) {
     return {
       weeks: w,
       monthLabels: labels,
-      numWeeks: totalWeeks,
       gridWidth: totalWeeks * CELL_STEP - GAP,
       gridHeight: DAYS * CELL_STEP - GAP,
     };

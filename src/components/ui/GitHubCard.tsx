@@ -3,7 +3,7 @@
 import { type ComponentProps } from "react";
 import { GitHubHeatmap } from "./GitHubHeatmap";
 
-interface GitHubCardProps extends Omit<ComponentProps<"section">, "children"> {}
+type GitHubCardProps = Omit<ComponentProps<"section">, "children">;
 
 export function GitHubCard({ className = "", ...props }: GitHubCardProps) {
   const year = new Date().getFullYear();

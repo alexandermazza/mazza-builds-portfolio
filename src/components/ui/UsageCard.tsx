@@ -3,7 +3,7 @@
 import { type ComponentProps } from "react";
 import { UsageHeatmap } from "./UsageHeatmap";
 
-interface UsageCardProps extends Omit<ComponentProps<"section">, "children"> {}
+type UsageCardProps = Omit<ComponentProps<"section">, "children">;
 
 export function UsageCard({ className = "", ...props }: UsageCardProps) {
   const now = new Date();
