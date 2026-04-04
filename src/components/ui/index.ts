@@ -8,5 +8,6 @@ export { SplitTextScatter } from "./SplitTextScatter";
 export { StatusBadge } from "./StatusBadge";
 export { TagChip } from "./TagChip";
 export { TextReveal } from "./TextReveal";
+export { TickerText } from "./TickerText";
 export { UsageCard } from "./UsageCard";
 export { UsageHeatmap } from "./UsageHeatmap";
