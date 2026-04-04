@@ -32,20 +32,30 @@ function getDb(): Database.Database {
   _db.exec(`
     CREATE TABLE IF NOT EXISTS daily_usage (
       date TEXT PRIMARY KEY,
-      input_tokens INTEGER,
-      output_tokens INTEGER,
-      cache_creation_tokens INTEGER,
-      cache_read_tokens INTEGER,
-      total_tokens INTEGER,
-      cost_usd REAL,
-      updated_at TEXT
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_creation_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+      total_tokens INTEGER NOT NULL DEFAULT 0,
+      cost_usd REAL NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
     )
   `);
 
   return _db;
 }
 
+const DATE_RE = /^\d{8}$/;
+
 export function upsertUsage(records: DailyUsage[]): number {
+  if (records.length === 0) return 0;
+
+  for (const r of records) {
+    if (!DATE_RE.test(r.date)) {
+      throw new Error(`Invalid date format: "${r.date}" (expected YYYYMMDD)`);
+    }
+  }
+
   const db = getDb();
 
   const stmt = db.prepare(`
