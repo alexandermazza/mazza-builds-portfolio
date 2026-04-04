@@ -14,10 +14,13 @@ chmod +x "$SYNC_SCRIPT"
 echo "[OK] Made sync-usage.sh executable"
 
 # Check for USAGE_SYNC_SECRET
-if grep -q "USAGE_SYNC_SECRET" ~/.zshrc 2>/dev/null; then
+if [ -n "$USAGE_SYNC_SECRET" ]; then
+  echo "[OK] USAGE_SYNC_SECRET is set in current environment"
+elif grep -q "USAGE_SYNC_SECRET" ~/.zshrc 2>/dev/null; then
   echo "[OK] USAGE_SYNC_SECRET found in ~/.zshrc"
+  echo "     Note: sync-usage.sh sources ~/.zshrc for cron compatibility"
 else
-  echo "[!!] USAGE_SYNC_SECRET not found in ~/.zshrc"
+  echo "[!!] USAGE_SYNC_SECRET not found"
   echo "     Add this line to ~/.zshrc:"
   echo "     export USAGE_SYNC_SECRET=\"$(openssl rand -hex 32)\""
   echo ""
