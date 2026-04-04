@@ -1,5 +1,6 @@
 export { Button } from "./Button";
 export { GitHubCard } from "./GitHubCard";
+export { MagneticFilings } from "./MagneticFilings";
 export { GitHubHeatmap } from "./GitHubHeatmap";
 export { ProjectCard } from "./ProjectCard";
 export { ScrollTextLines } from "./ScrollTextLines";

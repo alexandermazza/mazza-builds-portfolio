@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { projects } from "@/data/projects"
-import { ScrollTextLines, SplitTextScatter } from "@/components/ui"
+import { MagneticFilings, ScrollTextLines, SplitTextScatter } from "@/components/ui"
 
 const DepthGallery = dynamic(
   () =>
@@ -15,6 +15,11 @@ const DepthGallery = dynamic(
 export default function Home() {
   return (
     <main>
+      {/* Magnetic filings hero background */}
+      <section className="relative mb-[var(--space-3xl)]">
+        <MagneticFilings className="h-[80vh]" />
+      </section>
+
       <DepthGallery projects={projects} />
 
       {/* Split text scatter */}
