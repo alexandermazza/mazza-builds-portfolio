@@ -24,7 +24,7 @@ for i in $(seq 90 -1 0); do
   OUTPUT=$((TOKENS * 30 / 100))
   CACHE_CREATE=$((TOKENS * 5 / 100))
   CACHE_READ=$((TOKENS * 5 / 100))
-  COST=$(echo "scale=2; $TOKENS * 0.000003" | bc)
+  COST=$(echo "scale=2; $TOKENS * 0.000003" | bc | sed 's/^\./0./')
 
   if [ "$i" -gt 0 ]; then
     SEP=","
