@@ -14,10 +14,10 @@ function splitIntoLines(text: string): string[] {
   if (text.includes("\n")) {
     return text.split("\n").filter((line) => line.trim().length > 0);
   }
-  // Otherwise split on sentence boundaries (keep the period)
-  const sentences = text.match(/[^.!?]+[.!?]+\s*/g);
-  if (sentences && sentences.length > 1) {
-    return sentences.map((s) => s.trim());
+  // Otherwise split on period-space boundaries only (keeps period with preceding sentence)
+  const sentences = text.split(/(?<=\.)\s+/);
+  if (sentences.length > 1) {
+    return sentences.map((s) => s.trim()).filter(Boolean);
   }
   // Single sentence — return as-is
   return [text];
