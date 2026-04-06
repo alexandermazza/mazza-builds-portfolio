@@ -4,7 +4,6 @@ export function forwardTransition(
   current: HTMLElement,
   next: HTMLElement
 ): gsap.core.Timeline {
-  // Position next page fixed, hidden behind clip-path
   gsap.set(next, {
     clipPath: "inset(100% 0% 0% 0%)",
     position: "fixed",
@@ -18,12 +17,12 @@ export function forwardTransition(
 
   const tl = gsap.timeline();
 
-  // Current page slides up and fades
   tl.to(
     current,
     {
-      y: "-20vh",
-      opacity: 0.5,
+      y: "-30vh",
+      opacity: 0.4,
+      scale: 0.8,
       duration: TRANSITION_DURATION,
       ease: TRANSITION_EASE,
       force3D: true,
@@ -31,7 +30,6 @@ export function forwardTransition(
     0
   );
 
-  // Next page reveals from bottom
   tl.to(
     next,
     {

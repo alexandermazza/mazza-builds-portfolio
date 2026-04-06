@@ -4,10 +4,10 @@ export function backTransition(
   current: HTMLElement,
   next: HTMLElement
 ): gsap.core.Timeline {
-  // Next page starts shifted left, underneath
   gsap.set(next, {
     x: "-30%",
     opacity: 0.7,
+    scale: 0.8,
     position: "fixed",
     top: 0,
     left: 0,
@@ -16,12 +16,10 @@ export function backTransition(
     zIndex: 45,
   });
 
-  // Current page (clone) stays on top
   gsap.set(current, { zIndex: 50 });
 
   const tl = gsap.timeline();
 
-  // Current page slides out to the right
   tl.to(
     current,
     {
@@ -34,12 +32,12 @@ export function backTransition(
     0
   );
 
-  // Next page slides into place
   tl.to(
     next,
     {
       x: "0%",
       opacity: 1,
+      scale: 1,
       duration: TRANSITION_DURATION,
       ease: TRANSITION_EASE,
       force3D: true,

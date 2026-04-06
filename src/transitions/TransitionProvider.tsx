@@ -150,7 +150,7 @@ export function TransitionProvider({
         cloneRef.current = null;
         gsap.set(nextEl, {
           clearProps:
-            "clipPath,position,top,left,width,height,zIndex,opacity,x,y,transform",
+            "clipPath,position,top,left,width,height,zIndex,opacity,x,y,scale,transform",
         });
 
         isTransitioningRef.current = false;

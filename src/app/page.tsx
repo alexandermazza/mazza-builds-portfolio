@@ -87,27 +87,33 @@ export default function Home() {
             PROJECT CARDS
           </p>
           <div className="grid gap-[var(--space-md)]">
-            <ProjectCard
-              issueNumber={1}
-              name="Daily Roman"
-              description="Duolingo-style iOS app for ancient Roman history. Spaced repetition, streak tracking, and bite-sized lessons."
-              tags={["Swift", "SwiftUI", "Core Data"]}
-              status="IN PROGRESS"
-            />
-            <ProjectCard
-              issueNumber={2}
-              name="Shopify App"
-              description="Merchant toolkit for automated product tagging and inventory workflows."
-              tags={["Next.js", "Shopify API", "Prisma"]}
-              status="LIVE"
-            />
-            <ProjectCard
-              issueNumber={3}
-              name="AI Automation Systems"
-              description="Content pipeline using Claude API, HeyGen, and ElevenLabs for automated video production."
-              tags={["Claude API", "HeyGen", "ElevenLabs"]}
-              status="ARCHIVED"
-            />
+            <TransitionLink href="/projects/daily-roman" className="block">
+              <ProjectCard
+                issueNumber={1}
+                name="Daily Roman"
+                description="Duolingo-style iOS app for ancient Roman history. Spaced repetition, streak tracking, and bite-sized lessons."
+                tags={["Swift", "SwiftUI", "Core Data"]}
+                status="IN PROGRESS"
+              />
+            </TransitionLink>
+            <TransitionLink href="/projects/shopify-app" className="block">
+              <ProjectCard
+                issueNumber={2}
+                name="Shopify App"
+                description="Merchant toolkit for automated product tagging and inventory workflows."
+                tags={["Next.js", "Shopify API", "Prisma"]}
+                status="LIVE"
+              />
+            </TransitionLink>
+            <TransitionLink href="/projects/ai-automation" className="block">
+              <ProjectCard
+                issueNumber={3}
+                name="AI Automation Systems"
+                description="Content pipeline using Claude API, HeyGen, and ElevenLabs for automated video production."
+                tags={["Claude API", "HeyGen", "ElevenLabs"]}
+                status="ARCHIVED"
+              />
+            </TransitionLink>
           </div>
         </section>
 
