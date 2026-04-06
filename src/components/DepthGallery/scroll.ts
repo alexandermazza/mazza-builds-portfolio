@@ -56,8 +56,14 @@ export class Scroll {
     this.cameraStartZ = camera.position.z
 
     this.onWheel = (event: WheelEvent) => {
-      event.preventDefault()
       const delta = this.normalizeWheelDelta(event)
+
+      // Release to native scroll when at boundaries
+      const atTop = this.isAtTop() && delta < 0
+      const atBottom = this.isAtBottom() && delta > 0
+      if (atTop || atBottom) return
+
+      event.preventDefault()
       this.addScrollInput(delta)
     }
 
@@ -66,9 +72,18 @@ export class Scroll {
     }
 
     this.onTouchMove = (event: TouchEvent) => {
-      event.preventDefault()
       const currentTouchY = event.touches[0]?.clientY ?? this.touchY
       const deltaY = this.touchY - currentTouchY
+
+      // Release to native scroll when at boundaries
+      const atTop = this.isAtTop() && deltaY < 0
+      const atBottom = this.isAtBottom() && deltaY > 0
+      if (atTop || atBottom) {
+        this.touchY = currentTouchY
+        return
+      }
+
+      event.preventDefault()
       this.addScrollInput(deltaY * 1.8)
       this.touchY = currentTouchY
     }
@@ -95,6 +110,20 @@ export class Scroll {
     container.addEventListener("touchstart", this.onTouchStart, { passive: true })
     container.addEventListener("touchmove", this.onTouchMove, { passive: false })
     container.addEventListener("touchend", this.onTouchEnd, { passive: true })
+  }
+
+  private isAtTop(): boolean {
+    // At the first project (nearest Z) and scroll is settled
+    const threshold = 0.5
+    return this.camera.position.z >= this.maxCameraZ - threshold &&
+      Math.abs(this.velocity) < SNAP_VELOCITY_THRESHOLD
+  }
+
+  private isAtBottom(): boolean {
+    // At the last project (deepest Z) and scroll is settled
+    const threshold = 0.5
+    return this.camera.position.z <= this.minCameraZ + threshold &&
+      Math.abs(this.velocity) < SNAP_VELOCITY_THRESHOLD
   }
 
   private normalizeWheelDelta(event: WheelEvent): number {
