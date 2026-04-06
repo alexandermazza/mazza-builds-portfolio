@@ -1,4 +1,5 @@
 export type ProjectStatus = "LIVE" | "IN PROGRESS" | "ARCHIVED";
+export type DeviceType = "phone" | "laptop";
 
 export interface Project {
   slug: string;
@@ -11,6 +12,8 @@ export interface Project {
   screenshot: string;
   images: string[];
   links: { label: string; url: string }[];
+  deviceType: DeviceType;
+  screenTexture: string;
 }
 
 export const projects: Project[] = [
@@ -34,6 +37,8 @@ export const projects: Project[] = [
       { label: "App Store", url: "#" },
       { label: "Source", url: "#" },
     ],
+    deviceType: "phone",
+    screenTexture: "/projects/daily-roman/screen.png",
   },
   {
     slug: "shopify-app",
@@ -55,6 +60,8 @@ export const projects: Project[] = [
       { label: "Shopify App Store", url: "#" },
       { label: "Source", url: "#" },
     ],
+    deviceType: "laptop",
+    screenTexture: "/projects/shopify-app/screen.png",
   },
   {
     slug: "ai-automation",
@@ -76,6 +83,8 @@ export const projects: Project[] = [
       { label: "Demo", url: "#" },
       { label: "Source", url: "#" },
     ],
+    deviceType: "laptop",
+    screenTexture: "/projects/ai-automation/screen.png",
   },
 ];
 
