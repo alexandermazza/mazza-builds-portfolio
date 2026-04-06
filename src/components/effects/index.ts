@@ -8,3 +8,7 @@ export { ConnectedGrid } from "./ConnectedGrid";
 export { ExpandingMenu } from "./ExpandingMenu";
 export { ProjectShowcase } from "./ProjectShowcase";
 export { OscilloscopeHero } from "./OscilloscopeHero";
+export { SkillBar } from "./SkillBar";
+export { SpecBlock } from "./SpecBlock";
+export { ConnectionLine } from "./ConnectionLine";
+export { DimensionOverlay } from "./DimensionOverlay";
