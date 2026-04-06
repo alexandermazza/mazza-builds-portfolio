@@ -74,6 +74,31 @@ export default function Home() {
           </MagneticWrapper>
         </section>
       </div>
+
+      {/* Attribution */}
+      <footer className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-xl)]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          3D models:{" "}
+          <a
+            href="https://sketchfab.com/3d-models/iphone-17-pro-max-87fc1df741384124a8ce0226d2b2058d"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            iPhone 17 Pro Max
+          </a>{" "}
+          by MajdyModels,{" "}
+          <a
+            href="https://sketchfab.com/3d-models/macbook-pro-m3-16-inch-2024-8e34fc2b303144f78490007d91ff57c4"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            MacBook Pro M3
+          </a>{" "}
+          by jackbaeten — CC-BY-4.0
+        </p>
+      </footer>
     </main>
   );
 }
