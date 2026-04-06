@@ -75,7 +75,7 @@ export class Engine {
     this.scroll.init()
     this.resize()
 
-    // Bind scroll events to the container (not window) so rest of page scrolls normally
+    // Give scroll the section ref so it can read scroll progress from getBoundingClientRect
     this.scroll.bindEvents(this.container)
     window.addEventListener("resize", this.onResize)
 
