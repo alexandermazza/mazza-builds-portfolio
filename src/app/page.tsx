@@ -2,11 +2,11 @@ import {
   Button,
   GitHubCard,
   ScrollTextLines,
+  SplitTextScatter,
   TickerText,
   UsageCard,
 } from "@/components/ui";
 import {
-  OscilloscopeHero,
   ScrollLetterAnimation,
   ScrollGridAnimation,
   MagneticWrapper,
@@ -18,11 +18,16 @@ import { projects } from "@/data/projects";
 export default function Home() {
   return (
     <main>
-      {/* Hero — scroll-pinned oscilloscope */}
-      <OscilloscopeHero text="MAZZA BUILDS" />
-
-      {/* Subtitle — constrained */}
+      {/* Hero — constrained */}
       <div className="mx-auto max-w-[960px] px-[var(--space-lg)] pt-[var(--space-4xl)]">
+        <section className="mb-[var(--space-3xl)]">
+          <SplitTextScatter
+            text="MAZZA BUILDS"
+            className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
+          />
+        </section>
+
+        {/* Subtitle */}
         <section className="mb-[var(--space-2xl)]">
           <ScrollLetterAnimation
             as="h2"
