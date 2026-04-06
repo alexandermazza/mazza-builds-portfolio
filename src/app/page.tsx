@@ -1,22 +1,8 @@
-"use client"
-
-import dynamic from "next/dynamic"
-import { projects } from "@/data/projects"
 import { Button, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
-
-const DepthGallery = dynamic(
-  () =>
-    import("@/components/DepthGallery/DepthGallery").then((mod) => ({
-      default: mod.DepthGallery,
-    })),
-  { ssr: false }
-)
 
 export default function Home() {
   return (
     <main>
-      <DepthGallery projects={projects} />
-
       {/* Split text scatter */}
       <section className="mb-[var(--space-3xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
