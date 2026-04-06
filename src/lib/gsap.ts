@@ -1,4 +1,12 @@
-export { default as gsap } from "gsap";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin);
+}
+
+export { gsap, ScrollTrigger };
 
 /** Closer to the Codrops demo custom curve — dramatic in-out */
 export const TRANSITION_EASE = "power2.inOut";
