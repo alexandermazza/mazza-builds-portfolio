@@ -5,6 +5,7 @@ import {
   SkillBar,
   ConnectionLine,
   DimensionOverlay,
+  AnimatedRule,
 } from "@/components/effects";
 
 const skillGroups = [
@@ -63,11 +64,8 @@ export default function AboutPage() {
       </section>
 
       {/* Header rule with revision */}
-      <section className="mb-[var(--space-3xl)] flex items-center gap-[var(--space-md)]">
-        <div className="h-px flex-1 bg-[var(--border-visible)]" />
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-          REV 01 - 2026
-        </span>
+      <section className="mb-[var(--space-3xl)]">
+        <AnimatedRule />
       </section>
 
       {/* Bio / Identity Spec */}

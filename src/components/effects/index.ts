@@ -12,3 +12,4 @@ export { SkillBar } from "./SkillBar";
 export { SpecBlock } from "./SpecBlock";
 export { ConnectionLine } from "./ConnectionLine";
 export { DimensionOverlay } from "./DimensionOverlay";
+export { AnimatedRule } from "./AnimatedRule";

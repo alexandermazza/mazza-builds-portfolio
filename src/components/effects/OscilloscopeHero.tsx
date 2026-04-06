@@ -214,15 +214,21 @@ export function OscilloscopeHero({
             points[i].x = states.flat[i].x;
             points[i].y = states.flat[i].y;
           } else if (p < 0.45) {
-            // Phase 2: flat -> wave
-            const t = (p - 0.15) / 0.3;
-            points[i].x = states.flat[i].x + (states.wave[i].x - states.flat[i].x) * t;
-            points[i].y = states.flat[i].y + (states.wave[i].y - states.flat[i].y) * t;
+            // Phase 2: flat -> wave (progressive frequency/amplitude increase)
+            const t = (p - 0.15) / 0.3; // 0..1 through phase 2
+            const freq = 2 + t * 6; // frequency ramps from 2 to 8
+            const amp = t * 0.15; // amplitude ramps from 0 to 0.15
+            const xNorm = i / (points.length - 1);
+            points[i].x = xNorm;
+            points[i].y = 0.5 + Math.sin(xNorm * Math.PI * 2 * freq) * amp;
           } else if (p < 0.75) {
-            // Phase 3: wave -> text
+            // Phase 3: wave -> text (interpolates from fully developed wave)
             const t = (p - 0.45) / 0.3;
-            points[i].x = states.wave[i].x + (states.text[i].x - states.wave[i].x) * t;
-            points[i].y = states.wave[i].y + (states.text[i].y - states.wave[i].y) * t;
+            const xNorm = i / (points.length - 1);
+            // Start from fully developed wave (freq=8, amp=0.15)
+            const waveY = 0.5 + Math.sin(xNorm * Math.PI * 2 * 8) * 0.15;
+            points[i].x = xNorm + (states.text[i].x - xNorm) * t;
+            points[i].y = waveY + (states.text[i].y - waveY) * t;
           } else {
             // Phase 4: hold at text
             points[i].x = states.text[i].x;
