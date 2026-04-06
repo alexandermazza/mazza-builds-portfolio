@@ -114,11 +114,15 @@ export function TransitionProvider({
     registerTransitions(forwardTransition, backTransition);
   }, []);
 
-  // Detect reduced motion preference
+  // Detect reduced motion preference (reactive)
   useEffect(() => {
-    reducedMotionRef.current = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reducedMotionRef.current = mql.matches;
+    const handler = (e: MediaQueryListEvent) => {
+      reducedMotionRef.current = e.matches;
+    };
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
   }, []);
 
   // ── Transition runner ──────────────────────────────────
@@ -130,32 +134,35 @@ export function TransitionProvider({
       prevPath: string,
       nextPath: string
     ) => {
-      const transitionFn = getTransition(
-        prevPath,
-        nextPath,
-        isPopStateRef.current
-      );
-      await waitForImages(nextEl);
+      try {
+        const transitionFn = getTransition(
+          prevPath,
+          nextPath,
+          isPopStateRef.current
+        );
+        await waitForImages(nextEl);
 
-      const tl = transitionFn(clone, nextEl);
-      await tl.then();
+        const tl = transitionFn(clone, nextEl);
+        await tl.then();
+      } finally {
+        // Cleanup always runs, even if GSAP throws
+        clone.remove();
+        cloneRef.current = null;
+        gsap.set(nextEl, {
+          clearProps:
+            "clipPath,position,top,left,width,height,zIndex,opacity,x,y,transform",
+        });
 
-      // Cleanup
-      clone.remove();
-      cloneRef.current = null;
-      gsap.set(nextEl, {
-        clearProps:
-          "clipPath,position,top,left,width,height,zIndex,opacity,x,y,transform",
-      });
+        isTransitioningRef.current = false;
+        isPopStateRef.current = false;
+        setIsTransitioning(false);
+        previousPathRef.current = nextPath;
+        pendingHrefRef.current = null;
+        document.body.style.overflow = "";
 
-      isTransitioningRef.current = false;
-      isPopStateRef.current = false;
-      setIsTransitioning(false);
-      previousPathRef.current = nextPath;
-      pendingHrefRef.current = null;
-      document.body.style.overflow = "";
+        window.scrollTo(0, 0);
+      }
 
-      window.scrollTo(0, 0);
       enterAnimation(nextEl);
     },
     []
@@ -193,6 +200,12 @@ export function TransitionProvider({
       const currentEl = containerRef.current;
       if (currentEl) {
         cloneRef.current = cloneCurrentPage(currentEl);
+      } else {
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        document.body.style.overflow = "";
+        router.push(href);
+        return;
       }
 
       router.push(href, { scroll: false });
@@ -232,6 +245,11 @@ export function TransitionProvider({
       const currentEl = containerRef.current;
       if (currentEl) {
         cloneRef.current = cloneCurrentPage(currentEl);
+      } else {
+        isPopStateRef.current = false;
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        document.body.style.overflow = "";
       }
     };
 
