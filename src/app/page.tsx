@@ -1,138 +1,96 @@
-import { Button, GitHubCard, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
-import { TransitionLink } from "@/transitions";
+import {
+  Button,
+  GitHubCard,
+  ProjectCard,
+  ScrollTextLines,
+  SplitTextScatter,
+  TickerText,
+  UsageCard,
+} from "@/components/ui";
+import {
+  ScrollLetterAnimation,
+  ScrollGridAnimation,
+  MagneticWrapper,
+  LinkHover,
+} from "@/components/effects";
+import { projects } from "@/data/projects";
 
 export default function Home() {
+  const featured = projects.slice(0, 3);
+
   return (
     <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
-      <TransitionLink
-        href="/about"
-        className="mb-[var(--space-2xl)] inline-block font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--accent)] hover:brightness-110"
-      >
-        Go to About →
-      </TransitionLink>
-
-      {/* Split text scatter */}
+      {/* Hero */}
       <section className="mb-[var(--space-3xl)]">
-        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-          SPLIT TEXT SCATTER
-        </p>
         <SplitTextScatter
           text="MAZZA BUILDS"
           className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
         />
       </section>
 
-      {/* Ticker text */}
+      {/* Subtitle */}
+      <section className="mb-[var(--space-2xl)]">
+        <ScrollLetterAnimation
+          as="h2"
+          className="font-sans text-[clamp(18px,3vw,24px)] leading-[1.3] tracking-[-0.01em] text-[var(--text-secondary)]"
+        >
+          Solo indie developer
+        </ScrollLetterAnimation>
+      </section>
+
+      {/* Ticker */}
       <section className="-mx-[var(--space-lg)] mb-[var(--space-3xl)]">
         <TickerText
           items={["IOS APPS", "SHOPIFY TOOLS", "AI PIPELINES", "VIDEO AUTOMATION", "WEB APPS", "CONTENT SYSTEMS"]}
         />
       </section>
 
-      {/* Scroll text lines */}
-      <section className="mb-[var(--space-3xl)]">
-        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-          SCROLL TEXT LINES
-        </p>
+      {/* Intro */}
+      <section className="mb-[var(--space-4xl)]">
         <ScrollTextLines className="max-w-[480px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
           I&apos;m Alex Mazza, a solo indie developer who builds things from concept to production. I care about clean interfaces, thoughtful systems, and shipping work that holds up.
         </ScrollTextLines>
       </section>
 
-      {/* Component showcase */}
-      <div>
-        <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-          DESIGN SYSTEM PREVIEW
-        </p>
-
-        {/* Buttons */}
-        <section className="mb-[var(--space-3xl)]">
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            BUTTONS
-          </p>
-          <div className="flex items-center gap-[var(--space-lg)]">
-            <Button>Get in touch</Button>
-            <Button variant="ghost">View source</Button>
-          </div>
-        </section>
-
-        {/* Status badges */}
-        <section className="mb-[var(--space-3xl)]">
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            STATUS BADGES
-          </p>
-          <div className="flex items-center gap-[var(--space-md)]">
-            <StatusBadge status="LIVE" />
-            <StatusBadge status="IN PROGRESS" />
-            <StatusBadge status="ARCHIVED" />
-          </div>
-        </section>
-
-        {/* Tag chips */}
-        <section className="mb-[var(--space-3xl)]">
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            TAG CHIPS
-          </p>
-          <div className="flex flex-wrap gap-[var(--space-sm)]">
-            <TagChip>Next.js</TagChip>
-            <TagChip>Swift</TagChip>
-            <TagChip>Claude API</TagChip>
-            <TagChip>Tailwind</TagChip>
-          </div>
-        </section>
-
-        {/* Project cards */}
-        <section className="mb-[var(--space-3xl)]">
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            PROJECT CARDS
-          </p>
-          <div className="grid gap-[var(--space-md)]">
-            <TransitionLink href="/projects/daily-roman" className="block">
+      {/* Featured Projects */}
+      <section className="mb-[var(--space-4xl)]">
+        <ScrollLetterAnimation
+          as="h2"
+          className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
+        >
+          FEATURED PROJECTS
+        </ScrollLetterAnimation>
+        <ScrollGridAnimation className="grid gap-[var(--space-md)]">
+          {featured.map((project) => (
+            <LinkHover key={project.slug} href={`/projects/${project.slug}`} className="block no-underline">
               <ProjectCard
-                issueNumber={1}
-                name="Daily Roman"
-                description="Duolingo-style iOS app for ancient Roman history. Spaced repetition, streak tracking, and bite-sized lessons."
-                tags={["Swift", "SwiftUI", "Core Data"]}
-                status="IN PROGRESS"
+                issueNumber={project.issueNumber}
+                name={project.name}
+                description={project.description}
+                tags={project.tags}
+                status={project.status}
               />
-            </TransitionLink>
-            <TransitionLink href="/projects/shopify-app" className="block">
-              <ProjectCard
-                issueNumber={2}
-                name="Shopify App"
-                description="Merchant toolkit for automated product tagging and inventory workflows."
-                tags={["Next.js", "Shopify API", "Prisma"]}
-                status="LIVE"
-              />
-            </TransitionLink>
-            <TransitionLink href="/projects/ai-automation" className="block">
-              <ProjectCard
-                issueNumber={3}
-                name="AI Automation Systems"
-                description="Content pipeline using Claude API, HeyGen, and ElevenLabs for automated video production."
-                tags={["Claude API", "HeyGen", "ElevenLabs"]}
-                status="ARCHIVED"
-              />
-            </TransitionLink>
-          </div>
-        </section>
+            </LinkHover>
+          ))}
+        </ScrollGridAnimation>
+      </section>
 
-        {/* Usage heatmap */}
-        <section className="mb-[var(--space-3xl)]">
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            USAGE HEATMAP
-          </p>
+      {/* Activity */}
+      <section className="mb-[var(--space-4xl)]">
+        <ScrollGridAnimation className="grid gap-[var(--space-lg)]" stagger={0.15}>
           <UsageCard />
-        </section>
-
-        {/* GitHub contributions */}
-        <section>
-          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-            GITHUB CONTRIBUTIONS
-          </p>
           <GitHubCard />
-        </section>
-      </div>
+        </ScrollGridAnimation>
+      </section>
+
+      {/* CTA */}
+      <section className="flex justify-center">
+        <MagneticWrapper>
+          <LinkHover href="/contact" className="no-underline">
+            <Button>Get in touch</Button>
+          </LinkHover>
+        </MagneticWrapper>
+      </section>
     </main>
-  )
+  );
 }
