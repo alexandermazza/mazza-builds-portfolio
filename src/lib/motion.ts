@@ -42,3 +42,18 @@ export const DURATION = {
   micro: 0.15,
   transition: 0.3,
 } as const;
+
+/** Per-character stagger for ScrollLetterAnimation */
+export const LETTER_ANIMATION_STAGGER = 0.03;
+
+/** Per-item stagger for ScrollGridAnimation */
+export const GRID_ITEM_STAGGER = 0.1;
+
+/** Default magnetic pull strength (0-1) */
+export const MAGNETIC_STRENGTH = 0.4;
+
+/** Default magnetic activation radius in px */
+export const MAGNETIC_RADIUS = 150;
+
+/** Menu item stagger for ExpandingMenu */
+export const MENU_ITEM_STAGGER = 0.08;
