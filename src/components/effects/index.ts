@@ -5,3 +5,5 @@ export { ScrollGridAnimation } from "./ScrollGridAnimation";
 export { MagneticWrapper } from "./MagneticWrapper";
 export { ScrollVelocityOffset } from "./ScrollVelocityOffset";
 export { CrosshairCursor } from "./CrosshairCursor";
+export { ConnectedGrid } from "./ConnectedGrid";
+export { ExpandingMenu } from "./ExpandingMenu";
