@@ -49,7 +49,16 @@ export default function AboutPage() {
   let barIndex = 0;
 
   return (
-    <main className="relative mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+    <main
+      className="blueprint relative min-h-screen px-[var(--space-lg)] py-[var(--space-4xl)]"
+      style={{
+        backgroundColor: "var(--surface)",
+        backgroundImage:
+          "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+        backgroundSize: "var(--space-lg) var(--space-lg)",
+      }}
+    >
+      <div className="relative mx-auto max-w-[960px]">
       {/* Full-page dimension overlay */}
       <DimensionOverlay />
 
@@ -145,6 +154,7 @@ export default function AboutPage() {
           END OF SPEC
         </span>
       </section>
+      </div>
     </main>
   );
 }

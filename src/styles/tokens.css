@@ -89,6 +89,22 @@
   }
 }
 
+/* ───────────────────────────────────────────
+   Blueprint mode (about page)
+   Deep navy with light-blue technical elements
+   ─────────────────────────────────────────── */
+.blueprint {
+  --black: #0a1628;
+  --surface: #0d1b2a;
+  --surface-raised: #132238;
+  --border: #1e3a5f;
+  --border-visible: #2c5282;
+  --text-disabled: #475569;
+  --text-secondary: #64748b;
+  --text-primary: #94a3b8;
+  --text-display: #e2e8f0;
+}
+
 /* Light mode via class toggle */
 .light {
   --black: #F5F5F5;
