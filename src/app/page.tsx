@@ -1,8 +1,16 @@
 import { Button, GitHubCard, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
+import { TransitionLink } from "@/transitions";
 
 export default function Home() {
   return (
     <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+      <TransitionLink
+        href="/about"
+        className="mb-[var(--space-2xl)] inline-block font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--accent)] hover:brightness-110"
+      >
+        Go to About →
+      </TransitionLink>
+
       {/* Split text scatter */}
       <section className="mb-[var(--space-3xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
