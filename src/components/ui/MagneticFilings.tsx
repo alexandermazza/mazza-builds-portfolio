@@ -135,12 +135,12 @@ export function MagneticFilings({ className = "", ...props }: MagneticFilingsPro
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
+      className={`relative ${className}`}
       {...props}
     >
       {totalFilings > 0 && (
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${grid.cols}, ${CELL_SPACING}px)`,

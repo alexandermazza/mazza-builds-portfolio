@@ -16,7 +16,7 @@ export function UsageCard({ className = "", ...props }: UsageCardProps) {
 
   return (
     <section
-      className={`border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
+      className={`overflow-x-auto border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
       style={{ borderRadius: "var(--radius-card)" }}
       {...props}
     >

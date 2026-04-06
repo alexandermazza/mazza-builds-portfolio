@@ -1,8 +1,8 @@
-import { Button, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
+import { Button, GitHubCard, ProjectCard, ScrollTextLines, SplitTextScatter, StatusBadge, TagChip, TickerText, UsageCard } from "@/components/ui"
 
 export default function Home() {
   return (
-    <main>
+    <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
       {/* Split text scatter */}
       <section className="mb-[var(--space-3xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
@@ -11,6 +11,13 @@ export default function Home() {
         <SplitTextScatter
           text="MAZZA BUILDS"
           className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
+        />
+      </section>
+
+      {/* Ticker text */}
+      <section className="-mx-[var(--space-lg)] mb-[var(--space-3xl)]">
+        <TickerText
+          items={["IOS APPS", "SHOPIFY TOOLS", "AI PIPELINES", "VIDEO AUTOMATION", "WEB APPS", "CONTENT SYSTEMS"]}
         />
       </section>
 
@@ -24,18 +31,8 @@ export default function Home() {
         </ScrollTextLines>
       </section>
 
-      {/* Ticker text */}
-      <section className="mb-[var(--space-3xl)]">
-        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-          TICKER TEXT
-        </p>
-        <TickerText
-          items={["IOS APPS", "SHOPIFY TOOLS", "AI PIPELINES", "VIDEO AUTOMATION", "WEB APPS", "CONTENT SYSTEMS"]}
-        />
-      </section>
-
       {/* Component showcase */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+      <div>
         <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           DESIGN SYSTEM PREVIEW
         </p>
@@ -107,11 +104,19 @@ export default function Home() {
         </section>
 
         {/* Usage heatmap */}
-        <section>
+        <section className="mb-[var(--space-3xl)]">
           <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
             USAGE HEATMAP
           </p>
           <UsageCard />
+        </section>
+
+        {/* GitHub contributions */}
+        <section>
+          <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+            GITHUB CONTRIBUTIONS
+          </p>
+          <GitHubCard />
         </section>
       </div>
     </main>

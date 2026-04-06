@@ -1,0 +1,104 @@
+/*
+ * Mazza Builds — Design Tokens
+ * Based on the Nothing design system with one departure:
+ * --accent: #FF6B35 (orange) replaces Nothing's #D71921 (red)
+ *
+ * Fonts: Doto (display), Space Grotesk (body/UI), Space Mono (data/labels)
+ */
+
+/* ───────────────────────────────────────────
+   Dark mode (default)
+   ─────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --black: #000000;
+  --surface: #111111;
+  --surface-raised: #1A1A1A;
+
+  /* Borders */
+  --border: #222222;
+  --border-visible: #333333;
+
+  /* Text hierarchy */
+  --text-disabled: #666666;
+  --text-secondary: #999999;
+  --text-primary: #E8E8E8;
+  --text-display: #FFFFFF;
+
+  /* Accent — Mazza Builds orange (ONE element per section max) */
+  --accent: #FF6B35;
+  --accent-subtle: rgba(255, 107, 53, 0.15);
+
+  /* Status */
+  --success: #4A9E5C;
+  --warning: #D4A843;
+  --error: #D71921;
+  --info: #999999;
+  --interactive: #5B9BF6;
+
+  /* Spacing (8px base) */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+
+  /* Typography scale */
+  --display-xl: 72px;
+  --display-lg: 48px;
+  --display-md: 36px;
+  --heading: 24px;
+  --subheading: 18px;
+  --body: 16px;
+  --body-sm: 14px;
+  --caption: 12px;
+  --label: 11px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration-micro: 150ms;
+  --duration-transition: 300ms;
+
+  /* Radii */
+  --radius-technical: 4px;
+  --radius-compact: 8px;
+  --radius-card: 12px;
+  --radius-card-lg: 16px;
+  --radius-pill: 999px;
+}
+
+/* ───────────────────────────────────────────
+   Light mode
+   ─────────────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --black: #F5F5F5;
+    --surface: #FFFFFF;
+    --surface-raised: #F0F0F0;
+    --border: #E8E8E8;
+    --border-visible: #CCCCCC;
+    --text-disabled: #999999;
+    --text-secondary: #666666;
+    --text-primary: #1A1A1A;
+    --text-display: #000000;
+    --interactive: #007AFF;
+  }
+}
+
+/* Light mode via class toggle */
+.light {
+  --black: #F5F5F5;
+  --surface: #FFFFFF;
+  --surface-raised: #F0F0F0;
+  --border: #E8E8E8;
+  --border-visible: #CCCCCC;
+  --text-disabled: #999999;
+  --text-secondary: #666666;
+  --text-primary: #1A1A1A;
+  --text-display: #000000;
+  --interactive: #007AFF;
+}
