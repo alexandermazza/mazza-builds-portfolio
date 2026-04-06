@@ -43,3 +43,7 @@ next-env.d.ts
 
 # local database
 /data/
+
+# raw GLTF source models (converted to GLB in public/models/)
+iphone_17_pro_max/
+macbook_pro_m3_16_inch_2024/
