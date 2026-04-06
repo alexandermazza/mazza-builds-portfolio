@@ -99,6 +99,9 @@ export class Scroll {
   private trySnap() {
     if (this.isSnapping || !this.section) return
 
+    // Don't snap when user is scrolling out of the section
+    if (this.currentProgress <= 0.01 || this.currentProgress >= 0.99) return
+
     const planeCount = this.gallery.getPlaneCount()
     if (planeCount === 0) return
 
