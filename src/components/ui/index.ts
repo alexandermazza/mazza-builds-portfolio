@@ -1,4 +1,7 @@
 export { Button } from "./Button";
+export { FormStatus } from "./FormStatus";
+export { Input } from "./Input";
+export { Textarea } from "./Textarea";
 export { GitHubCard } from "./GitHubCard";
 export { MagneticFilings } from "./MagneticFilings";
 export { GitHubHeatmap } from "./GitHubHeatmap";
