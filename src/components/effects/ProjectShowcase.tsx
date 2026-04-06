@@ -18,6 +18,19 @@ import {
 import { TransitionLink } from "@/transitions";
 import type { Project } from "@/data/projects";
 
+/** Split text into lines on sentence boundaries for masked reveal */
+function splitIntoLines(text: string): string[] {
+  if (text.includes("\n")) {
+    return text.split("\n").filter((line) => line.trim().length > 0);
+  }
+  const sentences = text
+    .split(/\.\s+/)
+    .map((s, i, arr) => (i < arr.length - 1 ? s + "." : s))
+    .filter(Boolean);
+  if (sentences.length > 1) return sentences;
+  return [text];
+}
+
 interface ProjectShowcaseProps {
   projects: Project[];
   className?: string;
@@ -186,35 +199,94 @@ export function ProjectShowcase({
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeProject.slug}
-                initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={prefersReduced ? { opacity: 1 } : { opacity: 0, y: -8 }}
+                initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
                 transition={{
-                  duration: prefersReduced ? 0 : DURATION.transition,
+                  duration: prefersReduced ? 0 : DURATION.micro,
                   ease: EASE_OUT_MOTION,
                 }}
                 className="max-w-[480px]"
               >
-                <div className="mb-[var(--space-lg)]">
+                {/* Status badge — fade up */}
+                <motion.div
+                  className="mb-[var(--space-lg)]"
+                  initial={prefersReduced ? {} : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: prefersReduced ? 0 : DURATION.transition,
+                    ease: EASE_OUT_MOTION,
+                    delay: prefersReduced ? 0 : 0.05,
+                  }}
+                >
                   <StatusBadge status={activeProject.status} />
-                </div>
+                </motion.div>
 
-                <p className="mb-[var(--space-lg)] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                  {activeProject.description}
-                </p>
-
-                <div className="mb-[var(--space-2xl)] flex flex-wrap gap-[var(--space-sm)]">
-                  {activeProject.tags.map((tag) => (
-                    <TagChip key={tag}>{tag}</TagChip>
+                {/* Description — masked line split reveal */}
+                <div className="mb-[var(--space-lg)] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                  {splitIntoLines(activeProject.description).map((line, i) => (
+                    <span
+                      key={`${activeProject.slug}-line-${i}`}
+                      style={{ display: "block", overflow: "hidden" }}
+                    >
+                      <motion.span
+                        style={{ display: "block" }}
+                        initial={prefersReduced ? {} : { y: "120%" }}
+                        animate={{ y: 0 }}
+                        transition={{
+                          duration: prefersReduced ? 0 : 0.5,
+                          ease: EASE_OUT_MOTION,
+                          delay: prefersReduced ? 0 : 0.1 + i * 0.1,
+                        }}
+                      >
+                        {line}
+                      </motion.span>
+                    </span>
                   ))}
                 </div>
 
-                <LinkHover
-                  href={`/projects/${activeProject.slug}`}
-                  className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]"
+                {/* Tags — staggered fade up */}
+                <div className="mb-[var(--space-2xl)] flex flex-wrap gap-[var(--space-sm)]">
+                  {activeProject.tags.map((tag, i) => (
+                    <motion.div
+                      key={tag}
+                      initial={prefersReduced ? {} : { opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: prefersReduced ? 0 : DURATION.transition,
+                        ease: EASE_OUT_MOTION,
+                        delay: prefersReduced
+                          ? 0
+                          : 0.1 + splitIntoLines(activeProject.description).length * 0.1 + i * 0.05,
+                      }}
+                    >
+                      <TagChip>{tag}</TagChip>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* View link — fade up after tags */}
+                <motion.div
+                  initial={prefersReduced ? {} : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: prefersReduced ? 0 : DURATION.transition,
+                    ease: EASE_OUT_MOTION,
+                    delay: prefersReduced
+                      ? 0
+                      : 0.1
+                        + splitIntoLines(activeProject.description).length * 0.1
+                        + activeProject.tags.length * 0.05
+                        + 0.05,
+                  }}
                 >
-                  View project →
-                </LinkHover>
+                  <LinkHover
+                    href={`/projects/${activeProject.slug}`}
+                    className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]"
+                  >
+                    View project →
+                  </LinkHover>
+                </motion.div>
               </motion.div>
             </AnimatePresence>
           </div>
