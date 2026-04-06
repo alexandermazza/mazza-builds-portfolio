@@ -43,12 +43,36 @@ function lerpColor(
   return `rgb(${r},${g},${b})`;
 }
 
-// --text-disabled: #666 = [102,102,102]
-// --text-primary: #E8E8E8 = [232,232,232]
-// --text-display: #FFF = [255,255,255]
-const COLOR_DISABLED: [number, number, number] = [102, 102, 102];
-const COLOR_PRIMARY: [number, number, number] = [232, 232, 232];
-const COLOR_DISPLAY: [number, number, number] = [255, 255, 255];
+/**
+ * Parse a CSS color value (hex, rgb, etc.) into an [r, g, b] tuple.
+ */
+function parseColor(css: string): [number, number, number] {
+  const ctx = document.createElement("canvas").getContext("2d")!;
+  ctx.fillStyle = css;
+  // ctx.fillStyle normalizes to hex
+  const hex = ctx.fillStyle;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b];
+}
+
+/**
+ * Read color tokens from CSS custom properties at runtime
+ * so the canvas renders correctly in both dark and light mode.
+ */
+function getColorTokens(): {
+  disabled: [number, number, number];
+  primary: [number, number, number];
+  display: [number, number, number];
+} {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    disabled: parseColor(style.getPropertyValue("--text-disabled").trim() || "#666666"),
+    primary: parseColor(style.getPropertyValue("--text-primary").trim() || "#E8E8E8"),
+    display: parseColor(style.getPropertyValue("--text-display").trim() || "#FFFFFF"),
+  };
+}
 
 export function OscilloscopeHero({
   text = "MAZZA BUILDS",
@@ -60,6 +84,7 @@ export function OscilloscopeHero({
   const h1Ref = useRef<HTMLHeadingElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  const colorsRef = useRef<ReturnType<typeof getColorTokens> | null>(null);
   const pointsRef = useRef<Point[]>([]);
   const statesRef = useRef<{
     flat: Point[];
@@ -70,9 +95,10 @@ export function OscilloscopeHero({
   const [ready, setReady] = useState(false);
   const [prefersReduced, setPrefersReduced] = useState(false);
 
-  // Check reduced motion
+  // Check reduced motion + read color tokens
   useEffect(() => {
     setPrefersReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    colorsRef.current = getColorTokens();
   }, []);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -115,21 +141,27 @@ export function OscilloscopeHero({
     const h = rect.height;
     const progress = progressRef.current;
     const points = pointsRef.current;
+    const colors = colorsRef.current;
 
     ctx.clearRect(0, 0, w, h);
+
+    // Fallback colors if tokens haven't loaded yet
+    const colorDisabled = colors?.disabled ?? [102, 102, 102];
+    const colorPrimary = colors?.primary ?? [232, 232, 232];
+    const colorDisplay = colors?.display ?? [255, 255, 255];
 
     // Determine line color based on progress
     let color: string;
     if (progress < 0.15) {
-      color = lerpColor(COLOR_DISABLED, COLOR_DISABLED, 0);
+      color = lerpColor(colorDisabled, colorDisabled, 0);
     } else if (progress < 0.45) {
       const t = (progress - 0.15) / 0.3;
-      color = lerpColor(COLOR_DISABLED, COLOR_PRIMARY, t);
+      color = lerpColor(colorDisabled, colorPrimary, t);
     } else if (progress < 0.75) {
       const t = (progress - 0.45) / 0.3;
-      color = lerpColor(COLOR_PRIMARY, COLOR_DISPLAY, t);
+      color = lerpColor(colorPrimary, colorDisplay, t);
     } else {
-      color = lerpColor(COLOR_DISPLAY, COLOR_DISPLAY, 0);
+      color = lerpColor(colorDisplay, colorDisplay, 0);
     }
 
     // Draw polyline
