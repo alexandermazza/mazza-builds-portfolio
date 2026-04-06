@@ -161,9 +161,8 @@ export function TransitionProvider({
         document.body.style.overflow = "";
 
         window.scrollTo(0, 0);
+        enterAnimation(nextEl);
       }
-
-      enterAnimation(nextEl);
     },
     []
   );
@@ -209,6 +208,19 @@ export function TransitionProvider({
       }
 
       router.push(href, { scroll: false });
+
+      // Safety: if transition doesn't complete within 5s, force cleanup
+      setTimeout(() => {
+        if (isTransitioningRef.current) {
+          cloneRef.current?.remove();
+          cloneRef.current = null;
+          isTransitioningRef.current = false;
+          isPopStateRef.current = false;
+          setIsTransitioning(false);
+          pendingHrefRef.current = null;
+          document.body.style.overflow = "";
+        }
+      }, 5000);
     },
     [router]
   );
@@ -245,6 +257,18 @@ export function TransitionProvider({
       const currentEl = containerRef.current;
       if (currentEl) {
         cloneRef.current = cloneCurrentPage(currentEl);
+
+        // Safety: if transition doesn't complete within 5s, force cleanup
+        setTimeout(() => {
+          if (isTransitioningRef.current && cloneRef.current) {
+            cloneRef.current.remove();
+            cloneRef.current = null;
+            isTransitioningRef.current = false;
+            isPopStateRef.current = false;
+            setIsTransitioning(false);
+            document.body.style.overflow = "";
+          }
+        }, 5000);
       } else {
         isPopStateRef.current = false;
         isTransitioningRef.current = false;
