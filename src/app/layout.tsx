@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
-import { TransitionProvider } from "@/transitions";
+import { TransitionProvider, TransitionContainer } from "@/transitions";
+import { CrosshairCursor, ExpandingMenu } from "@/components/effects";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -20,6 +21,13 @@ export const metadata: Metadata = {
   description: "Portfolio of Alex Mazza — solo indie developer",
 };
 
+const menuItems = [
+  { label: "Home", href: "/" },
+  { label: "Projects", href: "/projects" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +39,11 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TransitionProvider>{children}</TransitionProvider>
+        <TransitionProvider>
+          <TransitionContainer>{children}</TransitionContainer>
+          <CrosshairCursor />
+          <ExpandingMenu items={menuItems} />
+        </TransitionProvider>
       </body>
     </html>
   );
