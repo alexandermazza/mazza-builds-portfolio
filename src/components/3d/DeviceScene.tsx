@@ -106,8 +106,8 @@ export function DeviceScene({
   }, []);
 
   // Camera distance — phone is taller/narrower, laptop is wider
-  const cameraZ = deviceType === "phone" ? 2.5 : 4;
-  const cameraFov = deviceType === "phone" ? 35 : 30;
+  const cameraZ = deviceType === "phone" ? 3 : 3.5;
+  const cameraFov = deviceType === "phone" ? 40 : 35;
 
   return (
     <div

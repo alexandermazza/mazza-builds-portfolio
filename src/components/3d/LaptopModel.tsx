@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -19,9 +19,7 @@ export function LaptopModel({
 }: LaptopModelProps) {
   const { scene } = useGLTF("/models/macbook.glb");
   const texture = useTexture(screenTexture);
-  const groupRef = useRef<THREE.Group>(null);
 
-  // Apply screenshot texture to the screen mesh
   useEffect(() => {
     texture.flipY = false;
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -39,9 +37,12 @@ export function LaptopModel({
     });
   }, [scene, texture]);
 
+  // MacBook is ~28 units wide. Scale down, center, and tilt screen toward camera.
   return (
-    <group ref={groupRef} rotation={[tiltX, rotationY, 0]}>
-      <primitive object={scene} />
+    <group rotation={[tiltX, rotationY, 0]}>
+      <group scale={0.04} position={[0, -0.3, 0]}>
+        <primitive object={scene} />
+      </group>
     </group>
   );
 }

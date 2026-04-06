@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -19,9 +19,7 @@ export function PhoneModel({
 }: PhoneModelProps) {
   const { scene } = useGLTF("/models/iphone.glb");
   const texture = useTexture(screenTexture);
-  const groupRef = useRef<THREE.Group>(null);
 
-  // Apply screenshot texture to the screen mesh
   useEffect(() => {
     texture.flipY = false;
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -29,7 +27,6 @@ export function PhoneModel({
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
-        // Match by material name since Three.js may sanitize mesh names
         if (mat.name === "screen.001") {
           mat.map = texture;
           mat.needsUpdate = true;
@@ -38,9 +35,13 @@ export function PhoneModel({
     });
   }, [scene, texture]);
 
+  // Phone screen faces -X by default, rotate +90° Y to face camera (+Z).
+  // Scale down slightly so it doesn't fill the entire panel height.
   return (
-    <group ref={groupRef} rotation={[tiltX, rotationY, 0]}>
-      <primitive object={scene} />
+    <group rotation={[tiltX, rotationY, 0]}>
+      <group rotation={[0, Math.PI / 2, 0]} scale={0.85}>
+        <primitive object={scene} />
+      </group>
     </group>
   );
 }
