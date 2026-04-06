@@ -1,109 +1,124 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
+import { StatusBadge, TagChip, ScrollTextLines } from "@/components/ui";
+import {
+  ScrollLetterAnimation,
+  ScrollGridAnimation,
+  LinkHover,
+} from "@/components/effects";
 import { projects, getProjectBySlug } from "@/data/projects";
-import { TransitionLink } from "@/transitions";
-import { StatusBadge, TagChip } from "@/components/ui";
+
+interface ProjectDetailProps {
+  params: Promise<{ slug: string }>;
+}
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
 }
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ProjectDetailPage({ params }: ProjectDetailProps) {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
-  if (!project) notFound();
 
-  const formattedNumber = String(project.issueNumber).padStart(2, "0");
+  if (!project) notFound();
 
   return (
     <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
-      {/* Back link */}
-      <TransitionLink
-        href="/"
-        className="mb-[var(--space-2xl)] inline-block font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-      >
-        ← Back
-      </TransitionLink>
-
       {/* Header */}
-      <div className="mb-[var(--space-3xl)]" data-enter="">
-        <div className="mb-[var(--space-md)] flex items-center gap-[var(--space-md)]">
-          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-            ISSUE {formattedNumber}
-          </span>
-          <StatusBadge status={project.status} />
-        </div>
-        <h1 className="mb-[var(--space-md)] font-sans text-[var(--display-lg)] font-bold leading-[1.1] text-[var(--text-display)]">
+      <section className="mb-[var(--space-2xl)]">
+        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          ISSUE {String(project.issueNumber).padStart(2, "0")}
+        </p>
+        <ScrollLetterAnimation
+          as="h1"
+          className="mb-[var(--space-lg)] font-sans text-[clamp(36px,8vw,72px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
+        >
           {project.name}
-        </h1>
-        <div className="flex flex-wrap gap-[var(--space-sm)]">
+        </ScrollLetterAnimation>
+        <div className="flex flex-wrap items-center gap-[var(--space-md)]">
+          <StatusBadge status={project.status} />
           {project.tags.map((tag) => (
             <TagChip key={tag}>{tag}</TagChip>
           ))}
         </div>
-      </div>
-
-      {/* Hero image placeholder */}
-      <div
-        className="mb-[var(--space-3xl)] flex items-center justify-center border border-[var(--border)] bg-[var(--surface)]"
-        style={{ borderRadius: "var(--radius-card)", aspectRatio: "16/9" }}
-        data-enter=""
-      >
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-          [{project.screenshot}]
-        </span>
-      </div>
+      </section>
 
       {/* Description */}
-      <div className="mb-[var(--space-3xl)] max-w-[640px]" data-enter="">
-        <p className="font-sans text-[var(--body)] leading-[1.7] text-[var(--text-secondary)]">
+      <section className="mb-[var(--space-3xl)]">
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
           {project.longDescription}
-        </p>
-      </div>
+        </ScrollTextLines>
+      </section>
 
-      {/* Image gallery placeholders */}
-      <div className="mb-[var(--space-3xl)]" data-enter="">
-        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-          SCREENS
-        </p>
-        <div className="grid grid-cols-3 gap-[var(--space-md)]">
-          {project.images.map((img) => (
-            <div
-              key={img}
-              className="flex items-center justify-center border border-[var(--border)] bg-[var(--surface)]"
-              style={{
-                borderRadius: "var(--radius-compact)",
-                aspectRatio: "9/16",
-              }}
-            >
-              <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-                [{img.split("/").pop()}]
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Screenshots */}
+      {project.images.length > 0 && (
+        <section className="mb-[var(--space-3xl)]">
+          <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+            SCREENSHOTS
+          </p>
+          <ScrollGridAnimation
+            variant="fade-up"
+            className="grid grid-cols-1 gap-[var(--space-md)] sm:grid-cols-2"
+          >
+            {project.images.map((src, i) => (
+              <div
+                key={src}
+                className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                style={{ borderRadius: "var(--radius-card)" }}
+              >
+                <Image
+                  src={src}
+                  alt={`${project.name} screenshot ${i + 1}`}
+                  width={640}
+                  height={400}
+                  className="h-auto w-full"
+                />
+              </div>
+            ))}
+          </ScrollGridAnimation>
+        </section>
+      )}
 
       {/* Links */}
-      <div data-enter="">
-        <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
-          LINKS
-        </p>
-        <div className="flex gap-[var(--space-lg)]">
-          {project.links.map((link) => (
-            <a
-              key={link.label}
-              href={link.url}
-              className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--accent)] hover:brightness-110"
-            >
-              {link.label} →
-            </a>
-          ))}
-        </div>
-      </div>
+      {project.links.length > 0 && (
+        <section className="mb-[var(--space-3xl)]">
+          <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+            LINKS
+          </p>
+          <div className="flex flex-wrap gap-[var(--space-lg)]">
+            {project.links.map((link) => (
+              <a
+                key={link.label}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-block font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                style={{
+                  transitionDuration: "var(--duration-micro)",
+                  transitionTimingFunction: "var(--ease-out)",
+                }}
+              >
+                {link.label} ↗
+                <span
+                  className="absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-[var(--text-primary)] transition-transform group-hover:scale-x-100"
+                  style={{
+                    transitionDuration: "var(--duration-transition)",
+                    transitionTimingFunction: "var(--ease-out)",
+                  }}
+                />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Back */}
+      <LinkHover
+        href="/projects"
+        className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]"
+      >
+        ← All projects
+      </LinkHover>
     </main>
   );
 }
