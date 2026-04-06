@@ -7,3 +7,4 @@ export { ScrollVelocityOffset } from "./ScrollVelocityOffset";
 export { ConnectedGrid } from "./ConnectedGrid";
 export { ExpandingMenu } from "./ExpandingMenu";
 export { ProjectShowcase } from "./ProjectShowcase";
+export { OscilloscopeHero } from "./OscilloscopeHero";
