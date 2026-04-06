@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!email || typeof email !== "string" || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { success: false, error: "Valid email is required" },
         { status: 400 }

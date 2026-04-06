@@ -66,21 +66,21 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
         {isOpen && (
           <motion.div
             className="fixed inset-0 z-[9998] flex flex-col items-center justify-center"
-            style={{ backgroundColor: "var(--surface)", opacity: 0.97 }}
+            style={{ backgroundColor: "var(--surface)" }}
             initial={
               reducedMotion
                 ? { opacity: 0 }
-                : { clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
+                : { opacity: 0.95, clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
             }
             animate={
               reducedMotion
-                ? { opacity: 1 }
-                : { clipPath: "circle(150% at calc(100% - 44px) calc(100% - 44px))" }
+                ? { opacity: 0.95 }
+                : { opacity: 0.95, clipPath: "circle(150% at calc(100% - 44px) calc(100% - 44px))" }
             }
             exit={
               reducedMotion
                 ? { opacity: 0 }
-                : { clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
+                : { opacity: 0.95, clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
             }
             transition={{
               duration: reducedMotion ? 0 : 0.6,

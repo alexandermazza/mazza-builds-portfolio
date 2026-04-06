@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type React from "react";
-import { motion, useInView } from "motion/react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, LETTER_ANIMATION_STAGGER } from "@/lib/motion";
 
 type ElementTag = "h1" | "h2" | "h3" | "p";
@@ -29,9 +29,15 @@ export function ScrollLetterAnimation({
 }: ScrollLetterAnimationProps) {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const prefersReduced = useReducedMotion();
 
   const MotionTag = motionElements[Tag];
   const chars = children.split("");
+
+  // Reduced motion: show all chars instantly
+  if (prefersReduced) {
+    return <MotionTag ref={ref as React.Ref<never>} className={className}>{children}</MotionTag>;
+  }
 
   return (
     <MotionTag ref={ref as React.Ref<never>} className={className} aria-label={children}>

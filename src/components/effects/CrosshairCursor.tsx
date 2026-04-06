@@ -29,7 +29,14 @@ export function CrosshairCursor({
     setIsTouch(isTouchDevice);
     if (isTouchDevice) return;
 
-    document.documentElement.style.cursor = "none";
+    // Hide default cursor globally, but preserve text cursor on inputs
+    const style = document.createElement("style");
+    style.textContent = `
+      * { cursor: none !important; }
+      input, textarea, [contenteditable] { cursor: text !important; }
+      a, button, [role="button"] { cursor: none !important; }
+    `;
+    document.head.appendChild(style);
 
     function handleMouseMove(e: MouseEvent) {
       mouseX.set(e.clientX);
@@ -61,7 +68,7 @@ export function CrosshairCursor({
     document.addEventListener("pointerout", handlePointerOut);
 
     return () => {
-      document.documentElement.style.cursor = "";
+      style.remove();
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("pointerover", handlePointerOver);

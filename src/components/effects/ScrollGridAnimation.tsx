@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, Children } from "react";
-import { motion, useInView } from "motion/react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import type { TargetAndTransition } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, GRID_ITEM_STAGGER } from "@/lib/motion";
 
@@ -37,6 +37,7 @@ export function ScrollGridAnimation({
 }: ScrollGridAnimationProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const prefersReduced = useReducedMotion();
 
   const { initial, animate } = variants[variant];
 
@@ -45,9 +46,9 @@ export function ScrollGridAnimation({
       {Children.map(children, (child, i) => (
         <motion.div
           key={i}
-          initial={initial}
+          initial={prefersReduced ? animate : initial}
           animate={isInView ? animate : initial}
-          transition={{
+          transition={prefersReduced ? { duration: 0 } : {
             duration: DURATION.transition,
             ease: EASE_OUT_MOTION,
             delay: i * stagger,

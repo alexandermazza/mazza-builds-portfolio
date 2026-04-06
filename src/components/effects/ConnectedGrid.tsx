@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, Children, useCallback } from "react";
-import { motion, useInView } from "motion/react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, GRID_ITEM_STAGGER } from "@/lib/motion";
 
 interface Line {
@@ -28,6 +28,7 @@ export function ConnectedGrid({
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [lines, setLines] = useState<Line[]>([]);
   const isInView = useInView(containerRef, { once: true, margin: "-60px" });
+  const prefersReduced = useReducedMotion();
 
   const childArray = Children.toArray(children);
 
@@ -103,9 +104,9 @@ export function ConnectedGrid({
               stroke={lineColor}
               strokeWidth={1}
               strokeDasharray={length}
-              initial={{ strokeDashoffset: length }}
+              initial={prefersReduced ? { strokeDashoffset: 0 } : { strokeDashoffset: length }}
               animate={isInView ? { strokeDashoffset: 0 } : { strokeDashoffset: length }}
-              transition={{
+              transition={prefersReduced ? { duration: 0 } : {
                 duration: DURATION.transition * 2,
                 ease: EASE_OUT_MOTION,
                 delay: i * 0.1,
@@ -126,9 +127,9 @@ export function ConnectedGrid({
           <motion.div
             key={i}
             ref={(el) => { itemRefs.current[i] = el; }}
-            initial={{ opacity: 0, y: 24 }}
+            initial={prefersReduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-            transition={{
+            transition={prefersReduced ? { duration: 0 } : {
               duration: DURATION.transition,
               ease: EASE_OUT_MOTION,
               delay: i * GRID_ITEM_STAGGER,

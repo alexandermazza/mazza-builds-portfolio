@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "motion/react";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
 import { SPRING_SNAPPY, MAGNETIC_STRENGTH, MAGNETIC_RADIUS } from "@/lib/motion";
 
 interface MagneticWrapperProps {
@@ -19,6 +19,7 @@ export function MagneticWrapper({
 }: MagneticWrapperProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isTouch, setIsTouch] = useState(false);
+  const prefersReduced = useReducedMotion();
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -31,7 +32,7 @@ export function MagneticWrapper({
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (isTouch) return;
+      if (isTouch || prefersReduced) return;
       const el = ref.current;
       if (!el) return;
 
