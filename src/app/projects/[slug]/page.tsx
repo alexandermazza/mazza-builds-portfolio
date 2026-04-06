@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { StatusBadge, TagChip, ScrollTextLines } from "@/components/ui";
 import {
   ScrollLetterAnimation,
@@ -60,19 +59,15 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
             variant="fade-up"
             className="grid grid-cols-1 gap-[var(--space-md)] sm:grid-cols-2"
           >
-            {project.images.map((src, i) => (
+            {project.images.map((_, i) => (
               <div
-                key={src}
-                className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                key={i}
+                className="flex aspect-[16/10] items-center justify-center overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
-                <Image
-                  src={src}
-                  alt={`${project.name} screenshot ${i + 1}`}
-                  width={640}
-                  height={400}
-                  className="h-auto w-full"
-                />
+                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+                  [SCREENSHOT {String(i + 1).padStart(2, '0')}]
+                </span>
               </div>
             ))}
           </ScrollGridAnimation>

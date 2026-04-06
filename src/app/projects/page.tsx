@@ -20,7 +20,7 @@ export default function ProjectsPage() {
       </section>
 
       <ScrollVelocityOffset multiplier={0.15}>
-        <ConnectedGrid columns={2} className="mb-[var(--space-4xl)]">
+        <ConnectedGrid columns={2} lineColor="var(--text-disabled)" className="mb-[var(--space-4xl)]">
           {projects.map((project) => (
             <LinkHover
               key={project.slug}

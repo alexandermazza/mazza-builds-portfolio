@@ -120,7 +120,7 @@ export function ConnectedGrid({
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gap: "var(--space-lg)",
+          gap: "var(--space-2xl)",
         }}
       >
         {childArray.map((child, i) => (
