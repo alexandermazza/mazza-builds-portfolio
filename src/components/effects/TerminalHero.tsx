@@ -114,9 +114,206 @@ export function TerminalHero() {
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
-    // Animation will be added in Task 2
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const isRepeatVisit = sessionStorage.getItem("hero-seen") === "true";
+    const speed = isRepeatVisit ? REPEAT_SPEED : 1;
+
+    // ── Reduced motion path ───────────────────────
+    if (reducedMotion) {
+      lineRefs.current.forEach((el) => {
+        if (!el) return;
+        el.style.opacity = "1";
+        // Show final text for text lines
+        const textEl = el.querySelector<HTMLElement>("[data-text]");
+        if (textEl) {
+          const lineData = BOOT_LINES[lineRefs.current.indexOf(el)];
+          if (lineData?.type === "text") textEl.textContent = lineData.text;
+        }
+        // Show final prefix for bar/dots lines
+        const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
+        if (prefixEl) {
+          const lineData = BOOT_LINES[lineRefs.current.indexOf(el)];
+          if (lineData && "prefix" in lineData) prefixEl.textContent = lineData.prefix;
+        }
+        // Fill bars
+        const barEl = el.querySelector<HTMLElement>("[data-bar]");
+        if (barEl) {
+          const width = Number(barEl.dataset.barWidth);
+          barEl.textContent = "[" + "█".repeat(width) + "]";
+        }
+        // Show dots
+        const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
+        if (dotsEl) {
+          dotsEl.textContent = ".".repeat(Number(dotsEl.dataset.dotCount));
+        }
+        // Show suffixes
+        const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
+        if (suffixEl) suffixEl.style.opacity = "1";
+      });
+
+      const timeout = setTimeout(() => {
+        if (bootRef.current) {
+          bootRef.current.style.opacity = "0";
+          bootRef.current.style.display = "none";
+        }
+        if (revealRef.current) {
+          revealRef.current.style.opacity = "1";
+        }
+        sessionStorage.setItem("hero-seen", "true");
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+
+    // ── Animated path ─────────────────────────────
+    const tl = gsap.timeline();
+    tlRef.current = tl;
+
+    BOOT_LINES.forEach((line, i) => {
+      const el = lineRefs.current[i];
+      if (!el) return;
+
+      const dur = getLineDuration(i, BOOT_LINES.length) / speed;
+
+      // Make line visible
+      tl.set(el, { opacity: 1 });
+
+      if (line.type === "text") {
+        const textEl = el.querySelector("[data-text]");
+        if (textEl) {
+          tl.to(textEl, {
+            duration: dur,
+            scrambleText: {
+              text: line.text,
+              chars: SCRAMBLE_CHARS,
+              speed: 0.4,
+            },
+          });
+        }
+      } else if (line.type === "bar") {
+        const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
+        const barEl = el.querySelector<HTMLElement>("[data-bar]");
+        const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
+        const width = line.barWidth;
+        const fillDur = BAR_FILL_DURATION / speed;
+
+        // Scramble prefix
+        if (prefixEl) {
+          tl.to(prefixEl, {
+            duration: dur * 0.4,
+            scrambleText: {
+              text: line.prefix,
+              chars: SCRAMBLE_CHARS,
+              speed: 0.4,
+            },
+          });
+        }
+
+        // Fill bar (with optional mid-fill pause)
+        if (barEl) {
+          if (line.pauseAt) {
+            const target = { p: 0 };
+            tl.to(target, {
+              p: line.pauseAt,
+              duration: fillDur * line.pauseAt,
+              ease: "none",
+              onUpdate() {
+                const filled = Math.floor(target.p * width);
+                barEl.textContent =
+                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+              },
+            });
+            tl.to({}, { duration: 0.3 / speed });
+            tl.to(target, {
+              p: 1,
+              duration: fillDur * (1 - line.pauseAt),
+              ease: "none",
+              onUpdate() {
+                const filled = Math.floor(target.p * width);
+                barEl.textContent =
+                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+              },
+            });
+          } else {
+            const target = { p: 0 };
+            tl.to(target, {
+              p: 1,
+              duration: fillDur,
+              ease: "none",
+              onUpdate() {
+                const filled = Math.floor(target.p * width);
+                barEl.textContent =
+                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+              },
+            });
+          }
+        }
+
+        // Show suffix
+        if (suffixEl && line.suffix) {
+          tl.to(suffixEl, { opacity: 1, duration: 0.1 / speed });
+        }
+      } else if (line.type === "dots") {
+        const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
+        const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
+        const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
+
+        // Scramble prefix
+        if (prefixEl) {
+          tl.to(prefixEl, {
+            duration: dur * 0.4,
+            scrambleText: {
+              text: line.prefix,
+              chars: SCRAMBLE_CHARS,
+              speed: 0.4,
+            },
+          });
+        }
+
+        // Extend dots one by one
+        if (dotsEl) {
+          const dotTarget = { count: 0 };
+          tl.to(dotTarget, {
+            count: line.dotCount,
+            duration: 0.5 / speed,
+            ease: "none",
+            onUpdate() {
+              dotsEl.textContent = ".".repeat(Math.floor(dotTarget.count));
+            },
+          });
+        }
+
+        // Pause before suffix
+        if (line.pauseMs) {
+          tl.to({}, { duration: line.pauseMs / 1000 / speed });
+        }
+
+        // Show suffix
+        if (suffixEl) {
+          tl.to(suffixEl, { opacity: 1, duration: 0.1 / speed });
+        }
+      }
+    });
+
+    // Hold on "launching." then hard cut to reveal
+    tl.to({}, { duration: HOLD_DURATION / speed });
+
+    // Reveal: instant cut
+    tl.set(bootRef.current, { opacity: 0, display: "none" });
+    tl.set(revealRef.current, { opacity: 1, scale: 1.02 });
+    tl.to(revealRef.current, {
+      scale: 1,
+      duration: REVEAL_SCALE_DURATION,
+      ease: ENTER_EASE,
+    });
+
+    // Mark as seen
+    tl.call(() => sessionStorage.setItem("hero-seen", "true"));
+
     return () => {
-      tlRef.current?.kill();
+      tl.kill();
     };
   }, []);
 
