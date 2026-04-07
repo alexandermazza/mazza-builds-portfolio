@@ -8,10 +8,10 @@ import {
 import {
   ScrollGridAnimation,
   MagneticWrapper,
-  LinkHover,
   ProjectShowcase,
   TerminalHero,
 } from "@/components/effects";
+import { TransitionLink } from "@/transitions";
 import { projects } from "@/data/projects";
 
 export default function Home() {
@@ -62,9 +62,9 @@ export default function Home() {
       <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] pb-[var(--space-2xl)] md:pb-[var(--space-4xl)]">
         <section className="flex justify-center">
           <MagneticWrapper>
-            <LinkHover href="/contact" className="no-underline">
+            <TransitionLink href="/contact" className="no-underline">
               <Button>Get in touch</Button>
-            </LinkHover>
+            </TransitionLink>
           </MagneticWrapper>
         </section>
       </div>
