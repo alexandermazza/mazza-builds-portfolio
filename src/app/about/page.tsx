@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ScrollTextLines } from "@/components/ui";
+import { ScrollTextLines, UsageCard, GitHubCard } from "@/components/ui";
 import {
   ScrollLetterAnimation,
   SpecBlock,
@@ -8,6 +8,7 @@ import {
   SystemDiagram,
   ProcessFlow,
   ExperienceTimeline,
+  ScrollGridAnimation,
 } from "@/components/effects";
 
 export const metadata: Metadata = {
@@ -89,6 +90,19 @@ export default function AboutPage() {
             SPEC: SYSTEMS
           </p>
           <SystemDiagram />
+        </section>
+
+        {/* Activity Spec */}
+        <section className="mb-[var(--space-4xl)]">
+          <SpecBlock label="SPEC: ACTIVITY">
+            <ScrollGridAnimation
+              className="grid grid-cols-1 gap-[var(--space-md)] md:grid-cols-2"
+              stagger={0.15}
+            >
+              <UsageCard />
+              <GitHubCard />
+            </ScrollGridAnimation>
+          </SpecBlock>
         </section>
 
         {/* Process Spec */}
