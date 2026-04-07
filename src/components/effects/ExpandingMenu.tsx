@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TransitionLink } from "@/transitions";
 import { DURATION, EASE_OUT_MOTION, MENU_ITEM_STAGGER } from "@/lib/motion";
@@ -96,6 +96,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
           <motion.div
             className="fixed inset-0 z-[9998] flex flex-col items-center justify-center"
             style={{ backgroundColor: "var(--surface)" }}
+            onClick={close}
             initial={
               reducedMotion
                 ? { opacity: 0 }
@@ -131,7 +132,10 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
                 >
                   <TransitionLink
                     href={item.href}
-                    onClick={close}
+                    onClick={(e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      close();
+                    }}
                     className="block font-mono text-[clamp(24px,5vw,48px)] uppercase tracking-[0.06em] text-[var(--text-primary)] transition-colors hover:text-[var(--accent)]"
                     style={{
                       transitionDuration: "var(--duration-micro)",
