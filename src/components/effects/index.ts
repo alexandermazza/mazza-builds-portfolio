@@ -12,3 +12,6 @@ export { SpecBlock } from "./SpecBlock";
 export { ConnectionLine } from "./ConnectionLine";
 export { DimensionOverlay } from "./DimensionOverlay";
 export { AnimatedRule } from "./AnimatedRule";
+export { SystemDiagram } from "./SystemDiagram";
+export { ProcessFlow } from "./ProcessFlow";
+export { ExperienceTimeline } from "./ExperienceTimeline";
