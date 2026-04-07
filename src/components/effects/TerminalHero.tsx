@@ -120,40 +120,45 @@ export function TerminalHero() {
     const isRepeatVisit = sessionStorage.getItem("hero-seen") === "true";
     const speed = isRepeatVisit ? REPEAT_SPEED : 1;
 
+    document.body.style.overflow = "hidden";
+
     // ── Reduced motion path ───────────────────────
     if (reducedMotion) {
-      lineRefs.current.forEach((el) => {
+      BOOT_LINES.forEach((line, i) => {
+        const el = lineRefs.current[i];
         if (!el) return;
         el.style.opacity = "1";
-        // Show final text for text lines
-        const textEl = el.querySelector<HTMLElement>("[data-text]");
-        if (textEl) {
-          const lineData = BOOT_LINES[lineRefs.current.indexOf(el)];
-          if (lineData?.type === "text") textEl.textContent = lineData.text;
+
+        if (line.type === "text") {
+          const textEl = el.querySelector<HTMLElement>("[data-text]");
+          if (textEl) textEl.textContent = line.text;
         }
-        // Show final prefix for bar/dots lines
-        const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
-        if (prefixEl) {
-          const lineData = BOOT_LINES[lineRefs.current.indexOf(el)];
-          if (lineData && "prefix" in lineData) prefixEl.textContent = lineData.prefix;
+
+        if (line.type === "bar" || line.type === "dots") {
+          const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
+          if (prefixEl) prefixEl.textContent = line.prefix;
         }
-        // Fill bars
-        const barEl = el.querySelector<HTMLElement>("[data-bar]");
-        if (barEl) {
-          const width = Number(barEl.dataset.barWidth);
-          barEl.textContent = "[" + "█".repeat(width) + "]";
+
+        if (line.type === "bar") {
+          const barEl = el.querySelector<HTMLElement>("[data-bar]");
+          if (barEl) {
+            barEl.textContent = "[" + "█".repeat(line.barWidth) + "]";
+          }
         }
-        // Show dots
-        const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
-        if (dotsEl) {
-          dotsEl.textContent = ".".repeat(Number(dotsEl.dataset.dotCount));
+
+        if (line.type === "dots") {
+          const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
+          if (dotsEl) {
+            dotsEl.textContent = ".".repeat(line.dotCount);
+          }
         }
-        // Show suffixes
+
         const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
         if (suffixEl) suffixEl.style.opacity = "1";
       });
 
       const timeout = setTimeout(() => {
+        document.body.style.overflow = "";
         if (bootRef.current) {
           bootRef.current.style.opacity = "0";
           bootRef.current.style.display = "none";
@@ -164,7 +169,10 @@ export function TerminalHero() {
         sessionStorage.setItem("hero-seen", "true");
       }, 1000);
 
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(timeout);
+        document.body.style.overflow = "";
+      };
     }
 
     // ── Animated path ─────────────────────────────
@@ -311,9 +319,11 @@ export function TerminalHero() {
 
     // Mark as seen
     tl.call(() => sessionStorage.setItem("hero-seen", "true"));
+    tl.call(() => { document.body.style.overflow = ""; });
 
     return () => {
       tl.kill();
+      document.body.style.overflow = "";
     };
   }, []);
 
