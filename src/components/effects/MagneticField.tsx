@@ -20,13 +20,14 @@ interface Pulse {
 
 // ─── Constants ────────────────────────────────────────
 
-const LINE_COUNT = 28;
-const PULSE_COUNT = 12;
-const LINE_ALPHA = 0.07;
-const PULSE_ALPHA = 0.5;
-const PULSE_TRAIL = 0.08;
-const PULSE_TRAIL_STEPS = 14;
+const PULSE_COUNT = 14;
+const LINE_ALPHA = 0.06;
+const PULSE_ALPHA = 0.6;
+const PULSE_TRAIL = 0.1;
+const PULSE_TRAIL_STEPS = 16;
 const PULSE_DOT_SIZE = 2.5;
+const GLOW_RADIUS = 15;
+const GLOW_ALPHA = 0.35;
 
 // ─── Helpers ──────────────────────────────────────────
 
@@ -47,29 +48,74 @@ function cubic(
 }
 
 function generateLines(w: number, h: number): BezierLine[] {
-  const centerY = h / 2;
-  const exclusionH = h * 0.12;
+  const cx = w / 2;
+  const cy = h / 2;
   const lines: BezierLine[] = [];
 
-  for (let i = 0; i < LINE_COUNT; i++) {
-    const t = (i + 0.5) / LINE_COUNT;
+  // ── Horizontal flow lines with jittered control points ──
+  for (let i = 0; i < 18; i++) {
+    const t = (i + 0.5) / 18;
     const baseY = t * h;
-    const distFromCenter = baseY - centerY;
-    const normalized = distFromCenter / (h / 2);
-
-    // Gaussian push — strongest near center, decays outward
-    const pushMag = Math.exp(-normalized * normalized * 4) * exclusionH * 3;
-    const push = (distFromCenter >= 0 ? 1 : -1) * pushMag;
+    const dist = baseY - cy;
+    const norm = dist / (h / 2);
+    const pushMag = Math.exp(-norm * norm * 3.5) * h * 0.18;
+    const push = (dist >= 0 ? 1 : -1) * pushMag;
+    const jx = (Math.random() - 0.5) * w * 0.08;
+    const jy = (Math.random() - 0.5) * 30;
 
     lines.push({
-      p0x: -40,
-      p0y: baseY,
-      p1x: w * 0.3,
-      p1y: baseY + push,
-      p2x: w * 0.7,
-      p2y: baseY + push,
-      p3x: w + 40,
-      p3y: baseY,
+      p0x: -40, p0y: baseY + jy,
+      p1x: w * 0.28 + jx, p1y: baseY + push + jy * 0.5,
+      p2x: w * 0.72 - jx, p2y: baseY + push - jy * 0.5,
+      p3x: w + 40, p3y: baseY - jy,
+    });
+  }
+
+  // ── S-curve lines — control points push opposite directions ──
+  for (let i = 0; i < 6; i++) {
+    const baseY = h * (0.15 + Math.random() * 0.7);
+    const dist = baseY - cy;
+    const norm = dist / (h / 2);
+    const pushMag = Math.exp(-norm * norm * 2) * h * 0.2;
+    const dir = dist >= 0 ? 1 : -1;
+
+    lines.push({
+      p0x: -40, p0y: baseY + (Math.random() - 0.5) * 20,
+      p1x: w * (0.2 + Math.random() * 0.1), p1y: baseY + dir * pushMag,
+      p2x: w * (0.7 + Math.random() * 0.1), p2y: baseY - dir * pushMag * 0.3,
+      p3x: w + 40, p3y: baseY + (Math.random() - 0.5) * 40,
+    });
+  }
+
+  // ── Arc lines from top/bottom edges — curve near center then exit ──
+  for (let i = 0; i < 8; i++) {
+    const fromTop = i < 4;
+    const edgeY = fromTop ? -40 : h + 40;
+    const peakY = cy + (fromTop ? -1 : 1) * h * (0.12 + Math.random() * 0.18);
+    const baseX = w * (0.15 + Math.random() * 0.7);
+    const spread = w * (0.12 + Math.random() * 0.12);
+
+    lines.push({
+      p0x: baseX - spread, p0y: edgeY,
+      p1x: baseX - spread * 0.3, p1y: peakY,
+      p2x: baseX + spread * 0.3, p2y: peakY,
+      p3x: baseX + spread, p3y: edgeY,
+    });
+  }
+
+  // ── Wide sweeping diagonals ──
+  for (let i = 0; i < 4; i++) {
+    const startY = Math.random() * h;
+    const endY = h - startY + (Math.random() - 0.5) * h * 0.3;
+    const midDist = ((startY + endY) / 2 - cy) / (h / 2);
+    const pushMag = Math.exp(-midDist * midDist * 3) * h * 0.15;
+    const dir = midDist >= 0 ? 1 : -1;
+
+    lines.push({
+      p0x: -40, p0y: startY,
+      p1x: w * 0.35, p1y: (startY + endY) / 2 + dir * pushMag,
+      p2x: w * 0.65, p2y: (startY + endY) / 2 + dir * pushMag * 0.6,
+      p3x: w + 40, p3y: endY,
     });
   }
 
@@ -109,11 +155,12 @@ export function MagneticField() {
       if (reducedMotion) return;
 
       // Create pulses — some travel left→right, others right→left
+      const lineCount = linesRef.current.length;
       pulsesRef.current = [];
       for (let i = 0; i < PULSE_COUNT; i++) {
         const reverse = Math.random() > 0.5;
         const pulse: Pulse = {
-          lineIndex: Math.floor(Math.random() * LINE_COUNT),
+          lineIndex: Math.floor(Math.random() * lineCount),
           progress: { t: reverse ? 1 : 0 },
           reverse,
         };
@@ -124,9 +171,9 @@ export function MagneticField() {
           duration: 2 + Math.random() * 2.5,
           ease: "none",
           repeat: -1,
-          delay: (i / PULSE_COUNT) * 3, // spread initial start times
+          delay: (i / PULSE_COUNT) * 3,
           onRepeat() {
-            pulse.lineIndex = Math.floor(Math.random() * LINE_COUNT);
+            pulse.lineIndex = Math.floor(Math.random() * lineCount);
           },
         });
       }
@@ -157,7 +204,8 @@ export function MagneticField() {
         ctx!.stroke();
       }
 
-      // Draw pulses with comet trails
+      // Draw pulses with comet trails and glow
+      ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA})`;
       for (const pulse of pulsesRef.current) {
         const line = lines[pulse.lineIndex];
         if (!line) continue;
@@ -174,12 +222,15 @@ export function MagneticField() {
           const alpha = fade * PULSE_ALPHA;
           const size = PULSE_DOT_SIZE * (0.4 + fade * 0.6);
 
+          // Glow strongest on the leading dot, fades along trail
+          ctx!.shadowBlur = fade * GLOW_RADIUS;
           ctx!.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx!.beginPath();
           ctx!.arc(x, y, size, 0, Math.PI * 2);
           ctx!.fill();
         }
       }
+      ctx!.shadowBlur = 0;
     }
 
     init();
