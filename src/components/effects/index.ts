@@ -16,3 +16,4 @@ export { SystemDiagram } from "./SystemDiagram";
 export { ProcessFlow } from "./ProcessFlow";
 export { ExperienceTimeline } from "./ExperienceTimeline";
 export { TerminalHero } from "./TerminalHero";
+export { ChicagoMap } from "./ChicagoMap";

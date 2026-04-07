@@ -9,6 +9,7 @@ import {
   ProcessFlow,
   ExperienceTimeline,
   ScrollGridAnimation,
+  ChicagoMap,
 } from "@/components/effects";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 
 const connections = [
   { label: "GitHub", href: "https://github.com/alexandermazza" },
-  { label: "Twitter", href: "https://twitter.com/maboroshi_alex" },
+  { label: "Twitter", href: "https://twitter.com/mazza_builds" },
   { label: "Email", href: "mailto:hello@mazzabuilds.com" },
 ];
 
@@ -82,6 +83,22 @@ export default function AboutPage() {
               </ScrollTextLines>
             </div>
           </SpecBlock>
+        </section>
+
+        {/* Location Spec */}
+        <section className="mb-[var(--space-4xl)]">
+          <div className="grid grid-cols-1 gap-[var(--space-2xl)] md:grid-cols-[2fr_3fr] md:items-start">
+            <SpecBlock label="SPEC: LOCATION">
+              <p className="mb-[var(--space-md)] font-mono text-[13px] tracking-[0.06em] text-[var(--text-secondary)]">
+                41.8781° N, 87.6298° W
+              </p>
+              <ScrollTextLines className="max-w-[400px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                Based in Chicago — a city built on a grid, which felt
+                appropriate.
+              </ScrollTextLines>
+            </SpecBlock>
+            <ChicagoMap className="min-h-[300px] md:min-h-[400px]" />
+          </div>
         </section>
 
         {/* Systems Spec */}
