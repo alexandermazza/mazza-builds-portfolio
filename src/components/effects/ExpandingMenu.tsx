@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type MouseEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TransitionLink } from "@/transitions";
 import { DURATION, EASE_OUT_MOTION, MENU_ITEM_STAGGER } from "@/lib/motion";
@@ -20,9 +20,11 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    setReducedMotion(
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    );
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
   }, []);
 
   const close = useCallback(() => setIsOpen(false), []);
@@ -58,32 +60,37 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         <span className="sr-only">Menu</span>
-        <div className="flex w-[20px] flex-col items-center gap-[5px]">
+        <div className="relative flex w-[20px] flex-col items-center gap-[5px]">
+          {/* Hamburger lines (visible when closed) */}
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
-              transform: isOpen ? "translateY(6.5px) rotate(45deg)" : "none",
+              ...(reducedMotion
+                ? { opacity: isOpen ? 0 : 1 }
+                : { transform: isOpen ? "translateY(6.5px) rotate(45deg)" : "none" }),
               color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
             }}
           />
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
               opacity: isOpen ? 0 : 1,
-              transform: isOpen ? "scaleX(0)" : "none",
+              ...(reducedMotion ? {} : { transform: isOpen ? "scaleX(0)" : "none" }),
               color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
             }}
           />
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
-              transform: isOpen ? "translateY(-6.5px) rotate(-45deg)" : "none",
+              ...(reducedMotion
+                ? { opacity: isOpen ? 0 : 1 }
+                : { transform: isOpen ? "translateY(-6.5px) rotate(-45deg)" : "none" }),
               color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
             }}
           />
@@ -132,7 +139,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
                 >
                   <TransitionLink
                     href={item.href}
-                    onClick={(e: React.MouseEvent) => {
+                    onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       close();
                     }}
