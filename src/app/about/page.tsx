@@ -96,7 +96,7 @@ export default function AboutPage() {
               appropriate.
             </ScrollTextLines>
           </SpecBlock>
-          <ChicagoMap className="h-[300px] md:h-[400px]" />
+          <ChicagoMap className="h-[400px] md:h-[550px]" />
         </section>
 
         {/* Systems Spec */}

@@ -9,7 +9,7 @@ interface ChicagoMapProps {
 const LERP_IN = 0.06;
 const LERP_OUT = 0.04;
 const CONVERGE_THRESHOLD = 0.01;
-const MAX_DISPLACEMENT = 15;
+const MAX_DISPLACEMENT = 35;
 
 export function ChicagoMap({ className = "" }: ChicagoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,8 +53,8 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
     const svg = wrapper.querySelector("svg");
     if (!svg) return;
 
-    // Wide crop — shows central Chicago with generous lake area
-    svg.setAttribute("viewBox", "200 300 1300 500");
+    // Tight crop — Chicago fills the frame, lake as negative space on right
+    svg.setAttribute("viewBox", "400 300 650 500");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
     svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
