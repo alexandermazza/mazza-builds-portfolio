@@ -10,8 +10,8 @@ interface Point {
   y: number;
 }
 
-const SPACING = 80;
-const DRIFT = 12;
+const SPACING = 70;
+const DRIFT = 25;
 
 export function MorphingGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,10 +28,8 @@ export function MorphingGrid() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    // Read line color from CSS custom properties
-    const lineColor =
-      getComputedStyle(canvas).getPropertyValue("--border-visible").trim() ||
-      "#333333";
+    // White lines with low alpha — visible on black without being harsh
+    const lineColor = "rgba(255, 255, 255, 0.12)";
 
     function initGrid() {
       // Kill existing tweens
@@ -67,7 +65,7 @@ export function MorphingGrid() {
           gsap.to(point, {
             x: point.baseX + (Math.random() - 0.5) * DRIFT * 2,
             y: point.baseY + (Math.random() - 0.5) * DRIFT * 2,
-            duration: 3 + Math.random() * 4,
+            duration: 2 + Math.random() * 3,
             ease: "sine.inOut",
             repeat: -1,
             yoyo: true,
@@ -86,7 +84,7 @@ export function MorphingGrid() {
       if (!points.length || !cols) return;
 
       ctx!.strokeStyle = lineColor;
-      ctx!.lineWidth = 0.5;
+      ctx!.lineWidth = 1;
 
       // Draw horizontal lines
       ctx!.beginPath();
@@ -132,7 +130,7 @@ export function MorphingGrid() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 h-full w-full"
-      style={{ opacity: 0.6 }}
+      style={{ opacity: 1 }}
     />
   );
 }
