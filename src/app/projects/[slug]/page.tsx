@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { StatusBadge, TagChip, ScrollTextLines } from "@/components/ui";
 import {
@@ -13,6 +15,20 @@ interface ProjectDetailProps {
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: ProjectDetailProps): Promise<Metadata> {
+  const { slug } = await params;
+  const project = getProjectBySlug(slug);
+
+  if (!project) return {};
+
+  return {
+    title: project.name,
+    description: project.description,
+  };
 }
 
 export default async function ProjectDetailPage({ params }: ProjectDetailProps) {
@@ -59,15 +75,26 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
             variant="fade-up"
             className="grid grid-cols-1 gap-[var(--space-md)] sm:grid-cols-2"
           >
-            {project.images.map((_, i) => (
+            {project.images.map((src, i) => (
               <div
                 key={i}
-                className="flex aspect-[16/10] items-center justify-center overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                className="relative aspect-[16/10] overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
-                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-                  [SCREENSHOT {String(i + 1).padStart(2, '0')}]
-                </span>
+                <Image
+                  src={src}
+                  alt={`${project.name} screenshot ${i + 1}`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="object-cover"
+                  {...(i === 0 ? { priority: true } : {})}
+                />
+                {/* Placeholder overlay — remove when real images are added */}
+                <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-raised)]">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+                    [SCREENSHOT {String(i + 1).padStart(2, "0")}]
+                  </span>
+                </div>
               </div>
             ))}
           </ScrollGridAnimation>

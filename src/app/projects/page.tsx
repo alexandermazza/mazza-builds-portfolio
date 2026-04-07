@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ProjectCard } from "@/components/ui";
 import {
   ScrollLetterAnimation,
@@ -6,6 +7,12 @@ import {
   LinkHover,
 } from "@/components/effects";
 import { projects } from "@/data/projects";
+
+export const metadata: Metadata = {
+  title: "Projects",
+  description:
+    "Things I've built — from iOS apps to trading bots to AI automation systems",
+};
 
 export default function ProjectsPage() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ScrollTextLines } from "@/components/ui";
 import {
   ScrollLetterAnimation,
@@ -8,6 +9,12 @@ import {
   ProcessFlow,
   ExperienceTimeline,
 } from "@/components/effects";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Solo indie developer based in the Midwest. I build things from concept to production.",
+};
 
 const connections = [
   { label: "GitHub", href: "https://github.com/alexandermazza" },

@@ -18,8 +18,21 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mazza Builds",
-  description: "Portfolio of Alex Mazza — solo indie developer",
+  metadataBase: new URL("https://mazzabuilds.com"),
+  title: {
+    default: "Mazza Builds",
+    template: "%s — Mazza Builds",
+  },
+  description:
+    "Portfolio of Alex Mazza — solo indie developer building iOS apps, Shopify tools, and AI systems",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "Mazza Builds",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 const menuItems = [
@@ -39,6 +52,20 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
+      <head>
+        <link
+          rel="preload"
+          as="fetch"
+          crossOrigin="anonymous"
+          href="/models/iphone.glb"
+        />
+        <link
+          rel="preload"
+          as="fetch"
+          crossOrigin="anonymous"
+          href="/models/macbook.glb"
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <TransitionProvider>
           <TransitionContainer>{children}</TransitionContainer>
