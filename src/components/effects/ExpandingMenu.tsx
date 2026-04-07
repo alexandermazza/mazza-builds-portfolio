@@ -49,16 +49,45 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
     <div className={className}>
       {/* Trigger button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-[var(--space-lg)] right-[var(--space-lg)] z-[9998] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--border-visible)] bg-[var(--surface)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="fixed bottom-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--border-visible)] bg-[var(--surface)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] md:h-[44px] md:w-[44px] max-md:bottom-[var(--space-md)] max-md:right-[var(--space-md)] max-md:h-[48px] max-md:w-[48px]"
         style={{
           transitionDuration: "var(--duration-micro)",
           transitionTimingFunction: "var(--ease-out)",
         }}
-        aria-label="Open menu"
+        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         <span className="sr-only">Menu</span>
-        <span className="block h-[6px] w-[6px] rounded-full bg-current" />
+        <div className="flex w-[20px] flex-col items-center gap-[5px]">
+          <span
+            className="block h-[1.5px] w-full origin-center bg-current transition-all"
+            style={{
+              transitionDuration: `${DURATION.transition}s`,
+              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
+              transform: isOpen ? "translateY(6.5px) rotate(45deg)" : "none",
+              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
+            }}
+          />
+          <span
+            className="block h-[1.5px] w-full origin-center bg-current transition-all"
+            style={{
+              transitionDuration: `${DURATION.transition}s`,
+              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
+              opacity: isOpen ? 0 : 1,
+              transform: isOpen ? "scaleX(0)" : "none",
+              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
+            }}
+          />
+          <span
+            className="block h-[1.5px] w-full origin-center bg-current transition-all"
+            style={{
+              transitionDuration: `${DURATION.transition}s`,
+              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
+              transform: isOpen ? "translateY(-6.5px) rotate(-45deg)" : "none",
+              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
+            }}
+          />
+        </div>
       </button>
 
       {/* Overlay */}
