@@ -2,41 +2,23 @@ import {
   Button,
   GitHubCard,
   ScrollTextLines,
-  SplitTextScatter,
   TickerText,
   UsageCard,
 } from "@/components/ui";
 import {
-  ScrollLetterAnimation,
   ScrollGridAnimation,
   MagneticWrapper,
   LinkHover,
   ProjectShowcase,
+  TerminalHero,
 } from "@/components/effects";
 import { projects } from "@/data/projects";
 
 export default function Home() {
   return (
     <main>
-      {/* Hero — constrained */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] pt-[var(--space-2xl)] md:pt-[var(--space-4xl)]">
-        <section className="mb-[var(--space-3xl)]">
-          <SplitTextScatter
-            text="MAZZA BUILDS"
-            className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
-          />
-        </section>
-
-        {/* Subtitle */}
-        <section className="mb-[var(--space-2xl)]">
-          <ScrollLetterAnimation
-            as="h2"
-            className="font-sans text-[clamp(18px,3vw,24px)] leading-[1.3] tracking-[-0.01em] text-[var(--text-secondary)]"
-          >
-            Solo indie developer
-          </ScrollLetterAnimation>
-        </section>
-      </div>
+      {/* Hero — terminal boot sequence */}
+      <TerminalHero />
 
       {/* Ticker — full bleed */}
       <section className="mb-[var(--space-3xl)]">
