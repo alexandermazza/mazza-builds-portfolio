@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { gsap, ENTER_EASE } from "@/lib/gsap";
+import { MorphingGrid } from "./MorphingGrid";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -427,10 +428,11 @@ export function TerminalHero() {
       {/* Hero text — revealed after boot completes */}
       <div
         ref={revealRef}
-        className="flex h-full items-center justify-center text-center"
+        className="relative flex h-full items-center justify-center text-center"
         style={{ opacity: 0 }}
       >
-        <div>
+        <MorphingGrid />
+        <div className="relative z-10">
           <h1 className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]">
             {HERO_CHARS.map((char, i) => (
               <span
