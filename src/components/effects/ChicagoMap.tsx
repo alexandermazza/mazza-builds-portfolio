@@ -6,11 +6,16 @@ interface ChicagoMapProps {
   className?: string;
 }
 
+const LERP_MOVE = 0.12;
+const LERP_RETURN = 0.08;
+const CONVERGE_THRESHOLD = 0.001;
+
 export function ChicagoMap({ className = "" }: ChicagoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const gradientRef = useRef<SVGRadialGradientElement | null>(null);
   const rafRef = useRef<number>(0);
+  const lerpRef = useRef(LERP_MOVE);
   const targetRef = useRef({ x: 0.5, y: 0.5 });
   const currentRef = useRef({ x: 0.5, y: 0.5 });
   const [prefersReduced, setPrefersReduced] = useState(false);
@@ -124,7 +129,43 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
 
     // Store gradient ref for mouse tracking
     gradientRef.current = gradient;
+
+    return () => {
+      if (wrapper) wrapper.innerHTML = "";
+      gradientRef.current = null;
+    };
   }, [svgContent, prefersReduced, isMobile]);
+
+  const startAnimation = useCallback(() => {
+    if (rafRef.current) return;
+
+    const animate = () => {
+      const lerp = lerpRef.current;
+      currentRef.current.x +=
+        (targetRef.current.x - currentRef.current.x) * lerp;
+      currentRef.current.y +=
+        (targetRef.current.y - currentRef.current.y) * lerp;
+
+      if (gradientRef.current) {
+        gradientRef.current.setAttribute("cx", String(currentRef.current.x));
+        gradientRef.current.setAttribute("cy", String(currentRef.current.y));
+      }
+
+      const dx = targetRef.current.x - currentRef.current.x;
+      const dy = targetRef.current.y - currentRef.current.y;
+
+      if (
+        Math.abs(dx) > CONVERGE_THRESHOLD ||
+        Math.abs(dy) > CONVERGE_THRESHOLD
+      ) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        rafRef.current = 0;
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -135,77 +176,17 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
         x: (e.clientX - rect.left) / rect.width,
         y: (e.clientY - rect.top) / rect.height,
       };
-
-      if (rafRef.current) return;
-
-      const animate = () => {
-        const lerp = 0.12;
-        currentRef.current.x +=
-          (targetRef.current.x - currentRef.current.x) * lerp;
-        currentRef.current.y +=
-          (targetRef.current.y - currentRef.current.y) * lerp;
-
-        if (gradientRef.current) {
-          gradientRef.current.setAttribute(
-            "cx",
-            String(currentRef.current.x)
-          );
-          gradientRef.current.setAttribute(
-            "cy",
-            String(currentRef.current.y)
-          );
-        }
-
-        const dx = targetRef.current.x - currentRef.current.x;
-        const dy = targetRef.current.y - currentRef.current.y;
-
-        if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
-          rafRef.current = requestAnimationFrame(animate);
-        } else {
-          rafRef.current = 0;
-        }
-      };
-
-      rafRef.current = requestAnimationFrame(animate);
+      lerpRef.current = LERP_MOVE;
+      startAnimation();
     },
-    [prefersReduced, isMobile]
+    [prefersReduced, isMobile, startAnimation]
   );
 
   const handleMouseLeave = useCallback(() => {
     targetRef.current = { x: 0.5, y: 0.5 };
-
-    if (rafRef.current) return;
-
-    const animate = () => {
-      const lerp = 0.08;
-      currentRef.current.x +=
-        (targetRef.current.x - currentRef.current.x) * lerp;
-      currentRef.current.y +=
-        (targetRef.current.y - currentRef.current.y) * lerp;
-
-      if (gradientRef.current) {
-        gradientRef.current.setAttribute(
-          "cx",
-          String(currentRef.current.x)
-        );
-        gradientRef.current.setAttribute(
-          "cy",
-          String(currentRef.current.y)
-        );
-      }
-
-      const dx = targetRef.current.x - currentRef.current.x;
-      const dy = targetRef.current.y - currentRef.current.y;
-
-      if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        rafRef.current = 0;
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-  }, []);
+    lerpRef.current = LERP_RETURN;
+    startAnimation();
+  }, [startAnimation]);
 
   useEffect(() => {
     return () => {
@@ -236,13 +217,12 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
 
       {/* Accent pin */}
       <div
-        className="pointer-events-none absolute h-5 w-5 rounded-full"
+        className="pointer-events-none absolute h-5 w-5 rounded-full border-2 border-[var(--accent)]"
         style={{
           backgroundColor: "var(--accent)",
           left: "35%",
           top: "45%",
           transform: "translate(-50%, -50%)",
-          boxShadow: "0 0 0 4px rgba(255, 107, 53, 0.2)",
         }}
       />
     </div>
