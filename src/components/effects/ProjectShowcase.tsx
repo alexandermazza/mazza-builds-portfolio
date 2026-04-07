@@ -16,7 +16,36 @@ import {
   LinkHover,
 } from "@/components/effects";
 import { TransitionLink } from "@/transitions";
+import dynamic from "next/dynamic";
 import type { Project } from "@/data/projects";
+
+const DeviceScene = dynamic(
+  () => import("@/components/3d/DeviceScene").then((m) => m.DeviceScene),
+  { ssr: false }
+);
+
+/** Lazy-mounts DeviceScene only when visible — prevents multiple WebGL contexts fighting */
+function LazyDeviceScene(props: React.ComponentProps<typeof DeviceScene>) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { rootMargin: "200px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="h-full w-full">
+      {visible && <DeviceScene {...props} />}
+    </div>
+  );
+}
 
 /** Split text into lines on sentence boundaries for masked reveal */
 function splitIntoLines(text: string): string[] {
@@ -43,15 +72,24 @@ export function ProjectShowcase({
   const outerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [projectScrollProgress, setProjectScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const prefersReduced = useReducedMotion();
 
   const displayIndex = hoverIndex ?? activeIndex;
   const activeProject = projects[displayIndex];
 
-  // Detect mobile
+  // Preload all project screen textures so they're cached before hover/scroll
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
+    projects.forEach((p) => {
+      const img = new Image();
+      img.src = p.screenTexture;
+    });
+  }, [projects]);
+
+  // Detect mobile/tablet — split-screen needs 1024px+ to breathe
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
     setIsMobile(mq.matches);
     function handleChange(e: MediaQueryListEvent) {
       setIsMobile(e.matches);
@@ -70,6 +108,11 @@ export function ProjectShowcase({
       projects.length - 1
     );
     setActiveIndex(index);
+
+    // Per-project progress within its scroll slot
+    const slotSize = 1 / projects.length;
+    const slotProgress = (progress - index * slotSize) / slotSize;
+    setProjectScrollProgress(Math.max(0, Math.min(1, slotProgress)));
   });
 
   const handleRowHover = useCallback((index: number) => {
@@ -80,34 +123,79 @@ export function ProjectShowcase({
     setHoverIndex(null);
   }, []);
 
-  // Mobile fallback
+  // Mobile / tablet — stacked project panels with 3D devices
   if (isMobile) {
     return (
-      <section className={`px-[var(--space-lg)] mb-[var(--space-4xl)] ${className}`}>
+      <section className={`px-[var(--space-md)] md:px-[var(--space-lg)] mb-[var(--space-2xl)] md:mb-[var(--space-4xl)] ${className}`}>
         <div className="mx-auto max-w-[960px]">
           <ScrollLetterAnimation
             as="h2"
-            className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
+            className="mb-[var(--space-lg)] md:mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
           >
             FEATURED PROJECTS
           </ScrollLetterAnimation>
-          <ScrollGridAnimation className="grid gap-[var(--space-md)]">
+          <div className="flex flex-col gap-[var(--space-2xl)]">
             {projects.map((project) => (
-              <LinkHover
+              <TransitionLink
                 key={project.slug}
                 href={`/projects/${project.slug}`}
                 className="block no-underline"
               >
-                <ProjectCard
-                  issueNumber={project.issueNumber}
-                  name={project.name}
-                  description={project.description}
-                  tags={project.tags}
-                  status={project.status}
-                />
-              </LinkHover>
+                <div
+                  className="border border-[var(--border)] bg-[var(--surface)] transition-colors hover:border-[var(--border-visible)]"
+                  style={{
+                    borderRadius: "var(--radius-card)",
+                    transitionDuration: "var(--duration-micro)",
+                    transitionTimingFunction: "var(--ease-out)",
+                  }}
+                >
+                  {/* 3D Device — lazy-mounted to avoid WebGL context limits */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ borderRadius: "var(--radius-card) var(--radius-card) 0 0" }}>
+                    <LazyDeviceScene
+                      deviceType={project.deviceType}
+                      screenTexture={project.screenTexture}
+                      scrollProgress={0}
+                      isActive={true}
+                      projectSlug={project.slug}
+                    />
+                  </div>
+
+                  {/* Project info */}
+                  <div className="p-[var(--space-md)] md:p-[var(--space-lg)]">
+                    {/* Issue number + status */}
+                    <div className="mb-[var(--space-sm)] flex items-center justify-between">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+                        ISSUE {String(project.issueNumber).padStart(2, "0")}
+                      </span>
+                      <StatusBadge status={project.status} />
+                    </div>
+
+                    {/* Name */}
+                    <h3 className="mb-[var(--space-sm)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
+                      {project.name}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="mb-[var(--space-md)] font-sans text-[var(--body-sm)] leading-[1.5] text-[var(--text-secondary)]">
+                      {project.description}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="mb-[var(--space-md)] flex flex-wrap gap-[var(--space-sm)]">
+                      {project.tags.map((tag) => (
+                        <TagChip key={tag}>{tag}</TagChip>
+                      ))}
+                    </div>
+
+                    {/* View link */}
+                    <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
+                      View project →
+                    </span>
+                  </div>
+                </div>
+              </TransitionLink>
             ))}
-          </ScrollGridAnimation>
+          </div>
         </div>
       </section>
     );
@@ -117,7 +205,7 @@ export function ProjectShowcase({
   return (
     <section className={className}>
       {/* Section header — constrained width */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-lg)]">
+      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)]">
         <ScrollLetterAnimation
           as="h2"
           className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
@@ -195,7 +283,19 @@ export function ProjectShowcase({
           />
 
           {/* Right column — Detail panel */}
-          <div className="flex w-[60%] items-center pl-[var(--space-3xl)] pr-[var(--space-4xl)]">
+          <div className="flex w-[60%] flex-col justify-center pl-[var(--space-3xl)] pr-[var(--space-4xl)]">
+            {/* 3D Device — persistent canvas, no AnimatePresence remount */}
+            <div className="relative h-[55%] w-full">
+              <DeviceScene
+                deviceType={activeProject.deviceType}
+                screenTexture={activeProject.screenTexture}
+                scrollProgress={projectScrollProgress}
+                isActive={true}
+                projectSlug={activeProject.slug}
+              />
+            </div>
+
+            {/* Text content */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeProject.slug}

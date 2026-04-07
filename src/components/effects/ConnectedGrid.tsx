@@ -29,6 +29,19 @@ export function ConnectedGrid({
   const [lines, setLines] = useState<Line[]>([]);
   const isInView = useInView(containerRef, { once: true, margin: "-60px" });
   const prefersReduced = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    function handleChange(e: MediaQueryListEvent) {
+      setIsMobile(e.matches);
+    }
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
+
+  const effectiveColumns = isMobile ? 1 : columns;
 
   const childArray = Children.toArray(children);
 
@@ -51,7 +64,7 @@ export function ConnectedGrid({
       if (!a) continue;
 
       // Connect to right neighbor
-      if ((i + 1) % columns !== 0 && i + 1 < rects.length) {
+      if ((i + 1) % effectiveColumns !== 0 && i + 1 < rects.length) {
         const b = rects[i + 1];
         if (b) {
           computed.push({
@@ -64,8 +77,8 @@ export function ConnectedGrid({
       }
 
       // Connect to bottom neighbor
-      if (i + columns < rects.length) {
-        const b = rects[i + columns];
+      if (i + effectiveColumns < rects.length) {
+        const b = rects[i + effectiveColumns];
         if (b) {
           computed.push({
             x1: a.left + a.width / 2 - containerRect.left,
@@ -78,7 +91,7 @@ export function ConnectedGrid({
     }
 
     setLines(computed);
-  }, [columns]);
+  }, [effectiveColumns]);
 
   useEffect(() => {
     computeLines();
@@ -119,8 +132,8 @@ export function ConnectedGrid({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gap: "var(--space-2xl)",
+          gridTemplateColumns: `repeat(${effectiveColumns}, 1fr)`,
+          gap: isMobile ? "var(--space-md)" : "var(--space-2xl)",
         }}
       >
         {childArray.map((child, i) => (

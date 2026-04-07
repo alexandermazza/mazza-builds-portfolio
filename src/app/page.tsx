@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <main>
       {/* Hero — constrained */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-lg)] pt-[var(--space-4xl)]">
+      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] pt-[var(--space-2xl)] md:pt-[var(--space-4xl)]">
         <section className="mb-[var(--space-3xl)]">
           <SplitTextScatter
             text="MAZZA BUILDS"
@@ -46,7 +46,7 @@ export default function Home() {
       </section>
 
       {/* Intro — constrained */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-lg)]">
+      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)]">
         <section className="mb-[var(--space-4xl)]">
           <ScrollTextLines className="max-w-[480px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
             I&apos;m Alex Mazza, a solo indie developer who builds things from concept to production. I care about clean interfaces, thoughtful systems, and shipping work that holds up.
@@ -58,7 +58,7 @@ export default function Home() {
       <ProjectShowcase projects={projects} className="mb-[var(--space-4xl)]" />
 
       {/* Activity + CTA — constrained */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-lg)] pb-[var(--space-4xl)]">
+      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] pb-[var(--space-2xl)] md:pb-[var(--space-4xl)]">
         <section className="mb-[var(--space-4xl)]">
           <ScrollGridAnimation className="grid grid-cols-1 gap-[var(--space-md)] md:grid-cols-2" stagger={0.15}>
             <UsageCard compact />
@@ -76,7 +76,7 @@ export default function Home() {
       </div>
 
       {/* Attribution */}
-      <footer className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-xl)]">
+      <footer className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-xl)]">
         <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           3D models:{" "}
           <a

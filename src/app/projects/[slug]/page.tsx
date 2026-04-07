@@ -22,7 +22,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
   if (!project) notFound();
 
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
       {/* Header */}
       <section className="mb-[var(--space-2xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">

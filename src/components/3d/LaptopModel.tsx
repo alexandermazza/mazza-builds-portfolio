@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useGLTF, useTexture } from "@react-three/drei";
+import { useState, useEffect, useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 interface LaptopModelProps {
@@ -18,13 +18,24 @@ export function LaptopModel({
   tiltY,
 }: LaptopModelProps) {
   const { scene } = useGLTF("/models/macbook.glb");
-  const texture = useTexture(screenTexture);
+  // Clone so multiple instances don't fight over the same Three.js object
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
+  // Load texture manually — no Suspense, model appears immediately
   useEffect(() => {
-    texture.flipY = false;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    const loader = new THREE.TextureLoader();
+    loader.load(screenTexture, (tex) => {
+      tex.flipY = false;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      setTexture(tex);
+    });
+  }, [screenTexture]);
 
-    scene.traverse((child) => {
+  // Apply texture to screen mesh when ready
+  useEffect(() => {
+    if (!texture) return;
+    clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "sfCQkHOWyrsLmor") {
@@ -35,13 +46,12 @@ export function LaptopModel({
         }
       }
     });
-  }, [scene, texture]);
+  }, [clonedScene, texture]);
 
-  // MacBook is ~28 units wide. Scale down, center, and tilt screen toward camera.
   return (
     <group rotation={[tiltX, rotationY, 0]}>
       <group scale={0.04} position={[0, -0.3, 0]}>
-        <primitive object={scene} />
+        <primitive object={clonedScene} />
       </group>
     </group>
   );

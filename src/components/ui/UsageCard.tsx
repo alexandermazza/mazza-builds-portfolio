@@ -3,9 +3,11 @@
 import { type ComponentProps } from "react";
 import { UsageHeatmap } from "./UsageHeatmap";
 
-type UsageCardProps = Omit<ComponentProps<"section">, "children">;
+interface UsageCardProps extends Omit<ComponentProps<"section">, "children"> {
+  compact?: boolean;
+}
 
-export function UsageCard({ className = "", ...props }: UsageCardProps) {
+export function UsageCard({ className = "", compact = false, ...props }: UsageCardProps) {
   const now = new Date();
   const yearAgo = new Date(now);
   yearAgo.setFullYear(yearAgo.getFullYear() - 1);
@@ -16,7 +18,7 @@ export function UsageCard({ className = "", ...props }: UsageCardProps) {
 
   return (
     <section
-      className={`overflow-x-auto border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
+      className={`min-w-0 overflow-x-auto border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
       style={{ borderRadius: "var(--radius-card)" }}
       {...props}
     >
@@ -30,7 +32,7 @@ export function UsageCard({ className = "", ...props }: UsageCardProps) {
         {startLabel} &rarr; NOW
       </p>
 
-      <UsageHeatmap />
+      <UsageHeatmap compact={compact} />
     </section>
   );
 }

@@ -3,14 +3,16 @@
 import { type ComponentProps } from "react";
 import { GitHubHeatmap } from "./GitHubHeatmap";
 
-type GitHubCardProps = Omit<ComponentProps<"section">, "children">;
+interface GitHubCardProps extends Omit<ComponentProps<"section">, "children"> {
+  compact?: boolean;
+}
 
-export function GitHubCard({ className = "", ...props }: GitHubCardProps) {
+export function GitHubCard({ className = "", compact = false, ...props }: GitHubCardProps) {
   const year = new Date().getFullYear();
 
   return (
     <section
-      className={`overflow-x-auto border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
+      className={`min-w-0 overflow-x-auto border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] ${className}`}
       style={{ borderRadius: "var(--radius-card)" }}
       {...props}
     >
@@ -22,7 +24,7 @@ export function GitHubCard({ className = "", ...props }: GitHubCardProps) {
         JAN {year} &rarr; NOW
       </p>
 
-      <GitHubHeatmap />
+      <GitHubHeatmap compact={compact} />
     </section>
   );
 }

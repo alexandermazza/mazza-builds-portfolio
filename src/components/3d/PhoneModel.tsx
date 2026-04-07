@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useGLTF, useTexture } from "@react-three/drei";
+import { useState, useEffect, useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 interface PhoneModelProps {
@@ -18,13 +18,24 @@ export function PhoneModel({
   tiltY,
 }: PhoneModelProps) {
   const { scene } = useGLTF("/models/iphone.glb");
-  const texture = useTexture(screenTexture);
+  // Clone so multiple instances don't fight over the same Three.js object
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
+  // Load texture manually — no Suspense, model appears immediately
   useEffect(() => {
-    texture.flipY = false;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    const loader = new THREE.TextureLoader();
+    loader.load(screenTexture, (tex) => {
+      tex.flipY = false;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      setTexture(tex);
+    });
+  }, [screenTexture]);
 
-    scene.traverse((child) => {
+  // Apply texture to screen mesh when ready
+  useEffect(() => {
+    if (!texture) return;
+    clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "screen.001") {
@@ -33,14 +44,12 @@ export function PhoneModel({
         }
       }
     });
-  }, [scene, texture]);
+  }, [clonedScene, texture]);
 
-  // Phone screen faces -X by default, rotate +90° Y to face camera (+Z).
-  // Scale down slightly so it doesn't fill the entire panel height.
   return (
     <group rotation={[tiltX, rotationY, 0]}>
       <group rotation={[0, Math.PI / 2, 0]} scale={0.85}>
-        <primitive object={scene} />
+        <primitive object={clonedScene} />
       </group>
     </group>
   );

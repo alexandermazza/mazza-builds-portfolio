@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { TransitionProvider, TransitionContainer } from "@/transitions";
-import { CrosshairCursor, ExpandingMenu } from "@/components/effects";
+import { ExpandingMenu } from "@/components/effects";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -41,7 +41,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <TransitionProvider>
           <TransitionContainer>{children}</TransitionContainer>
-          <CrosshairCursor />
           <ExpandingMenu items={menuItems} />
         </TransitionProvider>
       </body>

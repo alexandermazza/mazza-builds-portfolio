@@ -55,7 +55,7 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
       {/* Heading */}
       <section className="mb-[var(--space-3xl)]">
         <ScrollLetterAnimation
@@ -73,7 +73,7 @@ export default function ContactPage() {
         </ScrollTextLines>
       </section>
 
-      <div className="grid gap-[var(--space-4xl)] md:grid-cols-[2fr_1fr]">
+      <div className="grid gap-[var(--space-2xl)] md:gap-[var(--space-4xl)] md:grid-cols-[2fr_1fr]">
         {/* Form */}
         <section>
           <form onSubmit={handleSubmit} className="grid gap-[var(--space-2xl)]">

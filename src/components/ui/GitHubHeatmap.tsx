@@ -26,17 +26,25 @@ interface TooltipState {
 type Cell = { date: Date; inFuture: boolean };
 type MonthLabel = { weekIndex: number; label: string };
 
-export type GitHubHeatmapProps = Omit<ComponentProps<"div">, "children">;
+export interface GitHubHeatmapProps extends Omit<ComponentProps<"div">, "children"> {
+  compact?: boolean;
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CELL_SIZE = 10;
-const GAP = 2;
-const CELL_STEP = CELL_SIZE + GAP;
 const DAYS = 7;
 
-const MONTH_LABEL_HEIGHT = 16;
-const DAY_LABEL_WIDTH = 28;
+function getGridConfig(compact: boolean) {
+  const cellSize = compact ? 6 : 10;
+  const gap = compact ? 1 : 2;
+  return {
+    cellSize,
+    gap,
+    cellStep: cellSize + gap,
+    monthLabelHeight: compact ? 14 : 16,
+    dayLabelWidth: compact ? 0 : 28,
+  };
+}
 
 const DAY_LABEL_ROWS: { index: number; label: string }[] = [
   { index: 1, label: "MON" },
@@ -87,7 +95,8 @@ function buildGrid(today: Date): { start: Date; weeks: number } {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) {
+export function GitHubHeatmap({ className = "", compact = false, ...props }: GitHubHeatmapProps) {
+  const cfg = getGridConfig(compact);
   const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
   const [countMap, setCountMap] = useState<Map<string, number>>(new Map());
   const [totalContributions, setTotalContributions] = useState(0);
@@ -169,10 +178,10 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
     return {
       weeks: w,
       monthLabels: labels,
-      gridWidth: totalWeeks * CELL_STEP - GAP,
-      gridHeight: DAYS * CELL_STEP - GAP,
+      gridWidth: totalWeeks * cfg.cellStep - cfg.gap,
+      gridHeight: DAYS * cfg.cellStep - cfg.gap,
     };
-  }, []);
+  }, [cfg.cellStep, cfg.gap]);
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
@@ -228,9 +237,9 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
   return (
     <div className={className} {...props}>
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
-      <div className="mb-[var(--space-2xl)] flex gap-[var(--space-2xl)]">
+      <div className={`flex gap-[var(--space-2xl)] ${compact ? "mb-[var(--space-md)]" : "mb-[var(--space-2xl)]"}`}>
         <div>
-          <div className="font-sans text-[2.5rem] leading-[1] tracking-[-0.02em] text-[var(--text-display)]">
+          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
             {totalContributions}
           </div>
           <div className="mt-[var(--space-xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
@@ -238,7 +247,7 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
           </div>
         </div>
         <div>
-          <div className="font-sans text-[2.5rem] leading-[1] tracking-[-0.02em] text-[var(--text-display)]">
+          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
             {activeDays}
           </div>
           <div className="mt-[var(--space-xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
@@ -249,31 +258,33 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
 
       {/* ── Grid wrapper ─────────────────────────────────────────────────── */}
       <div style={{ display: "flex", flexDirection: "row" }}>
-        {/* Day labels column */}
-        <div
-          style={{
-            width: DAY_LABEL_WIDTH,
-            marginTop: MONTH_LABEL_HEIGHT,
-            flexShrink: 0,
-            position: "relative",
-            height: gridHeight,
-          }}
-        >
-          {DAY_LABEL_ROWS.map(({ index, label }) => (
-            <div
-              key={label}
-              className="font-mono text-[10px] uppercase text-[var(--text-secondary)]"
-              style={{
-                position: "absolute",
-                top: index * CELL_STEP,
-                right: 4,
-                lineHeight: `${CELL_SIZE}px`,
-              }}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
+        {/* Day labels column (hidden in compact mode) */}
+        {!compact && (
+          <div
+            style={{
+              width: cfg.dayLabelWidth,
+              marginTop: cfg.monthLabelHeight,
+              flexShrink: 0,
+              position: "relative",
+              height: gridHeight,
+            }}
+          >
+            {DAY_LABEL_ROWS.map(({ index, label }) => (
+              <div
+                key={label}
+                className="font-mono text-[10px] uppercase text-[var(--text-secondary)]"
+                style={{
+                  position: "absolute",
+                  top: index * cfg.cellStep,
+                  right: 4,
+                  lineHeight: `${cfg.cellSize}px`,
+                }}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Grid + month labels */}
         <div style={{ position: "relative" }}>
@@ -281,17 +292,17 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
           <div
             style={{
               position: "relative",
-              height: MONTH_LABEL_HEIGHT,
+              height: cfg.monthLabelHeight,
               width: gridWidth,
             }}
           >
             {monthLabels.map(({ weekIndex, label }) => (
               <div
                 key={`${label}-${weekIndex}`}
-                className="font-mono text-[10px] uppercase text-[var(--text-secondary)]"
+                className={`font-mono uppercase text-[var(--text-secondary)] ${compact ? "text-[8px]" : "text-[10px]"}`}
                 style={{
                   position: "absolute",
-                  left: weekIndex * CELL_STEP,
+                  left: weekIndex * cfg.cellStep,
                   bottom: 2,
                   lineHeight: "1",
                 }}
@@ -326,9 +337,9 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
                 }}
                 style={{
                   position: "absolute",
-                  left: wIdx * CELL_STEP,
+                  left: wIdx * cfg.cellStep,
                   top: 0,
-                  width: CELL_SIZE,
+                  width: cfg.cellSize,
                   height: gridHeight,
                 }}
               >
@@ -349,11 +360,11 @@ export function GitHubHeatmap({ className = "", ...props }: GitHubHeatmapProps) 
                       style={{
                         position: "absolute",
                         left: 0,
-                        top: dIdx * CELL_STEP,
-                        width: CELL_SIZE,
-                        height: CELL_SIZE,
+                        top: dIdx * cfg.cellStep,
+                        width: cfg.cellSize,
+                        height: cfg.cellSize,
                         backgroundColor: color,
-                        borderRadius: 2,
+                        borderRadius: compact ? 1 : 2,
                         cursor: cell.inFuture ? "default" : "crosshair",
                       }}
                       onMouseEnter={(e) => handleCellMouseEnter(e, cell, count)}

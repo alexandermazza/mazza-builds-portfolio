@@ -9,7 +9,7 @@ import { projects } from "@/data/projects";
 
 export default function ProjectsPage() {
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-lg)] py-[var(--space-4xl)]">
+    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
       <section className="mb-[var(--space-3xl)]">
         <ScrollLetterAnimation
           as="h1"
@@ -20,7 +20,7 @@ export default function ProjectsPage() {
       </section>
 
       <ScrollVelocityOffset multiplier={0.15}>
-        <ConnectedGrid columns={2} lineColor="var(--text-disabled)" className="mb-[var(--space-4xl)]">
+        <ConnectedGrid columns={2} lineColor="var(--text-disabled)" className="mb-[var(--space-2xl)] md:mb-[var(--space-4xl)]">
           {projects.map((project) => (
             <LinkHover
               key={project.slug}

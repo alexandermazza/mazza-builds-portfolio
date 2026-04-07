@@ -46,6 +46,7 @@ export function ScrollGridAnimation({
       {Children.map(children, (child, i) => (
         <motion.div
           key={i}
+          style={{ minWidth: 0 }}
           initial={prefersReduced ? animate : initial}
           animate={isInView ? animate : initial}
           transition={prefersReduced ? { duration: 0 } : {

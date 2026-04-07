@@ -27,7 +27,7 @@ export function ProjectCard({
 
   return (
     <article
-      className={`border border-[var(--border)] bg-[var(--surface)] p-[var(--space-lg)] transition-colors hover:border-[var(--border-visible)] ${className}`}
+      className={`border border-[var(--border)] bg-[var(--surface)] p-[var(--space-md)] md:p-[var(--space-lg)] transition-colors hover:border-[var(--border-visible)] ${className}`}
       style={{
         borderRadius: "var(--radius-card)",
         transitionDuration: "var(--duration-micro)",

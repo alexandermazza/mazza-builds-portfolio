@@ -89,6 +89,14 @@ function cloneCurrentPage(el: HTMLElement): HTMLDivElement {
   return clone;
 }
 
+// ── Debug logging (set to false for production) ─────────
+const DEBUG = false;
+function dbg(label: string, data?: Record<string, unknown>) {
+  if (!DEBUG) return;
+  const t = performance.now().toFixed(1);
+  console.log(`[TRANSITION ${t}ms] ${label}`, data ?? "");
+}
+
 // ── Provider ─────────────────────────────────────────────
 
 export function TransitionProvider({
@@ -100,10 +108,10 @@ export function TransitionProvider({
   const pathname = usePathname();
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // All mutable state lives in refs to avoid stale closures
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cloneRef = useRef<HTMLDivElement | null>(null);
   const isTransitioningRef = useRef(false);
+  const transitionRunningRef = useRef(false);
   const pendingHrefRef = useRef<string | null>(null);
   const previousPathRef = useRef(pathname);
   const isPopStateRef = useRef(false);
@@ -114,7 +122,7 @@ export function TransitionProvider({
     registerTransitions(forwardTransition, backTransition);
   }, []);
 
-  // Detect reduced motion preference (reactive)
+  // Detect reduced motion preference
   useEffect(() => {
     const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotionRef.current = mql.matches;
@@ -134,25 +142,54 @@ export function TransitionProvider({
       prevPath: string,
       nextPath: string
     ) => {
+      if (transitionRunningRef.current) {
+        dbg("runTransition:SKIPPED (already running)");
+        return;
+      }
+      transitionRunningRef.current = true;
+
       try {
+        dbg("runTransition:start", { prevPath, nextPath });
+
         const transitionFn = getTransition(
           prevPath,
           nextPath,
           isPopStateRef.current
         );
+
+        dbg("runTransition:waiting-for-images");
         await waitForImages(nextEl);
+        dbg("runTransition:images-ready");
+
+        // The container was hidden before router.push (in navigate()).
+        // The transition function will set its own initial state (clipPath, position, etc.)
+        // and restore opacity as part of the animation setup.
+        gsap.set(nextEl, { opacity: 1 });
+        dbg("runTransition:starting-animation");
 
         const tl = transitionFn(clone, nextEl);
         await tl.then();
+        dbg("runTransition:animation-complete");
       } finally {
-        // Cleanup always runs, even if GSAP throws
+        dbg("cleanup:start");
+
+        // 1. Hide while cleaning up layout
+        gsap.set(nextEl, { opacity: 0 });
+
+        // 2. Remove the clone overlay
         clone.remove();
         cloneRef.current = null;
+
+        // 3. Clear GSAP inline styles → element returns to normal flow
         gsap.set(nextEl, {
           clearProps:
-            "clipPath,position,top,left,width,height,zIndex,opacity,x,y,scale,transform",
+            "clipPath,position,top,left,width,height,zIndex,x,y,scale,transform",
         });
 
+        // 4. Scroll to top while hidden
+        window.scrollTo(0, 0);
+
+        // 5. Reset state
         isTransitioningRef.current = false;
         isPopStateRef.current = false;
         setIsTransitioning(false);
@@ -160,21 +197,52 @@ export function TransitionProvider({
         pendingHrefRef.current = null;
         document.body.style.overflow = "";
 
-        window.scrollTo(0, 0);
-        enterAnimation(nextEl);
+        // 6. Reveal — skip enterAnimation since GSAP already animated the page in.
+        // The enter animation's fromTo would hide [data-enter] elements and
+        // re-animate them, causing a visible "double load" flash.
+        gsap.set(nextEl, { opacity: 1 });
+        transitionRunningRef.current = false;
+        dbg("cleanup:done");
       }
     },
     []
   );
 
+  // ── Pathname change detection ─────────────────────────
+  // The container lives in layout.tsx (persistent, never remounts).
+  // When pathname changes, React has swapped the children inside the
+  // container. We start the animation here.
+
+  useEffect(() => {
+    if (pathname === previousPathRef.current) return;
+    dbg("pathname-changed", { from: previousPathRef.current, to: pathname });
+
+    const clone = cloneRef.current;
+    const el = containerRef.current;
+
+    if (clone && el && isTransitioningRef.current) {
+      const prevPath = previousPathRef.current;
+      dbg("pathname-changed:triggering-transition");
+      runTransition(clone, el, prevPath, pathname);
+    } else {
+      // Non-animated navigation (reduced motion, etc.)
+      previousPathRef.current = pathname;
+    }
+  }, [pathname, runTransition]);
+
   // ── Navigate (called by TransitionLink) ────────────────
 
   const navigate = useCallback(
     (href: string) => {
+      dbg("navigate:called", {
+        href,
+        alreadyTransitioning: isTransitioningRef.current,
+        currentPath: window.location.pathname,
+      });
       if (isTransitioningRef.current) return;
       if (href === window.location.pathname) return;
 
-      // External URLs — let browser handle
+      // External URLs
       try {
         const url = new URL(href, window.location.origin);
         if (url.origin !== window.location.origin) {
@@ -182,7 +250,7 @@ export function TransitionProvider({
           return;
         }
       } catch {
-        // Let Next.js handle unparseable hrefs
+        // Let Next.js handle
       }
 
       if (reducedMotionRef.current) {
@@ -190,16 +258,15 @@ export function TransitionProvider({
         return;
       }
 
+      dbg("navigate:starting-transition", { href });
       isTransitioningRef.current = true;
       setIsTransitioning(true);
       pendingHrefRef.current = href;
       document.body.style.overflow = "hidden";
 
-      // Clone current page before Next.js swaps
+      // Clone current page before Next.js swaps content
       const currentEl = containerRef.current;
-      if (currentEl) {
-        cloneRef.current = cloneCurrentPage(currentEl);
-      } else {
+      if (!currentEl) {
         isTransitioningRef.current = false;
         setIsTransitioning(false);
         document.body.style.overflow = "";
@@ -207,15 +274,28 @@ export function TransitionProvider({
         return;
       }
 
+      cloneRef.current = cloneCurrentPage(currentEl);
+
+      // Hide the real container BEFORE router.push.
+      // The clone covers the viewport, so the user sees the old page.
+      // When React swaps children underneath, it's invisible.
+      gsap.set(currentEl, { opacity: 0 });
+
+      dbg("navigate:cloned-and-hidden, calling router.push");
       router.push(href, { scroll: false });
 
-      // Safety: if transition doesn't complete within 5s, force cleanup
+      // Safety timeout
       setTimeout(() => {
         if (isTransitioningRef.current) {
+          dbg("navigate:safety-timeout-fired");
           cloneRef.current?.remove();
           cloneRef.current = null;
+          if (containerRef.current) {
+            gsap.set(containerRef.current, { clearProps: "all" });
+          }
           isTransitioningRef.current = false;
           isPopStateRef.current = false;
+          transitionRunningRef.current = false;
           setIsTransitioning(false);
           pendingHrefRef.current = null;
           document.body.style.overflow = "";
@@ -225,21 +305,14 @@ export function TransitionProvider({
     [router]
   );
 
-  // ── Container registration (called by TransitionContainer) ──
+  // ── Container registration (one-time, from layout) ─────
 
   const registerContainer = useCallback(
     (el: HTMLDivElement | null) => {
+      dbg("registerContainer", { hasEl: !!el });
       containerRef.current = el;
-
-      if (el && cloneRef.current && isTransitioningRef.current) {
-        const clone = cloneRef.current;
-        const prevPath = previousPathRef.current;
-        const nextPath =
-          pendingHrefRef.current || window.location.pathname;
-        runTransition(clone, el, prevPath, nextPath);
-      }
     },
-    [runTransition]
+    []
   );
 
   // ── Browser back/forward ───────────────────────────────
@@ -257,14 +330,18 @@ export function TransitionProvider({
       const currentEl = containerRef.current;
       if (currentEl) {
         cloneRef.current = cloneCurrentPage(currentEl);
+        gsap.set(currentEl, { opacity: 0 });
 
-        // Safety: if transition doesn't complete within 5s, force cleanup
         setTimeout(() => {
           if (isTransitioningRef.current && cloneRef.current) {
             cloneRef.current.remove();
             cloneRef.current = null;
+            if (containerRef.current) {
+              gsap.set(containerRef.current, { clearProps: "all" });
+            }
             isTransitioningRef.current = false;
             isPopStateRef.current = false;
+            transitionRunningRef.current = false;
             setIsTransitioning(false);
             document.body.style.overflow = "";
           }
@@ -280,8 +357,6 @@ export function TransitionProvider({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
-
-  // ── Render ─────────────────────────────────────────────
 
   return (
     <TransitionContext value={{ navigate, registerContainer, isTransitioning }}>

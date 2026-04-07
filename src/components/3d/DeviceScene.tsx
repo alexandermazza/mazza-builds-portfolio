@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState, useCallback } from "react";
+import { Suspense, useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useReducedMotion } from "motion/react";
 import type { DeviceType } from "@/data/projects";
@@ -11,8 +11,9 @@ import * as THREE from "three";
 interface DeviceSceneProps {
   deviceType: DeviceType;
   screenTexture: string;
-  scrollProgress: number; // 0-1 within this project's scroll slot
+  scrollProgress: number;
   isActive: boolean;
+  projectSlug: string;
 }
 
 /** Inner component that drives animation via useFrame */
@@ -21,16 +22,39 @@ function AnimatedDevice({
   screenTexture,
   scrollProgress,
   isActive,
-  tiltX,
-  tiltY,
-}: DeviceSceneProps & { tiltX: number; tiltY: number }) {
+  projectSlug,
+  tiltTargetX,
+  tiltTargetY,
+}: DeviceSceneProps & { tiltTargetX: React.RefObject<number>; tiltTargetY: React.RefObject<number> }) {
   const prefersReduced = useReducedMotion();
   const rotationRef = useRef(0.785); // Start at ~45°
   const floatRef = useRef(0);
+  const smoothTiltX = useRef(0);
+  const smoothTiltY = useRef(0);
   const groupRef = useRef<THREE.Group>(null);
+  const prevSlugRef = useRef(projectSlug);
+  const prevDeviceTypeRef = useRef(deviceType);
   const { invalidate } = useThree();
 
-  useFrame((_, delta) => {
+  // Kick the first frame after Suspense resolves and the model mounts
+  useEffect(() => {
+    invalidate();
+  }, [invalidate]);
+
+  // Reset rotation only when device type changes (phone ↔ laptop).
+  // Same device type: just swap texture, keep current rotation.
+  useEffect(() => {
+    if (prevSlugRef.current !== projectSlug) {
+      if (prevDeviceTypeRef.current !== deviceType) {
+        rotationRef.current = 0.785; // Reset to ~45° for entrance
+      }
+      prevSlugRef.current = projectSlug;
+      prevDeviceTypeRef.current = deviceType;
+      invalidate();
+    }
+  }, [projectSlug, deviceType, invalidate]);
+
+  useFrame((_, rawDelta) => {
     if (!groupRef.current) return;
 
     if (prefersReduced) {
@@ -39,16 +63,24 @@ function AnimatedDevice({
       return;
     }
 
-    // Scroll-driven rotation: ~45° → ~5° as project becomes active
-    const targetRotation = isActive ? 0.09 : 0.785; // ~5° and ~45°
-    const prev = rotationRef.current;
-    rotationRef.current +=
-      (targetRotation - rotationRef.current) * Math.min(delta * 4, 1);
+    // Cap delta to prevent instant snap after Suspense or tab-switch
+    const delta = Math.min(rawDelta, 0.033);
 
-    // Apply scroll-driven Y rotation + hover tilt imperatively
+    // Smoothly lerp tilt toward target (6 = responsiveness factor)
+    const lerpSpeed = delta * 6;
+    smoothTiltX.current += (tiltTargetX.current - smoothTiltX.current) * lerpSpeed;
+    smoothTiltY.current += (tiltTargetY.current - smoothTiltY.current) * lerpSpeed;
+
+    // Scroll-driven rotation: ~45° → ~5° when active
+    const targetRotation = isActive ? 0.09 : 0.785;
+    const prevRotation = rotationRef.current;
+    rotationRef.current +=
+      (targetRotation - rotationRef.current) * delta * 4;
+
+    // Apply scroll-driven Y rotation + smoothed hover tilt
     groupRef.current.rotation.set(
-      tiltX * 0.05,
-      rotationRef.current + tiltY * 0.05,
+      smoothTiltX.current * 0.05,
+      rotationRef.current + smoothTiltY.current * 0.05,
       0
     );
 
@@ -60,9 +92,12 @@ function AnimatedDevice({
       groupRef.current.position.y = 0;
     }
 
-    // Only request re-render when animating
-    const isAnimating = Math.abs(rotationRef.current - prev) > 0.0001;
-    if (isAnimating || isActive) {
+    // Re-render while animating, tilt is settling, or active (for float)
+    const isRotating = Math.abs(rotationRef.current - prevRotation) > 0.0001;
+    const isTiltSettling =
+      Math.abs(smoothTiltX.current - tiltTargetX.current) > 0.001 ||
+      Math.abs(smoothTiltY.current - tiltTargetY.current) > 0.001;
+    if (isRotating || isTiltSettling || isActive) {
       invalidate();
     }
   });
@@ -86,23 +121,29 @@ export function DeviceScene({
   screenTexture,
   scrollProgress,
   isActive,
+  projectSlug,
 }: DeviceSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const tiltTargetX = useRef(0);
+  const tiltTargetY = useRef(0);
+  const canvasRef = useRef<{ invalidate: () => void } | null>(null);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const x = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to 1
-      const y = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to 1
-      setTilt({ x, y });
+      tiltTargetX.current = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      tiltTargetY.current = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      // Kick a frame so useFrame picks up the new target
+      canvasRef.current?.invalidate();
     },
     []
   );
 
   const handlePointerLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
+    tiltTargetX.current = 0;
+    tiltTargetY.current = 0;
+    canvasRef.current?.invalidate();
   }, []);
 
   // Camera distance — phone is taller/narrower, laptop is wider
@@ -121,8 +162,10 @@ export function DeviceScene({
         camera={{ position: [0, 0, cameraZ], fov: cameraFov }}
         gl={{ alpha: true, antialias: true }}
         style={{ background: "transparent" }}
+        onCreated={(state) => {
+          canvasRef.current = { invalidate: state.invalidate };
+        }}
       >
-        {/* Minimal flat lighting — matches Nothing aesthetic */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[2, 3, 5]} intensity={0.8} />
 
@@ -132,8 +175,9 @@ export function DeviceScene({
             screenTexture={screenTexture}
             scrollProgress={scrollProgress}
             isActive={isActive}
-            tiltX={tilt.x}
-            tiltY={tilt.y}
+            projectSlug={projectSlug}
+            tiltTargetX={tiltTargetX}
+            tiltTargetY={tiltTargetY}
           />
         </Suspense>
       </Canvas>
