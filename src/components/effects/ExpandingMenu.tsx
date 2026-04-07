@@ -50,7 +50,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--border-visible)] bg-[var(--surface)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] md:h-[44px] md:w-[44px] max-md:bottom-[var(--space-md)] max-md:right-[var(--space-md)] max-md:h-[48px] max-md:w-[48px]"
+        className="fixed bottom-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--border-visible)] bg-[var(--surface)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] max-md:bottom-[var(--space-md)] max-md:right-[var(--space-md)] max-md:h-[48px] max-md:w-[48px]"
         style={{
           transitionDuration: "var(--duration-micro)",
           transitionTimingFunction: "var(--ease-out)",
