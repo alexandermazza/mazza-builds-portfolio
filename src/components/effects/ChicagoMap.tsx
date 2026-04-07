@@ -6,20 +6,20 @@ interface ChicagoMapProps {
   className?: string;
 }
 
-const LERP_MOVE = 0.1;
-const LERP_RETURN = 0.06;
-const CONVERGE_THRESHOLD = 0.001;
-const HOVER_SCALE = 1.06;
-const TILT_DEGREES = 4;
+const LERP_IN = 0.06;
+const LERP_OUT = 0.04;
+const CONVERGE_THRESHOLD = 0.01;
+const MAX_DISPLACEMENT = 15;
 
 export function ChicagoMap({ className = "" }: ChicagoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [svgContent, setSvgContent] = useState<string | null>(null);
+  const displacementRef = useRef<SVGFEDisplacementMapElement | null>(null);
+  const turbulenceRef = useRef<SVGFETurbulenceElement | null>(null);
   const rafRef = useRef<number>(0);
-  const lerpRef = useRef(LERP_MOVE);
-  const targetRef = useRef({ x: 0.5, y: 0.5, scale: 1 });
-  const currentRef = useRef({ x: 0.5, y: 0.5, scale: 1 });
+  const targetScale = useRef(0);
+  const currentScale = useRef(0);
+  const lerpRef = useRef(LERP_IN);
   const [prefersReduced, setPrefersReduced] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -49,13 +49,12 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
 
     // Inject raw SVG (first-party asset from public/)
     wrapper.innerHTML = svgContent;
-    wrapperRef.current = wrapper;
 
     const svg = wrapper.querySelector("svg");
     if (!svg) return;
 
-    // Crop viewBox — zoomed into central Chicago, shorter aspect ratio
-    svg.setAttribute("viewBox", "350 300 900 550");
+    // Wide crop — shows central Chicago with generous lake area
+    svg.setAttribute("viewBox", "200 300 1300 500");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
     svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
@@ -66,56 +65,74 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
     const bg = svg.querySelector("#background");
     if (bg) bg.setAttribute("fill", "none");
 
-    // Set transition for smooth interaction
-    if (!prefersReduced && !isMobile) {
-      wrapper.style.willChange = "transform";
-    }
+    // Skip filter setup if reduced motion or mobile
+    if (prefersReduced || isMobile) return;
+
+    const linesGroup = svg.querySelector("#lines");
+    if (!linesGroup) return;
+
+    // Create feTurbulence + feDisplacementMap filter
+    const ns = "http://www.w3.org/2000/svg";
+    const defs = document.createElementNS(ns, "defs");
+
+    const filter = document.createElementNS(ns, "filter");
+    filter.id = "warp";
+    filter.setAttribute("x", "-5%");
+    filter.setAttribute("y", "-5%");
+    filter.setAttribute("width", "110%");
+    filter.setAttribute("height", "110%");
+
+    // Turbulence generates organic noise pattern
+    const turbulence = document.createElementNS(ns, "feTurbulence");
+    turbulence.setAttribute("type", "fractalNoise");
+    turbulence.setAttribute("baseFrequency", "0.015");
+    turbulence.setAttribute("numOctaves", "3");
+    turbulence.setAttribute("seed", "2");
+    turbulence.setAttribute("result", "noise");
+
+    // Displacement uses turbulence to warp the street lines
+    const displacement = document.createElementNS(ns, "feDisplacementMap");
+    displacement.setAttribute("in", "SourceGraphic");
+    displacement.setAttribute("in2", "noise");
+    displacement.setAttribute("scale", "0");
+    displacement.setAttribute("xChannelSelector", "R");
+    displacement.setAttribute("yChannelSelector", "G");
+
+    filter.appendChild(turbulence);
+    filter.appendChild(displacement);
+    defs.appendChild(filter);
+    svg.insertBefore(defs, svg.firstChild);
+
+    linesGroup.setAttribute("filter", "url(#warp)");
+
+    displacementRef.current = displacement;
+    turbulenceRef.current = turbulence;
 
     return () => {
       wrapper.innerHTML = "";
-      wrapperRef.current = null;
+      displacementRef.current = null;
+      turbulenceRef.current = null;
     };
   }, [svgContent, prefersReduced, isMobile]);
-
-  const applyTransform = useCallback(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-
-    const { x, y, scale } = currentRef.current;
-    const originX = x * 100;
-    const originY = y * 100;
-
-    // Subtle tilt based on cursor offset from center
-    const rotateY = (x - 0.5) * TILT_DEGREES;
-    const rotateX = -(y - 0.5) * TILT_DEGREES;
-
-    wrapper.style.transformOrigin = `${originX}% ${originY}%`;
-    wrapper.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`;
-  }, []);
 
   const startAnimation = useCallback(() => {
     if (rafRef.current) return;
 
     const animate = () => {
       const lerp = lerpRef.current;
-      currentRef.current.x +=
-        (targetRef.current.x - currentRef.current.x) * lerp;
-      currentRef.current.y +=
-        (targetRef.current.y - currentRef.current.y) * lerp;
-      currentRef.current.scale +=
-        (targetRef.current.scale - currentRef.current.scale) * lerp;
+      currentScale.current +=
+        (targetScale.current - currentScale.current) * lerp;
 
-      applyTransform();
+      if (displacementRef.current) {
+        displacementRef.current.setAttribute(
+          "scale",
+          String(currentScale.current)
+        );
+      }
 
-      const dx = targetRef.current.x - currentRef.current.x;
-      const dy = targetRef.current.y - currentRef.current.y;
-      const ds = targetRef.current.scale - currentRef.current.scale;
+      const delta = Math.abs(targetScale.current - currentScale.current);
 
-      if (
-        Math.abs(dx) > CONVERGE_THRESHOLD ||
-        Math.abs(dy) > CONVERGE_THRESHOLD ||
-        Math.abs(ds) > CONVERGE_THRESHOLD
-      ) {
+      if (delta > CONVERGE_THRESHOLD) {
         rafRef.current = requestAnimationFrame(animate);
       } else {
         rafRef.current = 0;
@@ -123,27 +140,18 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
     };
 
     rafRef.current = requestAnimationFrame(animate);
-  }, [applyTransform]);
+  }, []);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (prefersReduced || isMobile || !containerRef.current) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      targetRef.current = {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-        scale: HOVER_SCALE,
-      };
-      lerpRef.current = LERP_MOVE;
-      startAnimation();
-    },
-    [prefersReduced, isMobile, startAnimation]
-  );
+  const handleMouseEnter = useCallback(() => {
+    if (prefersReduced || isMobile) return;
+    targetScale.current = MAX_DISPLACEMENT;
+    lerpRef.current = LERP_IN;
+    startAnimation();
+  }, [prefersReduced, isMobile, startAnimation]);
 
   const handleMouseLeave = useCallback(() => {
-    targetRef.current = { x: 0.5, y: 0.5, scale: 1 };
-    lerpRef.current = LERP_RETURN;
+    targetScale.current = 0;
+    lerpRef.current = LERP_OUT;
     startAnimation();
   }, [startAnimation]);
 
@@ -157,7 +165,7 @@ export function ChicagoMap({ className = "" }: ChicagoMapProps) {
     <div
       ref={containerRef}
       className={`relative overflow-hidden ${className}`}
-      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div className="chicago-svg-wrapper h-full w-full" />

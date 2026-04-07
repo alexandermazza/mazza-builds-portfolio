@@ -87,18 +87,16 @@ export default function AboutPage() {
 
         {/* Location Spec */}
         <section className="mb-[var(--space-4xl)]">
-          <div className="grid grid-cols-1 gap-[var(--space-2xl)] md:grid-cols-[2fr_3fr] md:items-start">
-            <SpecBlock label="SPEC: LOCATION">
-              <p className="mb-[var(--space-md)] font-mono text-[13px] tracking-[0.06em] text-[var(--text-secondary)]">
-                41.8781° N, 87.6298° W
-              </p>
-              <ScrollTextLines className="max-w-[400px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                Based in Chicago — a city built on a grid, which felt
-                appropriate.
-              </ScrollTextLines>
-            </SpecBlock>
-            <ChicagoMap className="h-[250px] md:h-[350px]" />
-          </div>
+          <SpecBlock label="SPEC: LOCATION">
+            <p className="mb-[var(--space-md)] font-mono text-[13px] tracking-[0.06em] text-[var(--text-secondary)]">
+              41.8781° N, 87.6298° W
+            </p>
+            <ScrollTextLines className="mb-[var(--space-2xl)] max-w-[400px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+              Based in Chicago — a city built on a grid, which felt
+              appropriate.
+            </ScrollTextLines>
+          </SpecBlock>
+          <ChicagoMap className="h-[300px] md:h-[400px]" />
         </section>
 
         {/* Systems Spec */}
