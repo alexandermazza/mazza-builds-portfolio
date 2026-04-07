@@ -53,7 +53,7 @@ const BOOT_LINES: BootLine[] = [
     type: "bar",
     prefix: "> fetching projects ",
     barWidth: 10,
-    suffix: " 4 loaded",
+    suffix: " 10 loaded",
     pauseAt: 0.6,
   },
   {
@@ -99,8 +99,6 @@ const LAST_LINE_DURATION = 0.08;
 const BAR_FILL_DURATION = 0.3;
 const HOLD_DURATION = 0.4;
 const REVEAL_SCALE_DURATION = 0.3;
-const REPEAT_SPEED = 2.5;
-
 function getLineDuration(index: number, total: number): number {
   const t = index / (total - 1);
   return FIRST_LINE_DURATION - (FIRST_LINE_DURATION - LAST_LINE_DURATION) * t;
@@ -110,6 +108,9 @@ function getLineDuration(index: number, total: number): number {
 
 const HERO_TEXT = "MAZZA BUILDS";
 const HERO_CHARS = HERO_TEXT.split("");
+
+/** Survives client-side navigations, resets on full page load / new tab */
+let hasPlayedBoot = false;
 
 export function TerminalHero() {
   const bootRef = useRef<HTMLDivElement>(null);
@@ -123,8 +124,7 @@ export function TerminalHero() {
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const isRepeatVisit = sessionStorage.getItem("hero-seen") === "true";
-    const speed = isRepeatVisit ? REPEAT_SPEED : 1;
+    const isRepeatVisit = hasPlayedBoot;
 
     document.body.style.overflow = "hidden";
 
@@ -179,11 +179,53 @@ export function TerminalHero() {
         if (taglineRef.current) {
           taglineRef.current.style.opacity = "1";
         }
-        sessionStorage.setItem("hero-seen", "true");
+        hasPlayedBoot = true;
       }, 1000);
 
       return () => {
         clearTimeout(timeout);
+        document.body.style.overflow = "";
+      };
+    }
+
+    // ── Repeat-visit fast path: skip boot, quick hero reveal ──
+    if (isRepeatVisit) {
+      if (bootRef.current) {
+        bootRef.current.style.opacity = "0";
+        bootRef.current.style.display = "none";
+      }
+      if (revealRef.current) {
+        revealRef.current.style.opacity = "1";
+      }
+
+      const tl = gsap.timeline();
+      tlRef.current = tl;
+
+      const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
+      tl.fromTo(
+        validChars,
+        { y: 20, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.25,
+          stagger: 0.02,
+          ease: ENTER_EASE,
+        }
+      );
+
+      if (taglineRef.current) {
+        tl.to(taglineRef.current, {
+          opacity: 1,
+          duration: 0.3,
+          ease: ENTER_EASE,
+        }, "-=0.1");
+      }
+
+      tl.call(() => { document.body.style.overflow = ""; });
+
+      return () => {
+        tl.kill();
         document.body.style.overflow = "";
       };
     }
@@ -196,7 +238,7 @@ export function TerminalHero() {
       const el = lineRefs.current[i];
       if (!el) return;
 
-      const dur = getLineDuration(i, BOOT_LINES.length) / speed;
+      const dur = getLineDuration(i, BOOT_LINES.length);
 
       // Make line visible
       tl.set(el, { opacity: 1 });
@@ -218,7 +260,7 @@ export function TerminalHero() {
         const barEl = el.querySelector<HTMLElement>("[data-bar]");
         const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
         const width = line.barWidth;
-        const fillDur = BAR_FILL_DURATION / speed;
+        const fillDur = BAR_FILL_DURATION;
 
         // Scramble prefix
         if (prefixEl) {
@@ -246,7 +288,7 @@ export function TerminalHero() {
                   "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
               },
             });
-            tl.to({}, { duration: 0.3 / speed });
+            tl.to({}, { duration: 0.3 });
             tl.to(target, {
               p: 1,
               duration: fillDur * (1 - line.pauseAt),
@@ -274,7 +316,7 @@ export function TerminalHero() {
 
         // Show suffix
         if (suffixEl && line.suffix) {
-          tl.to(suffixEl, { opacity: 1, duration: 0.1 / speed });
+          tl.to(suffixEl, { opacity: 1, duration: 0.1 });
         }
       } else if (line.type === "dots") {
         const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
@@ -298,7 +340,7 @@ export function TerminalHero() {
           const dotTarget = { count: 0 };
           tl.to(dotTarget, {
             count: line.dotCount,
-            duration: 0.5 / speed,
+            duration: 0.5,
             ease: "none",
             onUpdate() {
               dotsEl.textContent = ".".repeat(Math.floor(dotTarget.count));
@@ -308,18 +350,18 @@ export function TerminalHero() {
 
         // Pause before suffix
         if (line.pauseMs) {
-          tl.to({}, { duration: line.pauseMs / 1000 / speed });
+          tl.to({}, { duration: line.pauseMs / 1000 });
         }
 
         // Show suffix
         if (suffixEl) {
-          tl.to(suffixEl, { opacity: 1, duration: 0.1 / speed });
+          tl.to(suffixEl, { opacity: 1, duration: 0.1 });
         }
       }
     });
 
     // Hold on "launching." then hard cut to reveal
-    tl.to({}, { duration: HOLD_DURATION / speed });
+    tl.to({}, { duration: HOLD_DURATION });
 
     // Reveal: instant cut
     tl.set(bootRef.current, { opacity: 0, display: "none" });
@@ -367,7 +409,7 @@ export function TerminalHero() {
     }
 
     // Mark as seen
-    tl.call(() => sessionStorage.setItem("hero-seen", "true"));
+    tl.call(() => { hasPlayedBoot = true; });
     tl.call(() => { document.body.style.overflow = ""; });
 
     return () => {

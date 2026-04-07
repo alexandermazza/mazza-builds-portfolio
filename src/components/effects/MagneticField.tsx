@@ -22,12 +22,12 @@ interface Pulse {
 
 const PULSE_COUNT = 14;
 const LINE_ALPHA = 0.06;
-const PULSE_ALPHA = 0.6;
+const PULSE_ALPHA = 0.8;
 const PULSE_TRAIL = 0.1;
 const PULSE_TRAIL_STEPS = 16;
 const PULSE_DOT_SIZE = 2.5;
-const GLOW_RADIUS = 15;
-const GLOW_ALPHA = 0.35;
+const GLOW_RADIUS = 30;
+const GLOW_ALPHA = 0.7;
 
 // ─── Helpers ──────────────────────────────────────────
 
@@ -204,14 +204,32 @@ export function MagneticField() {
         ctx!.stroke();
       }
 
-      // Draw pulses with comet trails and glow
-      ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA})`;
+      // Draw pulses with comet trails and layered glow
       for (const pulse of pulsesRef.current) {
         const line = lines[pulse.lineIndex];
         if (!line) continue;
 
         const dir = pulse.reverse ? -1 : 1;
 
+        // Pass 1: wide outer glow (large blur, low alpha)
+        ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA * 0.4})`;
+        for (let s = PULSE_TRAIL_STEPS; s >= 0; s--) {
+          const t = pulse.progress.t - dir * (s / PULSE_TRAIL_STEPS) * PULSE_TRAIL;
+          if (t < 0 || t > 1) continue;
+
+          const x = cubic(t, line.p0x, line.p1x, line.p2x, line.p3x);
+          const y = cubic(t, line.p0y, line.p1y, line.p2y, line.p3y);
+          const fade = 1 - s / PULSE_TRAIL_STEPS;
+
+          ctx!.shadowBlur = fade * GLOW_RADIUS * 2;
+          ctx!.fillStyle = `rgba(255, 255, 255, ${fade * 0.15})`;
+          ctx!.beginPath();
+          ctx!.arc(x, y, PULSE_DOT_SIZE + fade * 3, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        // Pass 2: tight inner glow (smaller blur, high alpha)
+        ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA})`;
         for (let s = PULSE_TRAIL_STEPS; s >= 0; s--) {
           const t = pulse.progress.t - dir * (s / PULSE_TRAIL_STEPS) * PULSE_TRAIL;
           if (t < 0 || t > 1) continue;
@@ -222,7 +240,6 @@ export function MagneticField() {
           const alpha = fade * PULSE_ALPHA;
           const size = PULSE_DOT_SIZE * (0.4 + fade * 0.6);
 
-          // Glow strongest on the leading dot, fades along trail
           ctx!.shadowBlur = fade * GLOW_RADIUS;
           ctx!.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx!.beginPath();
