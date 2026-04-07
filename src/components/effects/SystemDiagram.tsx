@@ -6,12 +6,30 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 interface SystemNode {
   name: string;
   sublabel: string;
+  projects: string[];
 }
 
 const nodes: SystemNode[] = [
-  { name: "DAILY ROMAN", sublabel: "iOS / SwiftUI" },
-  { name: "SHOPIFY APP", sublabel: "Commerce / Remix" },
-  { name: "AI SYSTEMS", sublabel: "Claude API / Automation" },
+  {
+    name: "MOBILE",
+    sublabel: "iOS / SwiftUI",
+    projects: ["Daily Roman", "F1 Globe"],
+  },
+  {
+    name: "COMMERCE / WEB",
+    sublabel: "Next.js / Shopify",
+    projects: ["Shopify App", "Trailmix", "Semrush Enricher"],
+  },
+  {
+    name: "AI / AUTOMATION",
+    sublabel: "Claude API / MCP",
+    projects: ["AI Automation", "Shakedown", "Web Tracker Scanner"],
+  },
+  {
+    name: "TRADING / DATA",
+    sublabel: "Python / Markets",
+    projects: ["Kalshi Trader", "Kalshi MCP"],
+  },
 ];
 
 export function SystemDiagram({ className = "" }: { className?: string }) {
@@ -106,7 +124,7 @@ export function SystemDiagram({ className = "" }: { className?: string }) {
       />
 
       {/* Node cards */}
-      <div role="list" className="mt-[var(--space-lg)] grid w-full grid-cols-1 gap-[var(--space-lg)] md:mt-0 md:grid-cols-3">
+      <div role="list" className="mt-[var(--space-lg)] grid w-full grid-cols-1 gap-[var(--space-lg)] md:mt-0 md:grid-cols-4">
         {nodes.map((node, i) => (
           <div key={node.name} role="listitem" className="flex flex-col items-center">
             {/* Vertical drop line — desktop only */}
@@ -125,7 +143,7 @@ export function SystemDiagram({ className = "" }: { className?: string }) {
               ref={(el) => {
                 nodeRefs.current[i] = el;
               }}
-              className="w-full border border-[var(--border-visible)] px-[var(--space-lg)] py-[var(--space-md)] text-center"
+              className="w-full border border-[var(--border-visible)] px-[var(--space-md)] py-[var(--space-md)] text-center"
               style={{ opacity: prefersReduced ? 1 : 0 }}
             >
               <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-primary)]">
@@ -134,6 +152,16 @@ export function SystemDiagram({ className = "" }: { className?: string }) {
               <p className="mt-[var(--space-xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
                 {node.sublabel}
               </p>
+              <div className="mt-[var(--space-sm)] border-t border-[var(--border)] pt-[var(--space-sm)]">
+                {node.projects.map((project) => (
+                  <p
+                    key={project}
+                    className="font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--text-disabled)]"
+                  >
+                    {project}
+                  </p>
+                ))}
+              </div>
             </div>
           </div>
         ))}
