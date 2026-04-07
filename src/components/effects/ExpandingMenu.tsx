@@ -62,7 +62,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
               transform: isOpen ? "translateY(6.5px) rotate(45deg)" : "none",
               color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
@@ -71,7 +71,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
               opacity: isOpen ? 0 : 1,
               transform: isOpen ? "scaleX(0)" : "none",
@@ -81,7 +81,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
           <span
             className="block h-[1.5px] w-full origin-center bg-current transition-all"
             style={{
-              transitionDuration: `${DURATION.transition}s`,
+              transitionDuration: reducedMotion ? "0s" : `${DURATION.transition}s`,
               transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
               transform: isOpen ? "translateY(-6.5px) rotate(-45deg)" : "none",
               color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
