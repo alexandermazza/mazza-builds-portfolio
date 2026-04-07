@@ -97,7 +97,7 @@ export default function AboutPage() {
                 appropriate.
               </ScrollTextLines>
             </SpecBlock>
-            <ChicagoMap className="min-h-[300px] md:min-h-[400px]" />
+            <ChicagoMap className="h-[250px] md:h-[350px]" />
           </div>
         </section>
 
