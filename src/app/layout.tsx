@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { TransitionProvider, TransitionContainer } from "@/transitions";
+import { Footer } from "@/components/ui";
 import { ExpandingMenu } from "@/components/effects";
 import "./globals.css";
 
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <TransitionProvider>
           <TransitionContainer>{children}</TransitionContainer>
+          <Footer />
           <ExpandingMenu items={menuItems} />
         </TransitionProvider>
       </body>
