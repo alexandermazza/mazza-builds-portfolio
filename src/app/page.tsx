@@ -23,7 +23,7 @@ export default function Home() {
       {/* Ticker — full bleed */}
       <section className="mb-[var(--space-3xl)]">
         <TickerText
-          items={["IOS APPS", "SHOPIFY TOOLS", "AI PIPELINES", "VIDEO AUTOMATION", "WEB APPS", "CONTENT SYSTEMS"]}
+          items={["IOS APPS", "SHOPIFY TOOLS", "AI AGENTS", "TRADING BOTS", "MCP SERVERS", "WEB APPS"]}
         />
       </section>
 

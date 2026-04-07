@@ -86,6 +86,161 @@ export const projects: Project[] = [
     deviceType: "laptop",
     screenTexture: "/projects/ai-automation/screen.png",
   },
+  {
+    slug: "shakedown",
+    issueNumber: 4,
+    name: "Shakedown",
+    description:
+      "Claude Code skill that maps every user interaction, finds test gaps, and writes tests to close them with parallel agents.",
+    longDescription:
+      "Automated test generation for any codebase using Claude Code. Shakedown maps every user interaction in your app, catalogs existing coverage, prioritizes uncovered paths by risk, and dispatches parallel agents to write tests in rounds. Named after the nautical term — a thorough test of a new ship before it sets sail. Took a real Expo/React Native app from 224 to 474 tests in a single session.",
+    tags: ["Claude Code", "AI Agents", "Testing"],
+    status: "LIVE",
+    screenshot: "/projects/project-04.png",
+    images: [
+      "/projects/shakedown/screen-01.png",
+      "/projects/shakedown/screen-02.png",
+      "/projects/shakedown/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/shakedown" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/shakedown/screen.png",
+  },
+  {
+    slug: "trailmix",
+    issueNumber: 5,
+    name: "Trailmix",
+    description:
+      "Meeting intelligence platform — syncs notes from Granola, tasks from Monday.com, and threads from Slack into one dashboard.",
+    longDescription:
+      "More than just Granola. Trailmix pulls meeting notes, action items, and context from Granola, Monday.com, and Slack into a unified activity dashboard. Features encrypted credential storage, background sync workers, onboarding flows, and a 3D landing experience. Built with Next.js, Drizzle ORM, and NextAuth for multi-provider authentication.",
+    tags: ["Next.js", "Drizzle", "Slack API", "Three.js"],
+    status: "IN PROGRESS",
+    screenshot: "/projects/project-05.png",
+    images: [
+      "/projects/trailmix/screen-01.png",
+      "/projects/trailmix/screen-02.png",
+      "/projects/trailmix/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/trailmix/screen.png",
+  },
+  {
+    slug: "web-tracker-scanner",
+    issueNumber: 6,
+    name: "AI Web Tracker Scanner",
+    description:
+      "HIPAA compliance auditor that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks.",
+    longDescription:
+      "A HIPAA compliance auditing platform that automatically detects third-party tracking pixels on healthcare websites. Crawls medical pages using headless Playwright, captures outgoing network requests, and matches them against a database of 200+ known trackers — flagging privacy risks, PHI collection, and BAA support gaps. Uses AI-powered URL classification to triage medical vs. non-medical pages, and generates compliance summaries per domain.",
+    tags: ["FastAPI", "React", "Playwright", "Gemini"],
+    status: "LIVE",
+    screenshot: "/projects/project-06.png",
+    images: [
+      "/projects/web-tracker-scanner/screen-01.png",
+      "/projects/web-tracker-scanner/screen-02.png",
+      "/projects/web-tracker-scanner/screen-03.png",
+    ],
+    links: [
+      { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
+      { label: "Source", url: "https://github.com/alexandermazza/AI-Web-Tracker-Scanner" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/web-tracker-scanner/screen.png",
+  },
+  {
+    slug: "kalshi-trader",
+    issueNumber: 7,
+    name: "Kalshi Weather Trader",
+    description:
+      "Autonomous trading bot for Kalshi prediction markets — multi-source weather forecasting, probability analysis, and real-money execution.",
+    longDescription:
+      "An autonomous weather temperature trading bot for Kalshi prediction markets. Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions for temperature buckets, and places maker NO orders when edge exceeds thresholds. Features BTC latency arbitrage, Claude-powered agent scanning every 30 minutes, position recovery, and a Flask dashboard with real-time P&L tracking.",
+    tags: ["Python", "SQLAlchemy", "MCP", "Trading"],
+    status: "LIVE",
+    screenshot: "/projects/project-07.png",
+    images: [
+      "/projects/kalshi-trader/screen-01.png",
+      "/projects/kalshi-trader/screen-02.png",
+      "/projects/kalshi-trader/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/Kahshi-Trader" },
+    ],
+    deviceType: "phone",
+    screenTexture: "/projects/kalshi-trader/screen.png",
+  },
+  {
+    slug: "kalshi-mcp",
+    issueNumber: 8,
+    name: "Kalshi Trading MCP",
+    description:
+      "Full-featured MCP server for Kalshi with 20+ tools — weather forecasting, ensemble analysis, safety controls, and position management.",
+    longDescription:
+      "A pip-installable Model Context Protocol server for Kalshi prediction markets. Goes beyond thin API wrappers with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting, ensemble model analysis, real-time METAR observations, and position drift monitoring. Includes safety controls like price caps, daily limits, cash reserves, and NO-only strategy enforcement.",
+    tags: ["Python", "MCP", "Kalshi API", "Weather"],
+    status: "LIVE",
+    screenshot: "/projects/project-08.png",
+    images: [
+      "/projects/kalshi-mcp/screen-01.png",
+      "/projects/kalshi-mcp/screen-02.png",
+      "/projects/kalshi-mcp/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/kalshi-trading-mcp" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/kalshi-mcp/screen.png",
+  },
+  {
+    slug: "semrush-enricher",
+    issueNumber: 9,
+    name: "Semrush Enricher",
+    description:
+      "Batch domain traffic enrichment tool — reads HubSpot exports, calls the Semrush API, and outputs enriched CSVs.",
+    longDescription:
+      "A web tool that enriches company domains from HubSpot exports with traffic data from the Semrush API. Upload a CSV of up to 1,000 domains, paste your Semrush API key, and get back enriched traffic metrics in batches of 200. Deployed as a Flask app with a static frontend, Docker support, and one-click deploy options for Render and Cloud Run. API keys are used per-request and never stored.",
+    tags: ["Python", "Flask", "Semrush API", "HubSpot"],
+    status: "LIVE",
+    screenshot: "/projects/project-09.png",
+    images: [
+      "/projects/semrush-enricher/screen-01.png",
+      "/projects/semrush-enricher/screen-02.png",
+      "/projects/semrush-enricher/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/semrush-enricher" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/semrush-enricher/screen.png",
+  },
+  {
+    slug: "f1-globe",
+    issueNumber: 10,
+    name: "F1 Globe Calendar",
+    description:
+      "Interactive 3D globe showing every race on the Formula 1 2024 calendar. Inspired by the GitHub Globe.",
+    longDescription:
+      "An interactive 3D globe that visualizes all race locations for the Formula 1 2024 season in order. Spin the globe, see each Grand Prix pinned to its real-world coordinates, and trace the season's journey across continents. Built with vanilla JavaScript and WebGL, inspired by the GitHub Globe.",
+    tags: ["JavaScript", "WebGL", "Three.js"],
+    status: "ARCHIVED",
+    screenshot: "/projects/project-10.png",
+    images: [
+      "/projects/f1-globe/screen-01.png",
+      "/projects/f1-globe/screen-02.png",
+      "/projects/f1-globe/screen-03.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/f1-globe-calendar" },
+    ],
+    deviceType: "phone",
+    screenTexture: "/projects/f1-globe/screen.png",
+  },
 ];
 
 export function getProjectBySlug(slug: string): Project | undefined {

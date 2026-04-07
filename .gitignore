@@ -47,3 +47,20 @@ next-env.d.ts
 # raw GLTF source models (converted to GLB in public/models/)
 iphone_17_pro_max/
 macbook_pro_m3_16_inch_2024/
+
+# QA / debug screenshots (root-level artifacts from review sessions)
+*.png
+*.jpeg
+*.jpg
+!public/**/*.png
+!public/**/*.jpeg
+!public/**/*.jpg
+!src/**/*.png
+!src/**/*.jpeg
+!src/**/*.jpg
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Review screenshots
+.review-screenshots/

@@ -287,6 +287,7 @@ export function ProjectShowcase({
             {/* 3D Device — persistent canvas, no AnimatePresence remount */}
             <div className="relative h-[55%] w-full">
               <DeviceScene
+                key={activeProject.deviceType}
                 deviceType={activeProject.deviceType}
                 screenTexture={activeProject.screenTexture}
                 scrollProgress={projectScrollProgress}

@@ -94,11 +94,11 @@ const BOOT_LINES: BootLine[] = [
 // ─── Timing constants ─────────────────────────────────
 
 const SCRAMBLE_CHARS = "01!<>{}[]/=_";
-const FIRST_LINE_DURATION = 0.4;
-const LAST_LINE_DURATION = 0.08;
-const BAR_FILL_DURATION = 0.3;
-const HOLD_DURATION = 0.4;
-const REVEAL_SCALE_DURATION = 0.3;
+const FIRST_LINE_DURATION = 0.28;
+const LAST_LINE_DURATION = 0.056;
+const BAR_FILL_DURATION = 0.21;
+const HOLD_DURATION = 0.28;
+const REVEAL_SCALE_DURATION = 0.21;
 function getLineDuration(index: number, total: number): number {
   const t = index / (total - 1);
   return FIRST_LINE_DURATION - (FIRST_LINE_DURATION - LAST_LINE_DURATION) * t;
@@ -109,8 +109,7 @@ function getLineDuration(index: number, total: number): number {
 const HERO_TEXT = "MAZZA BUILDS";
 const HERO_CHARS = HERO_TEXT.split("");
 
-/** Survives client-side navigations, resets on full page load / new tab */
-let hasPlayedBoot = false;
+const SESSION_KEY = "mazza-boot-v1";
 
 export function TerminalHero() {
   const bootRef = useRef<HTMLDivElement>(null);
@@ -124,7 +123,7 @@ export function TerminalHero() {
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const isRepeatVisit = hasPlayedBoot;
+    const isRepeatVisit = sessionStorage.getItem(SESSION_KEY) === "1";
 
     document.body.style.overflow = "hidden";
 
@@ -179,7 +178,7 @@ export function TerminalHero() {
         if (taglineRef.current) {
           taglineRef.current.style.opacity = "1";
         }
-        hasPlayedBoot = true;
+        sessionStorage.setItem(SESSION_KEY, "1");
       }, 1000);
 
       return () => {
@@ -288,7 +287,7 @@ export function TerminalHero() {
                   "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
               },
             });
-            tl.to({}, { duration: 0.3 });
+            tl.to({}, { duration: 0.21 });
             tl.to(target, {
               p: 1,
               duration: fillDur * (1 - line.pauseAt),
@@ -340,7 +339,7 @@ export function TerminalHero() {
           const dotTarget = { count: 0 };
           tl.to(dotTarget, {
             count: line.dotCount,
-            duration: 0.5,
+            duration: 0.35,
             ease: "none",
             onUpdate() {
               dotsEl.textContent = ".".repeat(Math.floor(dotTarget.count));
@@ -350,7 +349,7 @@ export function TerminalHero() {
 
         // Pause before suffix
         if (line.pauseMs) {
-          tl.to({}, { duration: line.pauseMs / 1000 });
+          tl.to({}, { duration: (line.pauseMs / 1000) * 0.7 });
         }
 
         // Show suffix
@@ -409,7 +408,7 @@ export function TerminalHero() {
     }
 
     // Mark as seen
-    tl.call(() => { hasPlayedBoot = true; });
+    tl.call(() => { sessionStorage.setItem(SESSION_KEY, "1"); });
     tl.call(() => { document.body.style.overflow = ""; });
 
     return () => {
