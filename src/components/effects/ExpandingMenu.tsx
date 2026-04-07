@@ -116,15 +116,6 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
               ease: EASE_OUT_MOTION,
             }}
           >
-            {/* Close button */}
-            <button
-              onClick={close}
-              className="absolute top-[var(--space-lg)] right-[var(--space-lg)] flex h-[44px] w-[44px] items-center justify-center font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              aria-label="Close menu"
-            >
-              ✕
-            </button>
-
             {/* Menu items */}
             <nav className="flex flex-col items-center gap-[var(--space-xl)]">
               {items.map((item, i) => (
