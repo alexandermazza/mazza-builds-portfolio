@@ -88,7 +88,7 @@ export function ExperienceTimeline({
 
       {entries.map((entry, i) => (
         <div
-          key={entry.company}
+          key={`${entry.company}-${entry.dateRange}`}
           className={i > 0 ? "mt-[var(--space-2xl)]" : ""}
         >
           <div className="relative">

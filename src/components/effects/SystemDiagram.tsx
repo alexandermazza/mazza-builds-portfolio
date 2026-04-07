@@ -106,9 +106,9 @@ export function SystemDiagram({ className = "" }: { className?: string }) {
       />
 
       {/* Node cards */}
-      <div className="mt-[var(--space-lg)] grid w-full grid-cols-1 gap-[var(--space-lg)] md:mt-0 md:grid-cols-3">
+      <div role="list" className="mt-[var(--space-lg)] grid w-full grid-cols-1 gap-[var(--space-lg)] md:mt-0 md:grid-cols-3">
         {nodes.map((node, i) => (
-          <div key={node.name} className="flex flex-col items-center">
+          <div key={node.name} role="listitem" className="flex flex-col items-center">
             {/* Vertical drop line — desktop only */}
             <div
               ref={(el) => {

@@ -65,12 +65,14 @@ export function ProcessFlow({ className = "" }: { className?: string }) {
   return (
     <div
       ref={containerRef}
+      role="list"
       className={`flex flex-col items-stretch gap-0 md:flex-row md:items-center ${className}`}
     >
       {steps.map((step, i) => (
         <Fragment key={step.label}>
           {/* Step box */}
           <div
+            role="listitem"
             ref={(el) => {
               stepRefs.current[i] = el;
             }}
@@ -80,7 +82,7 @@ export function ProcessFlow({ className = "" }: { className?: string }) {
             <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-primary)]">
               {step.label}
             </p>
-            <p className="mt-[var(--space-2xs)] font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+            <p className="mt-[var(--space-2xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
               {step.annotation}
             </p>
           </div>
