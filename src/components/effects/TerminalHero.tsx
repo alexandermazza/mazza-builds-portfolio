@@ -107,9 +107,14 @@ function getLineDuration(index: number, total: number): number {
 
 // ─── Component ────────────────────────────────────────
 
+const HERO_TEXT = "MAZZA BUILDS";
+const HERO_CHARS = HERO_TEXT.split("");
+
 export function TerminalHero() {
   const bootRef = useRef<HTMLDivElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const taglineRef = useRef<HTMLParagraphElement>(null);
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
@@ -165,6 +170,13 @@ export function TerminalHero() {
         }
         if (revealRef.current) {
           revealRef.current.style.opacity = "1";
+        }
+        // Show all letters and tagline instantly
+        charRefs.current.forEach((el) => {
+          if (el) el.style.opacity = "1";
+        });
+        if (taglineRef.current) {
+          taglineRef.current.style.opacity = "1";
         }
         sessionStorage.setItem("hero-seen", "true");
       }, 1000);
@@ -310,12 +322,48 @@ export function TerminalHero() {
 
     // Reveal: instant cut
     tl.set(bootRef.current, { opacity: 0, display: "none" });
-    tl.set(revealRef.current, { opacity: 1, scale: 1.02 });
-    tl.to(revealRef.current, {
-      scale: 1,
-      duration: REVEAL_SCALE_DURATION,
-      ease: ENTER_EASE,
+    tl.set(revealRef.current, { opacity: 1 });
+
+    // Letter stagger from below + scramble per character
+    const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
+    tl.fromTo(
+      validChars,
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.4,
+        stagger: 0.04,
+        ease: ENTER_EASE,
+      }
+    );
+
+    // ScrambleText each letter (overlaps with the stagger)
+    validChars.forEach((charEl, i) => {
+      const finalChar = HERO_CHARS[i];
+      if (finalChar === " ") return; // skip spaces
+      tl.to(
+        charEl,
+        {
+          duration: 0.3,
+          scrambleText: {
+            text: finalChar,
+            chars: SCRAMBLE_CHARS,
+            speed: 0.6,
+          },
+        },
+        `-=${0.4 + (validChars.length - 1 - i) * 0.04}` // overlap with stagger
+      );
     });
+
+    // Tagline fades in after headline settles
+    if (taglineRef.current) {
+      tl.to(taglineRef.current, {
+        opacity: 1,
+        duration: 0.4,
+        ease: ENTER_EASE,
+      });
+    }
 
     // Mark as seen
     tl.call(() => sessionStorage.setItem("hero-seen", "true"));
@@ -384,9 +432,24 @@ export function TerminalHero() {
       >
         <div>
           <h1 className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]">
-            MAZZA BUILDS
+            {HERO_CHARS.map((char, i) => (
+              <span
+                key={i}
+                ref={(el) => {
+                  charRefs.current[i] = el;
+                }}
+                className="inline-block"
+                style={{ opacity: 0 }}
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
           </h1>
-          <p className="mt-[var(--space-md)] font-sans text-[clamp(16px,2.5vw,24px)] text-[var(--text-secondary)]">
+          <p
+            ref={taglineRef}
+            className="mt-[var(--space-md)] font-sans text-[clamp(16px,2.5vw,24px)] text-[var(--text-secondary)]"
+            style={{ opacity: 0 }}
+          >
             building things that work
           </p>
         </div>
