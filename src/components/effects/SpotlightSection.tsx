@@ -5,7 +5,6 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { gsap } from "@/lib/gsap";
 import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
 import { SplitFlapText } from "@/components/effects/SplitFlapText";
-import { Button } from "@/components/ui";
 import Image from "next/image";
 import { projects } from "@/data/projects";
 
@@ -36,7 +35,7 @@ export function SpotlightSection() {
   const [isMobile, setIsMobile] = useState(false);
   const isMobileRef = useRef(false);
 
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const isInView = useInView(sectionRef, { once: true, margin: "-40% 0px -40% 0px" });
   const prefersReduced = useReducedMotion();
 
   // Daily Roman data
@@ -147,16 +146,33 @@ export function SpotlightSection() {
 
   return (
     <section
+      id="spotlight"
       ref={sectionRef}
-      className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-black md:h-dvh"
-      style={{ padding: isMobile ? "var(--space-4xl) var(--space-md)" : undefined }}
+      className="relative flex items-center justify-center overflow-hidden bg-black py-[var(--space-3xl)] px-[var(--space-md)] md:h-[70vh] md:min-h-[500px] md:py-0 md:px-0"
     >
-      {/* Canvas overlay */}
+      {/* Warm glow — the "light" the spotlight reveals */}
+      <div
+        className="absolute inset-0"
+        style={{
+          zIndex: 0,
+          background: "radial-gradient(circle, rgba(255,225,180,0.45) 0%, rgba(255,200,150,0.2) 20%, rgba(255,180,120,0.05) 40%, transparent 55%)",
+        }}
+      />
+
+      {/* Canvas overlay — black with transparent spotlight hole */}
       <canvas
         ref={canvasRef}
         className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ zIndex: 0 }}
+        style={{ zIndex: 2 }}
       />
+
+      {/* Section label — above canvas */}
+      <p
+        className="absolute left-[var(--space-md)] top-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)] md:left-[var(--space-lg)]"
+        style={{ zIndex: 3 }}
+      >
+        SPEC: SPOTLIGHT
+      </p>
 
       {/* Content */}
       <div className="relative flex flex-col items-center text-center" style={{ zIndex: 1 }}>
@@ -215,7 +231,7 @@ export function SpotlightSection() {
           The Duolingo for Ancient Rome
         </motion.p>
 
-        {/* App Store button */}
+        {/* App Store badge */}
         <motion.div
           initial={prefersReduced ? {} : { opacity: 0, y: 16 }}
           animate={isRevealed ? { opacity: 1, y: 0 } : undefined}
@@ -225,8 +241,25 @@ export function SpotlightSection() {
             delay: prefersReduced ? 0 : 0.5,
           }}
         >
-          <a href={appStoreUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="primary">Download on the App Store</Button>
+          <a
+            href={appStoreUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-[10px] rounded-[10px] border border-[var(--border-visible)] px-[20px] py-[10px] transition-colors hover:border-[var(--text-secondary)]"
+            style={{ transitionDuration: "var(--duration-micro)" }}
+          >
+            {/* Apple logo — inverted to white */}
+            <Image
+              src="/icons/apple-logo.png"
+              alt=""
+              width={24}
+              height={24}
+              className="brightness-0 invert"
+            />
+            <div className="flex flex-col items-start">
+              <span className="text-[10px] leading-[1.2] text-white">Download on the</span>
+              <span className="text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white">App Store</span>
+            </div>
           </a>
         </motion.div>
       </div>

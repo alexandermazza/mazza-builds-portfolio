@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TICKER_SPEED } from "@/lib/motion";
 
+type TickerItem = string | { label: string; scrollTarget: string };
+
 interface TickerTextProps {
-  items: string[];
+  items: TickerItem[];
   speed?: number;
   className?: string;
   scrollTarget?: string;
@@ -132,9 +134,13 @@ export function TickerText({
 }: TickerTextProps) {
   return (
     <div className={`border-t border-[var(--border)] ${className}`}>
-      {items.map((item) => (
-        <TickerRow key={item} label={item} speed={speed} scrollTarget={scrollTarget} />
-      ))}
+      {items.map((item) => {
+        const label = typeof item === "string" ? item : item.label;
+        const target = typeof item === "string" ? scrollTarget : item.scrollTarget;
+        return (
+          <TickerRow key={label} label={label} speed={speed} scrollTarget={target} />
+        );
+      })}
     </div>
   );
 }
