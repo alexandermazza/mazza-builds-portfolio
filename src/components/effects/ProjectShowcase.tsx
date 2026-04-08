@@ -7,8 +7,9 @@ import {
   useMotionValueEvent,
   AnimatePresence,
   useReducedMotion,
+  useAnimation,
 } from "motion/react";
-import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
+import { DURATION, EASE_OUT_MOTION, SPRING_SNAPPY } from "@/lib/motion";
 import { StatusBadge, TagChip, ProjectCard } from "@/components/ui";
 import {
   ScrollLetterAnimation,
@@ -63,11 +64,13 @@ function splitIntoLines(text: string): string[] {
 interface ProjectShowcaseProps {
   projects: Project[];
   className?: string;
+  id?: string;
 }
 
 export function ProjectShowcase({
   projects,
   className = "",
+  id,
 }: ProjectShowcaseProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -76,15 +79,30 @@ export function ProjectShowcase({
   const [isMobile, setIsMobile] = useState(false);
   const prefersReduced = useReducedMotion();
 
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const displayIndex = hoverIndex ?? activeIndex;
   const activeProject = projects[displayIndex];
 
   // Preload all project screen textures so they're cached before hover/scroll
   useEffect(() => {
+    const links: HTMLLinkElement[] = [];
     projects.forEach((p) => {
-      const img = new Image();
-      img.src = p.screenTexture;
+      const src = p.screenTexture;
+      if (src.endsWith(".mp4") || src.endsWith(".webm")) {
+        // Preload video — fetch enough to start playing quickly
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "video";
+        link.href = src;
+        document.head.appendChild(link);
+        links.push(link);
+      } else {
+        const img = new Image();
+        img.src = src;
+      }
     });
+    return () => { links.forEach((l) => l.remove()); };
   }, [projects]);
 
   // Detect mobile/tablet — split-screen needs 1024px+ to breathe
@@ -98,104 +116,232 @@ export function ProjectShowcase({
     return () => mq.removeEventListener("change", handleChange);
   }, []);
 
-  // Scroll-driven active index
-  const { scrollYProgress } = useScroll({ target: outerRef });
+  // Scroll-driven active index — offset pins tracking to the sticky phase
+  // so every project gets equal scroll distance
+  const { scrollYProgress } = useScroll({
+    target: outerRef,
+    offset: ["start start", "end end"],
+  });
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     if (isMobile) return;
-    const index = Math.min(
-      Math.floor(progress * projects.length),
-      projects.length - 1
+
+    // Scroll is authoritative — clear any hover override so the display
+    // tracks the scroll position.  pointermove will re-set hover if the
+    // user is actively moving the mouse.
+    if (hoverIndex !== null) {
+      setHoverIndex(null);
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    }
+
+    const count = projects.length;
+    if (count === 0) return;
+    const index = Math.max(
+      0,
+      Math.min(Math.floor(progress * count), count - 1)
     );
     setActiveIndex(index);
 
     // Per-project progress within its scroll slot
-    const slotSize = 1 / projects.length;
+    const slotSize = 1 / count;
     const slotProgress = (progress - index * slotSize) / slotSize;
     setProjectScrollProgress(Math.max(0, Math.min(1, slotProgress)));
   });
 
-  const handleRowHover = useCallback((index: number) => {
-    setHoverIndex(index);
+  // pointermove (not mouseenter) — only fires on real mouse movement,
+  // never from elements scrolling under a stationary cursor
+  const handleRowPointerMove = useCallback((index: number) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoverIndex((prev) => (prev === index ? prev : index));
   }, []);
 
-  const handleRowLeave = useCallback(() => {
-    setHoverIndex(null);
+  const handleRowPointerLeave = useCallback(() => {
+    // Small debounce prevents flicker when moving between rows
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoverIndex(null);
+    }, 80);
   }, []);
 
-  // Mobile / tablet — stacked project panels with 3D devices
+  // Cleanup hover timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
+
+  // Mobile carousel navigation
+  const [mobileIndex, setMobileIndex] = useState(0);
+  const mobileProject = projects[mobileIndex];
+
+  const goToProject = useCallback(
+    (index: number) => {
+      setMobileIndex(
+        ((index % projects.length) + projects.length) % projects.length
+      );
+    },
+    [projects.length]
+  );
+
+  const [swipeDirection, setSwipeDirection] = useState<1 | -1>(1);
+  const carouselControls = useAnimation();
+  const pointerStartX = useRef(0);
+  const isDraggingRef = useRef(false);
+  const currentDragX = useRef(0);
+  const isSwipeAnimatingRef = useRef(false);
+
+  function handlePointerDown(e: React.PointerEvent) {
+    if (isSwipeAnimatingRef.current) return;
+    pointerStartX.current = e.clientX;
+    currentDragX.current = 0;
+    isDraggingRef.current = true;
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!isDraggingRef.current) return;
+    const offset = e.clientX - pointerStartX.current;
+    currentDragX.current = offset;
+    carouselControls.set({ x: offset * 0.25 });
+  }
+
+  async function handlePointerUp() {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    const offset = currentDragX.current;
+    const THRESHOLD = 50;
+
+    if (Math.abs(offset) < THRESHOLD) {
+      carouselControls.start({ x: 0, transition: SPRING_SNAPPY });
+      return;
+    }
+
+    isSwipeAnimatingRef.current = true;
+    const goingLeft = offset < 0;
+    const exitX = goingLeft ? -400 : 400;
+    const enterFromX = goingLeft ? 400 : -400;
+    const direction: 1 | -1 = goingLeft ? 1 : -1;
+
+    await carouselControls.start({
+      x: exitX,
+      transition: { duration: 0.2, ease: EASE_OUT_MOTION },
+    });
+
+    setSwipeDirection(direction);
+    goToProject(mobileIndex + (goingLeft ? 1 : -1));
+
+    carouselControls.set({ x: enterFromX });
+
+    await carouselControls.start({
+      x: 0,
+      transition: { duration: 0.25, ease: EASE_OUT_MOTION },
+    });
+
+    isSwipeAnimatingRef.current = false;
+  }
+
+  function handlePointerCancel() {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    carouselControls.start({ x: 0, transition: SPRING_SNAPPY });
+  }
+
+  // Mobile / tablet — full-screen single-device carousel
   if (isMobile) {
     return (
-      <section className={`px-[var(--space-md)] md:px-[var(--space-lg)] mb-[var(--space-2xl)] md:mb-[var(--space-4xl)] ${className}`}>
-        <div className="mx-auto max-w-[960px]">
-          <ScrollLetterAnimation
-            as="h2"
-            className="mb-[var(--space-lg)] md:mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
+      <section id={id} className={`${className}`}>
+        <div className="flex h-dvh flex-col bg-[var(--surface)]">
+          {/* 3D Device — fills upper portion, swipeable */}
+          <motion.div
+            className="relative min-h-0 flex-1 overflow-hidden touch-none"
+            animate={carouselControls}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
           >
-            FEATURED PROJECTS
-          </ScrollLetterAnimation>
-          <div className="flex flex-col gap-[var(--space-2xl)]">
-            {projects.map((project) => (
-              <TransitionLink
-                key={project.slug}
-                href={`/projects/${project.slug}`}
-                className="block no-underline"
-              >
-                <div
-                  className="border border-[var(--border)] bg-[var(--surface)] transition-colors hover:border-[var(--border-visible)]"
-                  style={{
-                    borderRadius: "var(--radius-card)",
-                    transitionDuration: "var(--duration-micro)",
-                    transitionTimingFunction: "var(--ease-out)",
-                  }}
-                >
-                  {/* 3D Device — lazy-mounted to avoid WebGL context limits */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ borderRadius: "var(--radius-card) var(--radius-card) 0 0" }}>
-                    <LazyDeviceScene
-                      deviceType={project.deviceType}
-                      screenTexture={project.screenTexture}
-                      scrollProgress={0}
-                      isActive={true}
-                      projectSlug={project.slug}
-                    />
-                  </div>
+            <DeviceScene
+              deviceType={mobileProject.deviceType}
+              screenTexture={mobileProject.screenTexture}
+              scrollProgress={0}
+              isActive={true}
+              projectSlug={mobileProject.slug}
+              modelScale={0.85}
+            />
+          </motion.div>
 
-                  {/* Project info */}
-                  <div className="p-[var(--space-md)] md:p-[var(--space-lg)]">
-                    {/* Issue number + status */}
-                    <div className="mb-[var(--space-sm)] flex items-center justify-between">
-                      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-                        ISSUE {String(project.issueNumber).padStart(2, "0")}
-                      </span>
-                      <StatusBadge status={project.status} />
-                    </div>
-
-                    {/* Name */}
-                    <h3 className="mb-[var(--space-sm)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
-                      {project.name}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="mb-[var(--space-md)] font-sans text-[var(--body-sm)] leading-[1.5] text-[var(--text-secondary)]">
-                      {project.description}
-                    </p>
-
-                    {/* Tags */}
-                    <div className="mb-[var(--space-md)] flex flex-wrap gap-[var(--space-sm)]">
-                      {project.tags.map((tag) => (
-                        <TagChip key={tag}>{tag}</TagChip>
-                      ))}
-                    </div>
-
-                    {/* View link */}
-                    <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
-                      View project →
-                    </span>
-                  </div>
-                </div>
-              </TransitionLink>
+          {/* Dot indicators */}
+          <div className="flex shrink-0 items-center justify-center gap-[var(--space-sm)] py-[var(--space-sm)]">
+            {projects.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToProject(i)}
+                aria-label={`Go to project ${i + 1}`}
+                className="block rounded-full transition-all"
+                style={{
+                  width: mobileIndex === i ? 20 : 6,
+                  height: 6,
+                  backgroundColor:
+                    mobileIndex === i
+                      ? "var(--accent)"
+                      : "var(--border-visible)",
+                  borderRadius: "var(--radius-pill)",
+                  transitionDuration: "var(--duration-transition)",
+                  transitionTimingFunction: "var(--ease-out)",
+                }}
+              />
             ))}
           </div>
+
+          {/* Project info — compact, pinned to bottom */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mobileProject.slug}
+              initial={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * -20 }}
+              transition={{
+                duration: prefersReduced ? 0 : DURATION.transition,
+                ease: EASE_OUT_MOTION,
+              }}
+              className="shrink-0 px-[var(--space-md)] pb-[var(--space-lg)] pt-[var(--space-xs)]"
+            >
+              {/* Issue number + status */}
+              <div className="mb-[var(--space-xs)] flex items-center justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+                  ISSUE {String(mobileProject.issueNumber).padStart(2, "0")}
+                </span>
+                <StatusBadge status={mobileProject.status} />
+              </div>
+
+              {/* Name */}
+              <h3 className="mb-[var(--space-xs)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
+                {mobileProject.name}
+              </h3>
+
+              {/* Description */}
+              <p className="mb-[var(--space-sm)] font-sans text-[var(--body-sm)] leading-[1.5] text-[var(--text-secondary)]">
+                {mobileProject.description}
+              </p>
+
+              {/* Tags */}
+              <div className="mb-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">
+                {mobileProject.tags.map((tag) => (
+                  <TagChip key={tag}>{tag}</TagChip>
+                ))}
+              </div>
+
+              {/* View link */}
+              <TransitionLink
+                href={`/projects/${mobileProject.slug}`}
+                className="no-underline"
+              >
+                <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
+                  View project →
+                </span>
+              </TransitionLink>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
     );
@@ -203,7 +349,7 @@ export function ProjectShowcase({
 
   // Desktop: split-screen scroll lock
   return (
-    <section className={className}>
+    <section id={id} className={className}>
       {/* Section header — constrained width */}
       <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)]">
         <ScrollLetterAnimation
@@ -230,8 +376,8 @@ export function ProjectShowcase({
                   key={project.slug}
                   href={`/projects/${project.slug}`}
                   className="group relative block py-[12px] no-underline"
-                  onMouseEnter={() => handleRowHover(i)}
-                  onMouseLeave={handleRowLeave}
+                  onPointerMove={() => handleRowPointerMove(i)}
+                  onPointerLeave={handleRowPointerLeave}
                 >
                   {/* Accent bar */}
                   <div
@@ -284,10 +430,9 @@ export function ProjectShowcase({
 
           {/* Right column — Detail panel */}
           <div className="flex w-[60%] flex-col justify-center pl-[var(--space-3xl)] pr-[var(--space-4xl)]">
-            {/* 3D Device — persistent canvas, no AnimatePresence remount */}
+            {/* 3D Device — persistent canvas, cross-fades between device types */}
             <div className="relative h-[55%] w-full">
               <DeviceScene
-                key={activeProject.deviceType}
                 deviceType={activeProject.deviceType}
                 screenTexture={activeProject.screenTexture}
                 scrollProgress={projectScrollProgress}
