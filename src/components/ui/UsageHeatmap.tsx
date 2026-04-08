@@ -97,21 +97,21 @@ function toSunday(d: Date): Date {
   return copy;
 }
 
-function buildGrid(today: Date): { start: Date; end: Date; weeks: number } {
+function buildGrid(today: Date): { start: Date; weeks: number } {
   const jan1 = new Date(today.getFullYear(), 0, 1);
   const dec31 = new Date(today.getFullYear(), 11, 31);
   const start = toSunday(jan1);
   const diffMs = dec31.getTime() - start.getTime();
   const weeks = Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return { start, end: dec31, weeks };
+  return { start, weeks };
 }
 
-function buildMobileGrid(today: Date): { start: Date; end: Date; weeks: number } {
+function buildMobileGrid(today: Date): { start: Date; weeks: number } {
   const MOBILE_WEEKS = 20;
   const thisSunday = toSunday(today);
   const start = new Date(thisSunday);
   start.setDate(thisSunday.getDate() - (MOBILE_WEEKS - 1) * 7);
-  return { start, end: today, weeks: MOBILE_WEEKS };
+  return { start, weeks: MOBILE_WEEKS };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -133,7 +133,10 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
 
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 767px)").matches;
+  });
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -182,7 +185,7 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
   const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { start: startDate, end: _, weeks: totalWeeks } = isMobile
+    const { start: startDate, weeks: totalWeeks } = isMobile
       ? buildMobileGrid(today)
       : buildGrid(today);
 
@@ -351,7 +354,7 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
           <div
             ref={gridRef}
             role="grid"
-            aria-label="Claude token usage heatmap for the past year"
+            aria-label={isMobile ? "Claude token usage heatmap for the past 20 weeks" : "Claude token usage heatmap for the past year"}
             style={{
               position: "relative",
               width: gridWidth,

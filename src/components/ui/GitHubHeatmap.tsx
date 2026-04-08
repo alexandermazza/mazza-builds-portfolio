@@ -120,7 +120,10 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
 
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 767px)").matches;
+  });
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -336,7 +339,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
           <div
             ref={gridRef}
             role="grid"
-            aria-label="GitHub contributions heatmap for the current year"
+            aria-label={isMobile ? "GitHub contributions heatmap for the past 20 weeks" : "GitHub contributions heatmap for the current year"}
             style={{
               position: "relative",
               width: gridWidth,
