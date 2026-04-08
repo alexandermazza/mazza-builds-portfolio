@@ -7,18 +7,45 @@ interface TickerTextProps {
   items: string[];
   speed?: number;
   className?: string;
+  scrollTarget?: string;
 }
 
 function TickerRow({
   label,
   speed,
+  scrollTarget,
 }: {
   label: string;
   speed: number;
+  scrollTarget?: string;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [scrollActive, setScrollActive] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Scroll-based activation on mobile at 55% viewport
+  useEffect(() => {
+    if (!isMobile || !rowRef.current) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setScrollActive(entry.isIntersecting),
+      { rootMargin: "-55% 0px -45% 0px" }
+    );
+    io.observe(rowRef.current);
+    return () => io.disconnect();
+  }, [isMobile]);
+
+  const active = isMobile ? scrollActive : hovered;
 
   const measure = useCallback(() => {
     if (!trackRef.current) return;
@@ -27,11 +54,11 @@ function TickerRow({
   }, [speed]);
 
   useEffect(() => {
-    if (hovered) {
+    if (active) {
       const raf = requestAnimationFrame(measure);
       return () => cancelAnimationFrame(raf);
     }
-  }, [hovered, measure]);
+  }, [active, measure]);
 
   const separator = (
     <span className="mx-[0.4em] select-none" aria-hidden="true">
@@ -48,9 +75,15 @@ function TickerRow({
 
   return (
     <div
-      className="group relative border-b border-[var(--border)] overflow-hidden cursor-default"
+      ref={rowRef}
+      className={`group relative border-b border-[var(--border)] overflow-hidden ${scrollTarget ? "cursor-pointer" : "cursor-default"}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => {
+        if (!scrollTarget) return;
+        const el = document.getElementById(scrollTarget);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }}
     >
       {/* Static centered label — bold, upright */}
       <div className="flex items-center justify-center py-[var(--space-md)] md:py-[var(--space-lg)]">
@@ -63,7 +96,7 @@ function TickerRow({
       <div
         className="absolute inset-0 flex items-center"
         style={{
-          clipPath: hovered
+          clipPath: active
             ? "inset(0 0% 0 0%)"
             : "inset(0 50% 0 50%)",
           transition: "clip-path 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)",
@@ -76,7 +109,7 @@ function TickerRow({
           className="inline-flex whitespace-nowrap font-sans text-[clamp(2rem,5vw,4rem)] font-700 italic uppercase tracking-[0.02em]"
           style={{
             animation:
-              hovered && duration > 0
+              active && duration > 0
                 ? `ticker ${duration}s linear infinite`
                 : undefined,
           }}
@@ -95,11 +128,12 @@ export function TickerText({
   items,
   speed = TICKER_SPEED,
   className = "",
+  scrollTarget,
 }: TickerTextProps) {
   return (
     <div className={`border-t border-[var(--border)] ${className}`}>
       {items.map((item) => (
-        <TickerRow key={item} label={item} speed={speed} />
+        <TickerRow key={item} label={item} speed={speed} scrollTarget={scrollTarget} />
       ))}
     </div>
   );
