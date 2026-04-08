@@ -10,6 +10,7 @@ import {
   MagneticWrapper,
   ProjectShowcase,
   TerminalHero,
+  SpotlightSection,
 } from "@/components/effects";
 import { TransitionLink } from "@/transitions";
 import { projects } from "@/data/projects";
@@ -65,6 +66,9 @@ export default function Home() {
           scrollTarget="projects"
         />
       </section>
+
+      {/* Spotlight — Daily Roman showcase */}
+      <SpotlightSection />
 
       {/* Projects — full bleed */}
       <ProjectShowcase id="projects" projects={projects} className="mb-[var(--space-4xl)]" />
