@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER, SPRING_SNAPPY } from "@/lib/motion";
 
@@ -73,6 +73,7 @@ function toDateKey(d: Date): string {
 }
 
 function formatTokens(n: number): string {
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
   return String(n);
@@ -84,9 +85,9 @@ function formatDateLabel(d: Date): string {
 
 function cellColor(tokens: number): string {
   if (tokens <= 0) return "rgba(255,255,255,0.06)";
-  if (tokens <= 50_000) return "rgba(255,107,53,0.20)";
-  if (tokens <= 200_000) return "rgba(255,107,53,0.45)";
-  if (tokens <= 500_000) return "rgba(255,107,53,0.70)";
+  if (tokens <= 2_000_000) return "rgba(255,107,53,0.20)";
+  if (tokens <= 15_000_000) return "rgba(255,107,53,0.45)";
+  if (tokens <= 40_000_000) return "rgba(255,107,53,0.70)";
   return "#FF6B35";
 }
 
@@ -103,6 +104,14 @@ function buildGrid(today: Date): { start: Date; end: Date; weeks: number } {
   const diffMs = dec31.getTime() - start.getTime();
   const weeks = Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
   return { start, end: dec31, weeks };
+}
+
+function buildMobileGrid(today: Date): { start: Date; end: Date; weeks: number } {
+  const MOBILE_WEEKS = 20;
+  const thisSunday = toSunday(today);
+  const start = new Date(thisSunday);
+  start.setDate(thisSunday.getDate() - (MOBILE_WEEKS - 1) * 7);
+  return { start, end: today, weeks: MOBILE_WEEKS };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -123,6 +132,16 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
   });
 
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -158,12 +177,21 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
     };
   }, []);
 
-  // ── Grid geometry (memoized) ─────────────────────────────────────────────
+  // ── Grid geometry (client-only to avoid SSR/CSR date mismatch) ──────────
 
-  const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
+  const [gridData, setGridData] = useState<{
+    weeks: Cell[][];
+    monthLabels: MonthLabel[];
+    gridWidth: number;
+    gridHeight: number;
+  } | null>(null);
+
+  useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { start: startDate, weeks: totalWeeks } = buildGrid(today);
+    const { start: startDate, end: _, weeks: totalWeeks } = isMobile
+      ? buildMobileGrid(today)
+      : buildGrid(today);
 
     const w: Cell[][] = [];
     for (let wi = 0; wi < totalWeeks; wi++) {
@@ -189,13 +217,18 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
       }
     }
 
-    return {
+    setGridData({
       weeks: w,
       monthLabels: labels,
       gridWidth: totalWeeks * cfg.cellStep - cfg.gap,
       gridHeight: DAYS * cfg.cellStep - cfg.gap,
-    };
-  }, [cfg.cellStep, cfg.gap]);
+    });
+  }, [cfg.cellStep, cfg.gap, isMobile]);
+
+  const weeks = gridData?.weeks ?? [];
+  const monthLabels = gridData?.monthLabels ?? [];
+  const gridWidth = gridData?.gridWidth ?? 0;
+  const gridHeight = gridData?.gridHeight ?? DAYS * cfg.cellStep - cfg.gap;
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
@@ -399,8 +432,8 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
                   transition={SPRING_SNAPPY}
                   style={{
                     position: "absolute",
-                    left: tooltip.x + 12,
-                    top: tooltip.y - 36,
+                    left: Math.min(tooltip.x + 12, (gridRef.current?.offsetWidth ?? 999) - 160),
+                    top: Math.max(tooltip.y - 36, 0),
                     pointerEvents: "none",
                     zIndex: 10,
                     border: "1px solid var(--border-visible)",

@@ -2,7 +2,7 @@
 
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER, SPRING_SNAPPY } from "@/lib/motion";
+import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER } from "@/lib/motion";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -93,6 +93,14 @@ function buildGrid(today: Date): { start: Date; weeks: number } {
   return { start, weeks };
 }
 
+function buildMobileGrid(today: Date): { start: Date; weeks: number } {
+  const MOBILE_WEEKS = 20;
+  const thisSunday = toSunday(today);
+  const start = new Date(thisSunday);
+  start.setDate(thisSunday.getDate() - (MOBILE_WEEKS - 1) * 7);
+  return { start, weeks: MOBILE_WEEKS };
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function GitHubHeatmap({ className = "", compact = false, ...props }: GitHubHeatmapProps) {
@@ -111,6 +119,16 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   });
 
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -149,7 +167,9 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { start: startDate, weeks: totalWeeks } = buildGrid(today);
+    const { start: startDate, weeks: totalWeeks } = isMobile
+      ? buildMobileGrid(today)
+      : buildGrid(today);
 
     const w: Cell[][] = [];
     for (let wi = 0; wi < totalWeeks; wi++) {
@@ -181,7 +201,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
       gridWidth: totalWeeks * cfg.cellStep - cfg.gap,
       gridHeight: DAYS * cfg.cellStep - cfg.gap,
     };
-  }, [cfg.cellStep, cfg.gap]);
+  }, [cfg.cellStep, cfg.gap, isMobile]);
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
@@ -382,11 +402,14 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
                   initial={{ opacity: 0, scale: 0.92 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.92 }}
-                  transition={SPRING_SNAPPY}
+                  transition={{
+                    duration: DURATION.micro,
+                    ease: EASE_OUT_MOTION,
+                  }}
                   style={{
                     position: "absolute",
-                    left: tooltip.x + 12,
-                    top: tooltip.y - 36,
+                    left: Math.min(tooltip.x + 12, (gridRef.current?.offsetWidth ?? 999) - 160),
+                    top: Math.max(tooltip.y - 36, 0),
                     pointerEvents: "none",
                     zIndex: 10,
                     border: "1px solid var(--border-visible)",
