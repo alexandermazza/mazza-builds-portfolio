@@ -124,7 +124,7 @@ export function ConnectedGrid({
               y2={line.y2}
               stroke={lineColor}
               strokeWidth={1}
-              strokeDasharray={length}
+              style={{ strokeDasharray: length }}
               initial={prefersReduced ? { strokeDashoffset: 0 } : { strokeDashoffset: length }}
               animate={isInView ? { strokeDashoffset: 0 } : { strokeDashoffset: length }}
               transition={prefersReduced ? { duration: 0 } : {
@@ -141,7 +141,7 @@ export function ConnectedGrid({
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${effectiveColumns}, 1fr)`,
-          gap: isMobile ? "var(--space-md)" : "var(--space-2xl)",
+          gap: isMobile ? "var(--space-xl)" : "var(--space-2xl)",
         }}
       >
         {childArray.map((child, i) => (

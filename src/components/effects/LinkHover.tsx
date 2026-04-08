@@ -10,7 +10,7 @@ interface LinkHoverProps extends Omit<ComponentProps<typeof TransitionLink>, "re
 export function LinkHover({ children, className = "", ...props }: LinkHoverProps) {
   return (
     <TransitionLink
-      className={`group relative inline-block ${className}`}
+      className={`group relative block ${className}`}
       {...props}
     >
       {children}

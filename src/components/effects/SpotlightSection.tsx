@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { gsap } from "@/lib/gsap";
 import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
@@ -34,6 +34,7 @@ export function SpotlightSection() {
   const startTime = useRef(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const isMobileRef = useRef(false);
 
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const prefersReduced = useReducedMotion();
@@ -46,8 +47,10 @@ export function SpotlightSection() {
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     setIsMobile(mq.matches);
+    isMobileRef.current = mq.matches;
     function onChange(e: MediaQueryListEvent) {
       setIsMobile(e.matches);
+      isMobileRef.current = e.matches;
     }
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -75,7 +78,7 @@ export function SpotlightSection() {
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
       const progress = irisProgress.current.value;
-      const mobile = window.matchMedia("(max-width: 767px)").matches;
+      const mobile = isMobileRef.current;
       const radiusFraction = mobile ? IRIS_RADIUS_VW_MOBILE : IRIS_RADIUS_VW_DESKTOP;
       const wobbleAmp = mobile ? WOBBLE_AMP_MOBILE : WOBBLE_AMP_DESKTOP;
 
@@ -133,12 +136,13 @@ export function SpotlightSection() {
     }
 
     startTime.current = Date.now();
-    gsap.to(irisProgress.current, {
+    const tween = gsap.to(irisProgress.current, {
       value: 1,
       duration: IRIS_DURATION,
       ease: "power2.out",
       onStart: () => setIsRevealed(true),
     });
+    return () => { tween.kill(); };
   }, [isInView, prefersReduced]);
 
   return (
@@ -151,11 +155,11 @@ export function SpotlightSection() {
       <canvas
         ref={canvasRef}
         className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 0 }}
       />
 
       {/* Content */}
-      <div className="relative flex flex-col items-center text-center" style={{ zIndex: 2 }}>
+      <div className="relative flex flex-col items-center text-center" style={{ zIndex: 1 }}>
         {/* App icon */}
         <motion.div
           initial={prefersReduced ? {} : { opacity: 0, y: 16 }}
@@ -222,7 +226,7 @@ export function SpotlightSection() {
           }}
         >
           <a href={appStoreUrl} target="_blank" rel="noopener noreferrer">
-            <Button>Download on the App Store</Button>
+            <Button variant="primary">Download on the App Store</Button>
           </a>
         </motion.div>
       </div>

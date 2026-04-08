@@ -28,7 +28,7 @@ export function ScrollLetterAnimation({
   className = "",
 }: ScrollLetterAnimationProps) {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -50px 0px" });
   const prefersReduced = useReducedMotion();
 
   const MotionTag = motionElements[Tag];

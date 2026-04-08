@@ -19,7 +19,7 @@ export function Button({
 
   const variants: Record<ButtonVariant, string> = {
     primary:
-      "bg-[var(--accent)] text-white px-[24px] py-[12px] hover:brightness-110",
+      "bg-[var(--accent)] text-white px-[24px] py-[12px] hover:bg-[#E55A2B]",
     ghost:
       "bg-transparent text-[var(--text-secondary)] px-[24px] py-[12px] hover:text-[var(--text-primary)]",
   };

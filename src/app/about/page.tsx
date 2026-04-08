@@ -26,16 +26,28 @@ const connections = [
 
 const experience = [
   {
-    title: "Software Developer",
-    company: "Company Name",
-    dateRange: "2024 — PRESENT",
-    description: "Building web applications and internal tools.",
+    title: "GTM AI Operations Manager",
+    company: "Freshpaint",
+    dateRange: "FEB 2025 — PRESENT",
+    description: "AI and automation for go-to-market operations.",
   },
   {
-    title: "Freelance Developer",
-    company: "Self-Employed",
-    dateRange: "2022 — 2024",
-    description: "iOS apps, Shopify integrations, and AI automation systems.",
+    title: "Revenue Operations Manager",
+    company: "Freshpaint",
+    dateRange: "AUG 2024 — FEB 2025",
+    description: "Managed revenue operations and streamlined GTM processes.",
+  },
+  {
+    title: "Operations Manager, Sales and Marketing",
+    company: "Rattle",
+    dateRange: "MAY 2023 — AUG 2024",
+    description: "Owned revenue management and cross-functional sales and marketing operations.",
+  },
+  {
+    title: "Marketing Operations Manager",
+    company: "metadata.io",
+    dateRange: "OCT 2021 — MAY 2023",
+    description: "System admin for go-to-market team. Automation builder.",
   },
 ];
 
@@ -70,23 +82,21 @@ export default function AboutPage() {
         <section className="mb-[var(--space-4xl)]">
           <SpecBlock label="SPEC: IDENTITY">
             <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-              I&apos;m Alex Mazza, a solo indie developer based out of the
-              Midwest. I build things from concept to production — iOS apps,
-              Shopify tools, AI-powered automation systems, and the web
-              experiences that tie them together.
+              I&apos;m Alex Mazza, a developer based in Chicago. I build
+              AI-powered apps, automation systems, and tools end-to-end — iOS,
+              web, trading bots, the works.
             </ScrollTextLines>
             <div className="mt-[var(--space-2xl)]">
               <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                I care about clean interfaces, thoughtful systems, and shipping
-                work that holds up. Every project here was designed, built, and
-                shipped by me — no agencies, no templates.
+                Day job: AI operations at a healthcare SaaS company. Side
+                projects: whatever I can&apos;t stop thinking about.
               </ScrollTextLines>
             </div>
           </SpecBlock>
         </section>
 
         {/* Location Spec */}
-        <section className="mb-[var(--space-4xl)]">
+        <section className="mb-[var(--space-2xl)]">
           <SpecBlock label="SPEC: LOCATION">
             <p className="mb-[var(--space-md)] font-mono text-[13px] tracking-[0.06em] text-[var(--text-secondary)]">
               41.8781° N, 87.6298° W
@@ -96,9 +106,13 @@ export default function AboutPage() {
               appropriate.
             </ScrollTextLines>
           </SpecBlock>
-          <ChicagoMap className="h-[400px] md:h-[550px]" />
         </section>
+      </div>
 
+      {/* Full-bleed ChicagoMap — outside max-w container, cancels main's px padding */}
+      <ChicagoMap className="-mx-[var(--space-lg)] mb-[var(--space-4xl)] h-[400px] md:h-[550px]" />
+
+      <div className="relative mx-auto max-w-[960px]">
         {/* Systems Spec */}
         <section className="mb-[var(--space-4xl)]">
           <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">

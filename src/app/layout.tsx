@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s — Mazza Builds",
   },
   description:
-    "Portfolio of Alex Mazza — solo indie developer building iOS apps, Shopify tools, and AI systems",
+    "building things that work",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -53,6 +53,7 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link
           rel="preload"
           as="fetch"

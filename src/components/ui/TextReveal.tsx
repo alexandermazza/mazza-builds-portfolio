@@ -26,7 +26,7 @@ export function TextReveal({
   className = "",
 }: TextRevealProps) {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -40px 0px" });
 
   const words = children.trim().split(/\s+/).filter(Boolean);
 

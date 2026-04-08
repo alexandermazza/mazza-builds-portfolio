@@ -10,6 +10,7 @@ export interface Project {
   tags: string[];
   status: ProjectStatus;
   screenshot: string;
+  video?: string;
   images: string[];
   links: { label: string; url: string }[];
   deviceType: DeviceType;
@@ -22,20 +23,21 @@ export const projects: Project[] = [
     issueNumber: 1,
     name: "Daily Roman",
     description:
-      "Duolingo-style iOS app for ancient Roman history. Spaced repetition, streak tracking, and bite-sized lessons.",
+      "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
     longDescription:
-      "Daily Roman brings ancient Roman history to life through gamified learning. Built in Swift with SwiftUI, the app uses spaced repetition algorithms to help users retain historical facts, dates, and cultural knowledge. Features include streak tracking, daily challenges, and a progression system that unlocks new historical periods as you advance.",
-    tags: ["Swift", "SwiftUI", "Core Data"],
-    status: "IN PROGRESS",
-    screenshot: "/projects/project-01.png",
+      "Roma Quotidiana delivers AI-generated daily facts with a 3D coin flip mechanic, Latin-to-English morphing animations, and deep customization across 8 historical eras and 18 topics. Features a Leitner-based spaced repetition quiz system with 6 question types, a scholar progression from Tiro to Imperator, an interactive map of the Roman Empire, and iOS home screen widgets. Live on the App Store.",
+    tags: ["React Native", "Expo", "TypeScript"],
+    status: "LIVE",
+    screenshot: "/projects/daily-roman/screen.png",
+    video: "/projects/daily-roman/video.mp4",
     images: [
-      "/projects/daily-roman/screen-01.png",
-      "/projects/daily-roman/screen-02.png",
-      "/projects/daily-roman/screen-03.png",
+      "/projects/daily-roman/image-01.png",
+      "/projects/daily-roman/image-02.png",
+      "/projects/daily-roman/image-03.png",
+      "/projects/daily-roman/image-04.png",
     ],
     links: [
-      { label: "App Store", url: "#" },
-      { label: "Source", url: "#" },
+      { label: "App Store", url: "https://apps.apple.com/mx/app/daily-roman-ancient-history/id6759132785?l=en-GB" },
     ],
     deviceType: "phone",
     screenTexture: "/projects/daily-roman/screen.png",
@@ -43,88 +45,78 @@ export const projects: Project[] = [
   {
     slug: "shopify-app",
     issueNumber: 2,
-    name: "Shopify App",
+    name: "ShopAI",
     description:
-      "Merchant toolkit for automated product tagging and inventory workflows.",
+      "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
     longDescription:
-      "A Shopify embedded app that automates repetitive merchant tasks. Uses the Shopify Admin API to batch-process product tags, sync inventory levels across locations, and generate reports. Built with Next.js for the frontend and Prisma for data persistence, with webhook-driven event processing for real-time updates.",
-    tags: ["Next.js", "Shopify API", "Prisma"],
+      "ShopAI lets shoppers ask natural language questions about any product and get context-aware answers powered by OpenAI, while AI review summaries highlight key sentiment so buyers skip the scroll. Store owners customize the AI with brand voice, policies, and product context for personalized responses. Installs as a no-code Theme App Extension with a fully customizable UI.",
+    tags: ["Remix", "Shopify", "OpenAI", "Prisma"],
     status: "LIVE",
-    screenshot: "/projects/project-02.png",
-    images: [
-      "/projects/shopify-app/screen-01.png",
-      "/projects/shopify-app/screen-02.png",
-      "/projects/shopify-app/screen-03.png",
-    ],
+    screenshot: "/projects/shopify-app/screen.png",
+    images: [],
     links: [
-      { label: "Shopify App Store", url: "#" },
-      { label: "Source", url: "#" },
+      { label: "Live", url: "https://shop-ai.co/" },
     ],
     deviceType: "laptop",
     screenTexture: "/projects/shopify-app/screen.png",
   },
   {
-    slug: "ai-automation",
+    slug: "vendor-fingerprint",
     issueNumber: 3,
-    name: "AI Automation Systems",
+    name: "Vendor Fingerprint",
     description:
-      "Content pipeline using Claude API, HeyGen, and ElevenLabs for automated video production.",
+      "7-stage detection pipeline that identifies which scheduling software healthcare companies use — static fingerprinting, headless browsing, and AI verification.",
     longDescription:
-      "An end-to-end content automation pipeline that transforms written briefs into finished video content. Claude API generates scripts and storyboards, ElevenLabs produces voiceovers, and HeyGen creates avatar-driven video presentations. The system orchestrates the entire workflow with error handling, quality checks, and output formatting for multiple platforms.",
-    tags: ["Claude API", "HeyGen", "ElevenLabs"],
-    status: "ARCHIVED",
-    screenshot: "/projects/project-03.png",
+      "Given a list of company domains, Vendor Fingerprint resolves homepages, extracts HTML signals, discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis falls short, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent where Haiku gathers signals and Sonnet reasons over the evidence. Each result includes vendor identification, confidence score, booking modality, evidence trail, and the discovered booking URL.",
+    tags: ["Python", "Playwright", "Claude API"],
+    status: "LIVE",
+    screenshot: "/projects/vendor-fingerprint/screen.png",
     images: [
-      "/projects/ai-automation/screen-01.png",
-      "/projects/ai-automation/screen-02.png",
-      "/projects/ai-automation/screen-03.png",
+      "/projects/vendor-fingerprint/image.png",
     ],
     links: [
-      { label: "Demo", url: "#" },
-      { label: "Source", url: "#" },
+      { label: "Source", url: "https://github.com/alexandermazza/booking-vendor-scraper" },
     ],
     deviceType: "laptop",
-    screenTexture: "/projects/ai-automation/screen.png",
+    screenTexture: "/projects/vendor-fingerprint/screen.png",
   },
   {
     slug: "shakedown",
     issueNumber: 4,
     name: "Shakedown",
     description:
-      "Claude Code skill that maps every user interaction, finds test gaps, and writes tests to close them with parallel agents.",
+      "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
     longDescription:
-      "Automated test generation for any codebase using Claude Code. Shakedown maps every user interaction in your app, catalogs existing coverage, prioritizes uncovered paths by risk, and dispatches parallel agents to write tests in rounds. Named after the nautical term — a thorough test of a new ship before it sets sail. Took a real Expo/React Native app from 224 to 474 tests in a single session.",
+      "Shakedown systematically maps every user interaction, catalogs existing coverage, prioritizes uncovered paths by risk, and dispatches 3-5 parallel agents to write tests in rounds — pure functions first, then stateful code with mocking. Works with any stack including Next.js, React Native, Django, Rails, and Go. Named after the nautical term for a thorough test of a new ship — took a real Expo app from 224 to 474 tests in a single session.",
     tags: ["Claude Code", "AI Agents", "Testing"],
     status: "LIVE",
-    screenshot: "/projects/project-04.png",
+    screenshot: "/projects/shakedown/screen.png",
     images: [
-      "/projects/shakedown/screen-01.png",
-      "/projects/shakedown/screen-02.png",
-      "/projects/shakedown/screen-03.png",
+      "/projects/shakedown/image.png",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/shakedown" },
     ],
     deviceType: "laptop",
-    screenTexture: "/projects/shakedown/screen.png",
+    screenTexture: "/projects/shakedown/shakedown.png",
   },
   {
     slug: "trailmix",
     issueNumber: 5,
     name: "Trailmix",
     description:
-      "Meeting intelligence platform — syncs notes from Granola, tasks from Monday.com, and threads from Slack into one dashboard.",
+      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
     longDescription:
-      "More than just Granola. Trailmix pulls meeting notes, action items, and context from Granola, Monday.com, and Slack into a unified activity dashboard. Features encrypted credential storage, background sync workers, onboarding flows, and a 3D landing experience. Built with Next.js, Drizzle ORM, and NextAuth for multi-provider authentication.",
-    tags: ["Next.js", "Drizzle", "Slack API", "Three.js"],
+      "Trailmix automatically extracts action items from Granola meeting transcripts using LLM-powered validation with confidence scoring, deduplicates them, and delivers them to Slack with approve/reject buttons that optionally create monday.com items on approval. A background worker polls every 30 seconds with circuit breaker protection and encrypted credential storage. Built with Next.js, Drizzle ORM, and NextAuth with a 3D landing page.",
+    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
     status: "IN PROGRESS",
-    screenshot: "/projects/project-05.png",
+    screenshot: "/projects/trailmix/screen.png",
     images: [
-      "/projects/trailmix/screen-01.png",
-      "/projects/trailmix/screen-02.png",
-      "/projects/trailmix/screen-03.png",
+      "/projects/trailmix/image-01.jpg",
+      "/projects/trailmix/image-02.png",
     ],
     links: [
+      { label: "Live", url: "https://trailmix.fly.dev" },
       { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
     ],
     deviceType: "laptop",
@@ -135,16 +127,17 @@ export const projects: Project[] = [
     issueNumber: 6,
     name: "AI Web Tracker Scanner",
     description:
-      "HIPAA compliance auditor that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks.",
+      "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
     longDescription:
-      "A HIPAA compliance auditing platform that automatically detects third-party tracking pixels on healthcare websites. Crawls medical pages using headless Playwright, captures outgoing network requests, and matches them against a database of 200+ known trackers — flagging privacy risks, PHI collection, and BAA support gaps. Uses AI-powered URL classification to triage medical vs. non-medical pages, and generates compliance summaries per domain.",
+      "Crawls medical pages using headless Playwright, captures outgoing network requests, and matches them against a database of 200+ known trackers — flagging privacy risks, PHI collection, and BAA support gaps. Uses Gemini-powered URL classification to triage medical vs. non-medical pages and generates compliance summaries per domain. Features a React dashboard, PDF report generation, HubSpot integration, and CSV batch scanning.",
     tags: ["FastAPI", "React", "Playwright", "Gemini"],
     status: "LIVE",
-    screenshot: "/projects/project-06.png",
+    screenshot: "/projects/web-tracker-scanner/screen.png",
+    video: "/projects/web-tracker-scanner/video.mov",
     images: [
-      "/projects/web-tracker-scanner/screen-01.png",
-      "/projects/web-tracker-scanner/screen-02.png",
-      "/projects/web-tracker-scanner/screen-03.png",
+      "/projects/web-tracker-scanner/image-01.png",
+      "/projects/web-tracker-scanner/image-02.png",
+      "/projects/web-tracker-scanner/image-03.png",
     ],
     links: [
       { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
@@ -158,16 +151,14 @@ export const projects: Project[] = [
     issueNumber: 7,
     name: "Kalshi Weather Trader",
     description:
-      "Autonomous trading bot for Kalshi prediction markets — multi-source weather forecasting, probability analysis, and real-money execution.",
+      "Autonomous trading bot for Kalshi prediction markets — multi-source weather forecasting, probability analysis, and real-money order execution.",
     longDescription:
-      "An autonomous weather temperature trading bot for Kalshi prediction markets. Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions for temperature buckets, and places maker NO orders when edge exceeds thresholds. Features BTC latency arbitrage, Claude-powered agent scanning every 30 minutes, position recovery, and a Flask dashboard with real-time P&L tracking.",
-    tags: ["Python", "SQLAlchemy", "MCP", "Trading"],
+      "Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions for temperature buckets, and places maker NO orders when edge exceeds thresholds. Claude-powered agents scan markets every 30 minutes with position recovery and risk management, plus a BTC latency arbitrage strategy that reacts to Coinbase WebSocket price moves. Includes a Flask dashboard with real-time P&L tracking and an automated feedback loop for strategy self-improvement.",
+    tags: ["Python", "Claude API", "MCP", "Flask"],
     status: "LIVE",
-    screenshot: "/projects/project-07.png",
+    screenshot: "/projects/kalshi-trader/screen.png",
     images: [
-      "/projects/kalshi-trader/screen-01.png",
-      "/projects/kalshi-trader/screen-02.png",
-      "/projects/kalshi-trader/screen-03.png",
+      "/projects/kalshi-trader/image.png",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/Kahshi-Trader" },
@@ -180,38 +171,34 @@ export const projects: Project[] = [
     issueNumber: 8,
     name: "Kalshi Trading MCP",
     description:
-      "Full-featured MCP server for Kalshi with 20+ tools — weather forecasting, ensemble analysis, safety controls, and position management.",
+      "Pip-installable MCP server for Kalshi with 20+ tools — weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
     longDescription:
-      "A pip-installable Model Context Protocol server for Kalshi prediction markets. Goes beyond thin API wrappers with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting, ensemble model analysis, real-time METAR observations, and position drift monitoring. Includes safety controls like price caps, daily limits, cash reserves, and NO-only strategy enforcement.",
-    tags: ["Python", "MCP", "Kalshi API", "Weather"],
+      "Goes beyond thin API wrappers with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Includes safety controls like price caps, daily limits, cash reserves, NO-only strategy enforcement, and two-step order confirmation to prevent accidental trades. Supports 8 cities with cross-city correlation analysis and AFD change detection.",
+    tags: ["Python", "FastMCP", "Kalshi API"],
     status: "LIVE",
-    screenshot: "/projects/project-08.png",
+    screenshot: "/projects/kalshi-mcp/screen.png",
     images: [
-      "/projects/kalshi-mcp/screen-01.png",
-      "/projects/kalshi-mcp/screen-02.png",
-      "/projects/kalshi-mcp/screen-03.png",
+      "/projects/kalshi-mcp/image.png",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/kalshi-trading-mcp" },
     ],
     deviceType: "laptop",
-    screenTexture: "/projects/kalshi-mcp/screen.png",
+    screenTexture: "/projects/kalshi-mcp/kalshi-trading-mcp.png",
   },
   {
     slug: "semrush-enricher",
     issueNumber: 9,
     name: "Semrush Enricher",
     description:
-      "Batch domain traffic enrichment tool — reads HubSpot exports, calls the Semrush API, and outputs enriched CSVs.",
+      "Web tool that enriches HubSpot domain exports with Semrush traffic data — upload a CSV, paste your API key, get enriched metrics back.",
     longDescription:
-      "A web tool that enriches company domains from HubSpot exports with traffic data from the Semrush API. Upload a CSV of up to 1,000 domains, paste your Semrush API key, and get back enriched traffic metrics in batches of 200. Deployed as a Flask app with a static frontend, Docker support, and one-click deploy options for Render and Cloud Run. API keys are used per-request and never stored.",
+      "Upload a CSV of up to 1,000 company domains from a HubSpot export, paste your Semrush API key, and get back enriched traffic metrics processed in batches of 200. Deployed as a Flask app with Docker support and one-click deploy options for Render and Google Cloud Run. API keys are used per-request only and never stored or logged.",
     tags: ["Python", "Flask", "Semrush API", "HubSpot"],
     status: "LIVE",
-    screenshot: "/projects/project-09.png",
+    screenshot: "/projects/semrush-enricher/screen.png",
     images: [
-      "/projects/semrush-enricher/screen-01.png",
-      "/projects/semrush-enricher/screen-02.png",
-      "/projects/semrush-enricher/screen-03.png",
+      "/projects/semrush-enricher/image.jpg",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/semrush-enricher" },
@@ -224,16 +211,14 @@ export const projects: Project[] = [
     issueNumber: 10,
     name: "F1 Globe Calendar",
     description:
-      "Interactive 3D globe showing every race on the Formula 1 2024 calendar. Inspired by the GitHub Globe.",
+      "Interactive 3D globe visualizing every race location on the Formula 1 2024 calendar, inspired by the GitHub Globe.",
     longDescription:
-      "An interactive 3D globe that visualizes all race locations for the Formula 1 2024 season in order. Spin the globe, see each Grand Prix pinned to its real-world coordinates, and trace the season's journey across continents. Built with vanilla JavaScript and WebGL, inspired by the GitHub Globe.",
-    tags: ["JavaScript", "WebGL", "Three.js"],
+      "Spin the globe to see each Grand Prix pinned to its real-world coordinates and trace the F1 2024 season's journey across continents in order. Built with vanilla JavaScript, Three.js, and WebGL as a visual exploration of geographic data on a 3D sphere. Inspired by the GitHub contribution globe.",
+    tags: ["JavaScript", "Three.js", "WebGL"],
     status: "ARCHIVED",
-    screenshot: "/projects/project-10.png",
+    screenshot: "/projects/f1-globe/screen.png",
     images: [
-      "/projects/f1-globe/screen-01.png",
-      "/projects/f1-globe/screen-02.png",
-      "/projects/f1-globe/screen-03.png",
+      "/projects/f1-globe/image.png",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/f1-globe-calendar" },

@@ -28,7 +28,13 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: "GITHUB_TOKEN not configured" }, { status: 500 });
   }
 
-  const year = request.nextUrl.searchParams.get("year") ?? new Date().getFullYear().toString();
+  const rawYear = request.nextUrl.searchParams.get("year") ?? new Date().getFullYear().toString();
+  const parsedYear = Number(rawYear);
+  const currentYear = new Date().getFullYear();
+  if (!Number.isInteger(parsedYear) || parsedYear < 2008 || parsedYear > currentYear) {
+    return Response.json({ error: `Invalid year: must be 2008–${currentYear}` }, { status: 400 });
+  }
+  const year = parsedYear;
   const from = `${year}-01-01T00:00:00Z`;
   const to = `${year}-12-31T23:59:59Z`;
 
@@ -71,7 +77,7 @@ export async function GET(request: NextRequest) {
       meta: {
         totalContributions: calendar.totalContributions,
         activeDays,
-        year: parseInt(year),
+        year,
       },
     });
   } catch (err) {

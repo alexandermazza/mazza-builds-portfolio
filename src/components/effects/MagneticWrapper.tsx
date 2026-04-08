@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
-import { SPRING_SNAPPY, MAGNETIC_STRENGTH, MAGNETIC_RADIUS } from "@/lib/motion";
+import { SPRING_CRITICAL, MAGNETIC_STRENGTH, MAGNETIC_RADIUS } from "@/lib/motion";
 
 interface MagneticWrapperProps {
   children: React.ReactNode;
@@ -23,8 +23,8 @@ export function MagneticWrapper({
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const springX = useSpring(x, SPRING_SNAPPY);
-  const springY = useSpring(y, SPRING_SNAPPY);
+  const springX = useSpring(x, SPRING_CRITICAL);
+  const springY = useSpring(y, SPRING_CRITICAL);
 
   useEffect(() => {
     setIsTouch(window.matchMedia("(pointer: coarse)").matches);

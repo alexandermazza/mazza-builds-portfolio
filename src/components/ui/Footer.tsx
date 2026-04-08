@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { TransitionLink } from "@/transitions";
+import { SplitFlapText } from "@/components/effects/SplitFlapText";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -21,7 +23,7 @@ const socialLinks = [
   },
   {
     label: "Twitter",
-    href: "https://twitter.com/maboroshi_alex",
+    href: "https://twitter.com/mazza_builds",
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
@@ -45,6 +47,17 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)]">
+      {/* Logo */}
+      <div className="flex justify-center pb-[var(--space-xl)]">
+        <Image
+          src="/logo.png"
+          alt="Mazza Builds logo"
+          width={48}
+          height={46}
+          className="h-12 w-auto opacity-60"
+        />
+      </div>
+
       {/* Nav links — centered */}
       <div className="flex flex-wrap justify-center gap-[var(--space-xl)] pb-[var(--space-xl)]">
         {navLinks.map((link) => (
@@ -57,7 +70,7 @@ export function Footer() {
               transitionTimingFunction: "var(--ease-out)",
             }}
           >
-            {link.label}
+            <SplitFlapText>{link.label}</SplitFlapText>
           </TransitionLink>
         ))}
       </div>

@@ -8,13 +8,7 @@ interface UsageCardProps extends Omit<ComponentProps<"section">, "children"> {
 }
 
 export function UsageCard({ className = "", compact = false, ...props }: UsageCardProps) {
-  const now = new Date();
-  const yearAgo = new Date(now);
-  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-
-  const startLabel = yearAgo
-    .toLocaleDateString("en-US", { month: "short", year: "numeric" })
-    .toUpperCase();
+  const startLabel = "JAN 2026";
 
   return (
     <section

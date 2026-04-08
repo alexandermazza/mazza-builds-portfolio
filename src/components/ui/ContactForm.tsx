@@ -9,7 +9,7 @@ type FormState = "idle" | "sending" | "sent" | "error";
 const directLinks = [
   { label: "Email", href: "mailto:hello@mazzabuilds.com" },
   { label: "GitHub", href: "https://github.com/alexandermazza" },
-  { label: "Twitter", href: "https://twitter.com/maboroshi_alex" },
+  { label: "Twitter", href: "https://twitter.com/mazza_builds" },
 ];
 
 export function ContactForm() {

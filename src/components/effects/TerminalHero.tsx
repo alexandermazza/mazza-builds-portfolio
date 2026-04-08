@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { gsap, ENTER_EASE } from "@/lib/gsap";
 import { MagneticField } from "./MagneticField";
+import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -65,9 +67,9 @@ const BOOT_LINES: BootLine[] = [
   { type: "text", text: "> three.js renderer: WebGL 2.0" },
   {
     type: "dots",
-    prefix: "> running vibe check",
+    prefix: "> checking for the guy who did this",
     dotCount: 15,
-    suffix: " PASSED",
+    suffix: " we're all trying to find him",
     suffixAccent: true,
     pauseMs: 400,
   },
@@ -114,10 +116,15 @@ const SESSION_KEY = "mazza-boot-v1";
 export function TerminalHero() {
   const bootRef = useRef<HTMLDivElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const taglineRef = useRef<HTMLParagraphElement>(null);
+  const arrowRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia(
@@ -125,7 +132,7 @@ export function TerminalHero() {
     ).matches;
     const isRepeatVisit = sessionStorage.getItem(SESSION_KEY) === "1";
 
-    document.body.style.overflow = "hidden";
+    lockOverflow();
 
     // ── Reduced motion path ───────────────────────
     if (reducedMotion) {
@@ -163,7 +170,7 @@ export function TerminalHero() {
       });
 
       const timeout = setTimeout(() => {
-        document.body.style.overflow = "";
+        unlockOverflow();
         if (bootRef.current) {
           bootRef.current.style.opacity = "0";
           bootRef.current.style.display = "none";
@@ -171,21 +178,30 @@ export function TerminalHero() {
         if (revealRef.current) {
           revealRef.current.style.opacity = "1";
         }
-        // Show all letters and tagline instantly
+        // Show logo, letters and tagline instantly
+        if (logoRef.current) {
+          logoRef.current.style.opacity = "1";
+        }
         charRefs.current.forEach((el) => {
           if (el) el.style.opacity = "1";
         });
         if (taglineRef.current) {
           taglineRef.current.style.opacity = "1";
         }
-        sessionStorage.setItem(SESSION_KEY, "1");
+        if (arrowRef.current) {
+          arrowRef.current.style.opacity = "1";
+        }
       }, 1000);
 
       return () => {
         clearTimeout(timeout);
-        document.body.style.overflow = "";
+        unlockOverflow();
       };
     }
+
+    // Mark as seen so re-entries skip the full boot (placed after
+    // reduced-motion early-return so that path never sets this flag)
+    sessionStorage.setItem(SESSION_KEY, "1");
 
     // ── Repeat-visit fast path: skip boot, quick hero reveal ──
     if (isRepeatVisit) {
@@ -200,32 +216,57 @@ export function TerminalHero() {
       const tl = gsap.timeline();
       tlRef.current = tl;
 
+      // Logo drops in with a slight rotation
+      if (logoRef.current) {
+        tl.fromTo(
+          logoRef.current,
+          { y: -40, opacity: 0, rotation: -15, scale: 0.8 },
+          {
+            y: 0,
+            opacity: 1,
+            rotation: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: ENTER_EASE,
+          }
+        );
+      }
+
       const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
       tl.fromTo(
         validChars,
-        { y: 20, opacity: 0 },
+        { y: 30, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.25,
-          stagger: 0.02,
+          duration: 0.4,
+          stagger: 0.03,
           ease: ENTER_EASE,
-        }
+        },
+        "-=0.3"
       );
 
       if (taglineRef.current) {
         tl.to(taglineRef.current, {
           opacity: 1,
-          duration: 0.3,
+          duration: 0.4,
+          ease: ENTER_EASE,
+        }, "-=0.15");
+      }
+
+      if (arrowRef.current) {
+        tl.to(arrowRef.current, {
+          opacity: 1,
+          duration: 0.5,
           ease: ENTER_EASE,
         }, "-=0.1");
       }
 
-      tl.call(() => { document.body.style.overflow = ""; });
+      tl.call(() => { unlockOverflow(); });
 
       return () => {
         tl.kill();
-        document.body.style.overflow = "";
+        unlockOverflow();
       };
     }
 
@@ -366,6 +407,22 @@ export function TerminalHero() {
     tl.set(bootRef.current, { opacity: 0, display: "none" });
     tl.set(revealRef.current, { opacity: 1 });
 
+    // Logo slams in with rotation and scale
+    if (logoRef.current) {
+      tl.fromTo(
+        logoRef.current,
+        { y: -60, opacity: 0, rotation: -20, scale: 0.6 },
+        {
+          y: 0,
+          opacity: 1,
+          rotation: 0,
+          scale: 1,
+          duration: 0.6,
+          ease: ENTER_EASE,
+        }
+      );
+    }
+
     // Letter stagger from below + scramble per character
     const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
     tl.fromTo(
@@ -377,7 +434,8 @@ export function TerminalHero() {
         duration: 0.4,
         stagger: 0.04,
         ease: ENTER_EASE,
-      }
+      },
+      "-=0.3"
     );
 
     // ScrambleText each letter (overlaps with the stagger)
@@ -407,13 +465,20 @@ export function TerminalHero() {
       });
     }
 
-    // Mark as seen
-    tl.call(() => { sessionStorage.setItem(SESSION_KEY, "1"); });
-    tl.call(() => { document.body.style.overflow = ""; });
+    // Scroll arrow fades in last
+    if (arrowRef.current) {
+      tl.to(arrowRef.current, {
+        opacity: 1,
+        duration: 0.5,
+        ease: ENTER_EASE,
+      });
+    }
+
+    tl.call(() => { unlockOverflow(); });
 
     return () => {
       tl.kill();
-      document.body.style.overflow = "";
+      unlockOverflow();
     };
   }, []);
 
@@ -424,14 +489,14 @@ export function TerminalHero() {
         ref={bootRef}
         className="fixed inset-0 z-[9999] flex items-center bg-[var(--black)]"
       >
-        <div className="mx-auto w-full max-w-[640px] px-[var(--space-lg)]">
+        <div className="mx-auto w-full max-w-[640px] px-4 sm:px-[var(--space-lg)]">
           {BOOT_LINES.map((line, i) => (
             <div
               key={i}
               ref={(el) => {
                 lineRefs.current[i] = el;
               }}
-              className="font-mono text-[13px] leading-[1.8] text-[var(--text-secondary)] whitespace-nowrap"
+              className="font-mono text-[clamp(10px,2.5vw,13px)] leading-[1.8] text-[var(--text-secondary)]"
               style={{ opacity: 0 }}
             >
               {line.type === "text" && <span data-text>&nbsp;</span>}
@@ -473,7 +538,21 @@ export function TerminalHero() {
         style={{ opacity: 0 }}
       >
         <MagneticField />
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col items-center">
+          <div
+            ref={logoRef}
+            className="mb-[var(--space-lg)]"
+            style={{ opacity: 0 }}
+          >
+            <Image
+              src="/logo.png"
+              alt="Mazza Builds logo"
+              width={120}
+              height={116}
+              priority
+              className="h-[clamp(80px,15vw,120px)] w-auto"
+            />
+          </div>
           <h1 className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]">
             {HERO_CHARS.map((char, i) => (
               <span
@@ -496,6 +575,31 @@ export function TerminalHero() {
             building things that work
           </p>
         </div>
+
+        {/* Scroll arrow — client-only to avoid Turbopack hydration mismatch */}
+        {mounted && (
+          <div
+            ref={arrowRef}
+            className="absolute bottom-[var(--space-xl)] left-1/2 -translate-x-1/2 animate-[bounce-subtle_2s_ease-in-out_infinite] cursor-pointer"
+            style={{ opacity: 0 }}
+            onClick={() => {
+              window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--text-display)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        )}
       </div>
     </section>
   );

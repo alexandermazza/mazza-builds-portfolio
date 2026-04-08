@@ -3,6 +3,7 @@
 import { type ComponentProps } from "react";
 import { StatusBadge } from "./StatusBadge";
 import { TagChip } from "./TagChip";
+import { SplitFlapText } from "@/components/effects/SplitFlapText";
 
 type Status = "LIVE" | "IN PROGRESS" | "ARCHIVED";
 
@@ -27,7 +28,7 @@ export function ProjectCard({
 
   return (
     <article
-      className={`border border-[var(--border)] bg-[var(--surface)] p-[var(--space-md)] md:p-[var(--space-lg)] transition-colors hover:border-[var(--border-visible)] ${className}`}
+      className={`group/flap border border-[var(--border)] bg-[var(--surface)] p-[var(--space-md)] md:p-[var(--space-lg)] transition-colors hover:border-[var(--border-visible)] ${className}`}
       style={{
         borderRadius: "var(--radius-card)",
         transitionDuration: "var(--duration-micro)",
@@ -48,12 +49,12 @@ export function ProjectCard({
         className="mb-[var(--space-sm)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]"
         style={{ fontSize: "var(--heading)" }}
       >
-        {name}
+        <SplitFlapText externalTrigger staggerMs={20}>{name}</SplitFlapText>
       </h3>
 
       {/* Secondary: description */}
       <p
-        className="mb-[var(--space-lg)] font-sans text-[var(--body-sm)] leading-[1.5] tracking-[0.01em] text-[var(--text-secondary)]"
+        className="mb-[var(--space-lg)] font-sans text-[var(--body-sm)] leading-[1.5] tracking-[0.01em] text-[var(--text-secondary)] line-clamp-2 min-h-[calc(var(--body-sm)*1.5*2)]"
         style={{ fontSize: "var(--body-sm)" }}
       >
         {description}

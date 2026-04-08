@@ -21,7 +21,7 @@ interface Pulse {
 // ─── Constants ────────────────────────────────────────
 
 const PULSE_COUNT = 14;
-const LINE_ALPHA = 0.06;
+const LINE_ALPHA = 0.14;
 const PULSE_ALPHA = 0.8;
 const PULSE_TRAIL = 0.1;
 const PULSE_TRAIL_STEPS = 16;

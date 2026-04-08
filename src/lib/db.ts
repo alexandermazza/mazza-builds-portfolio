@@ -98,16 +98,16 @@ export function upsertUsage(records: DailyUsage[]): number {
   return runMany(records) as number;
 }
 
+// Hardcoded to Jan 1 2026 — the date usage tracking began.
+// Update this if the tracking start date changes.
+const USAGE_START_DATE = "20260101";
+
 export function getUsageLast365(): DailyUsage[] {
   const db = getDb();
-
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 365);
-  const cutoffStr = cutoff.toISOString().slice(0, 10).replace(/-/g, "");
 
   return db
     .prepare(
       `SELECT * FROM daily_usage WHERE date >= ? ORDER BY date ASC`
     )
-    .all(cutoffStr) as DailyUsage[];
+    .all(USAGE_START_DATE) as DailyUsage[];
 }

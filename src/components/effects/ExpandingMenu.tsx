@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type MouseEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TransitionLink } from "@/transitions";
 import { DURATION, EASE_OUT_MOTION, MENU_ITEM_STAGGER } from "@/lib/motion";
+import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
 
 interface MenuItem {
   label: string;
@@ -18,6 +19,7 @@ interface ExpandingMenuProps {
 export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -25,6 +27,14 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
     const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   const close = useCallback(() => setIsOpen(false), []);
@@ -39,12 +49,9 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
   }, [isOpen, close]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
+    if (!isOpen) return;
+    lockOverflow();
+    return () => { unlockOverflow(); };
   }, [isOpen]);
 
   return (
@@ -52,7 +59,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--border-visible)] bg-[var(--surface)] transition-colors hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] max-md:bottom-[var(--space-md)] max-md:right-[var(--space-md)] max-md:h-[48px] max-md:w-[48px]"
+        className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--accent)] bg-[var(--surface)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] max-md:top-[var(--space-md)] max-md:left-1/2 max-md:right-auto max-md:-translate-x-1/2 max-md:h-[48px] max-md:w-[48px]"
         style={{
           transitionDuration: "var(--duration-micro)",
           transitionTimingFunction: "var(--ease-out)",
@@ -98,7 +105,7 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
       </button>
 
       {/* Overlay */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div
             className="fixed inset-0 z-[9998] flex flex-col items-center justify-center"
@@ -107,17 +114,23 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
             initial={
               reducedMotion
                 ? { opacity: 0 }
-                : { opacity: 0.95, clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
+                : { opacity: 0.95, clipPath: isMobile
+                    ? "circle(0% at 50% 40px)"
+                    : "circle(0% at calc(100% - 44px) 44px)" }
             }
             animate={
               reducedMotion
                 ? { opacity: 0.95 }
-                : { opacity: 0.95, clipPath: "circle(150% at calc(100% - 44px) calc(100% - 44px))" }
+                : { opacity: 0.95, clipPath: isMobile
+                    ? "circle(150% at 50% 40px)"
+                    : "circle(150% at calc(100% - 44px) 44px)" }
             }
             exit={
               reducedMotion
                 ? { opacity: 0 }
-                : { opacity: 0.95, clipPath: "circle(0% at calc(100% - 44px) calc(100% - 44px))" }
+                : { opacity: 0.95, clipPath: isMobile
+                    ? "circle(0% at 50% 40px)"
+                    : "circle(0% at calc(100% - 44px) 44px)" }
             }
             transition={{
               duration: reducedMotion ? 0 : 0.6,

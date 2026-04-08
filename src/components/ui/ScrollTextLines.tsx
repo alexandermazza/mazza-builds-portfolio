@@ -31,7 +31,7 @@ export function ScrollTextLines({
   className = "",
 }: ScrollTextLinesProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -50px 0px" });
 
   const lines = splitIntoLines(children);
 

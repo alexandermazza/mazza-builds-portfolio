@@ -21,6 +21,13 @@ export const SPRING_BOUNCY = {
   damping: 22,
 };
 
+/** Critically damped spring — smooth settle, no bounce (Nothing-compliant) */
+export const SPRING_CRITICAL = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 40,
+};
+
 export const SCROLL_VELOCITY_MULTIPLIER = 0.3;
 
 export const CHAR_SCATTER_STAGGER = 0.02;

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 
 export async function POST(request: Request) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const body = await request.json();
     const { name, email, message } = body;
@@ -24,8 +26,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: Wire up email provider (Resend, Mailgun, etc.) at deployment time.
-    console.log("Contact form submission:", { name, email, message: message.slice(0, 100) });
+    const { error } = await resend.emails.send({
+      from: "Mazza Builds Contact <contact@mazzabuilds.com>",
+      to: "alex@mazzabuilds.com",
+      replyTo: email,
+      subject: `New message from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+    });
+
+    if (error) {
+      console.error("Resend error:", error);
+      return NextResponse.json(
+        { success: false, error: "Failed to send email" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch {
