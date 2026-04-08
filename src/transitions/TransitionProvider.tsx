@@ -268,8 +268,9 @@ export function TransitionProvider({
       const nextEl = containerRef.current;
       if (nextEl) {
         window.scrollTo(0, 0);
+        const footer = document.querySelector("footer");
         gsap.fromTo(
-          nextEl,
+          [nextEl, footer].filter(Boolean),
           { opacity: 0 },
           {
             opacity: 1,
@@ -284,10 +285,11 @@ export function TransitionProvider({
             },
           }
         );
-      }
-      const footer = document.querySelector("footer");
-      if (footer) {
-        gsap.fromTo(footer, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.out" });
+      } else {
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        pendingHrefRef.current = null;
+        unlockOverflow();
       }
     } else {
       // Non-animated navigation (reduced motion, etc.)
@@ -337,7 +339,7 @@ export function TransitionProvider({
           return;
         }
         const footer = document.querySelector("footer");
-        gsap.to(
+        const mobileFadeTween = gsap.to(
           [currentEl, footer].filter(Boolean),
           {
             opacity: 0,
@@ -348,6 +350,19 @@ export function TransitionProvider({
             },
           }
         );
+        setTimeout(() => {
+          if (isTransitioningRef.current) {
+            mobileFadeTween.kill();
+            if (containerRef.current) gsap.set(containerRef.current, { opacity: 1 });
+            const safetyFooter = document.querySelector("footer");
+            if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
+            isTransitioningRef.current = false;
+            transitionRunningRef.current = false;
+            setIsTransitioning(false);
+            pendingHrefRef.current = null;
+            unlockOverflow();
+          }
+        }, 2000);
         return;
       }
 
@@ -427,12 +442,13 @@ export function TransitionProvider({
         const currentEl = containerRef.current;
         if (currentEl) {
           const footer = document.querySelector("footer");
-          gsap.to(
+          const mobileFadeTween = gsap.to(
             [currentEl, footer].filter(Boolean),
             { opacity: 0, duration: 0.15, ease: "power1.out" }
           );
           setTimeout(() => {
             if (isTransitioningRef.current) {
+              mobileFadeTween.kill();
               if (containerRef.current) gsap.set(containerRef.current, { opacity: 1 });
               const safetyFooter = document.querySelector("footer");
               if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
