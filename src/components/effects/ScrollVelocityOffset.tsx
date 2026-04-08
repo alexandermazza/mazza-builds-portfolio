@@ -18,7 +18,11 @@ export function ScrollVelocityOffset({
   className = "",
 }: ScrollVelocityOffsetProps) {
   const prefersReduced = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 767px)").matches
+      : false
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -31,7 +35,7 @@ export function ScrollVelocityOffset({
   const { scrollY } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
   const clampedVelocity = useTransform(scrollVelocity, [-3000, 0, 3000], [-1, 0, 1]);
-  const offset = useTransform(clampedVelocity, (v) => prefersReduced ? 0 : v * multiplier * 40);
+  const offset = useTransform(clampedVelocity, (v) => (prefersReduced || isMobile) ? 0 : v * multiplier * 40);
   const smoothOffset = useSpring(offset, SPRING_FLUID);
   const style = axis === "y" ? { y: smoothOffset } : { x: smoothOffset };
 
