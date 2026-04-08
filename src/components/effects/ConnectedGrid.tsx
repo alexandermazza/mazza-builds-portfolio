@@ -27,8 +27,6 @@ export function ConnectedGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [lines, setLines] = useState<Line[]>([]);
-  const isInView = useInView(containerRef, { once: true, margin: "-60px" });
-  const prefersReduced = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -40,6 +38,9 @@ export function ConnectedGrid({
     mq.addEventListener("change", handleChange);
     return () => mq.removeEventListener("change", handleChange);
   }, []);
+
+  const isInView = useInView(containerRef, { once: true, margin: isMobile ? "0px" : "-60px" });
+  const prefersReduced = useReducedMotion();
 
   const effectiveColumns = isMobile ? 1 : columns;
 
@@ -94,10 +95,13 @@ export function ConnectedGrid({
   }, [effectiveColumns]);
 
   useEffect(() => {
-    computeLines();
+    const raf = requestAnimationFrame(computeLines);
     const ro = new ResizeObserver(computeLines);
     if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
   }, [computeLines, childArray.length]);
 
   return (
