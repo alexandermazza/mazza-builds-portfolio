@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { type ComponentProps, useMemo, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER, SPRING_SNAPPY } from "@/lib/motion";
 
@@ -179,14 +179,7 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
 
   // ── Grid geometry (client-only to avoid SSR/CSR date mismatch) ──────────
 
-  const [gridData, setGridData] = useState<{
-    weeks: Cell[][];
-    monthLabels: MonthLabel[];
-    gridWidth: number;
-    gridHeight: number;
-  } | null>(null);
-
-  useEffect(() => {
+  const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const { start: startDate, end: _, weeks: totalWeeks } = isMobile
@@ -217,18 +210,13 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
       }
     }
 
-    setGridData({
+    return {
       weeks: w,
       monthLabels: labels,
       gridWidth: totalWeeks * cfg.cellStep - cfg.gap,
       gridHeight: DAYS * cfg.cellStep - cfg.gap,
-    });
+    };
   }, [cfg.cellStep, cfg.gap, isMobile]);
-
-  const weeks = gridData?.weeks ?? [];
-  const monthLabels = gridData?.monthLabels ?? [];
-  const gridWidth = gridData?.gridWidth ?? 0;
-  const gridHeight = gridData?.gridHeight ?? DAYS * cfg.cellStep - cfg.gap;
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
