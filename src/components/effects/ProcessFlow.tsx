@@ -49,8 +49,7 @@ export function ProcessFlow({ className = "" }: { className?: string }) {
       scrollTrigger: {
         trigger: container,
         start: "top 80%",
-        end: "top 30%",
-        scrub: true,
+        toggleActions: "play none none none",
       },
     });
 
@@ -77,7 +76,10 @@ export function ProcessFlow({ className = "" }: { className?: string }) {
               stepRefs.current[i] = el;
             }}
             className="shrink-0 border border-[var(--border-visible)] px-[var(--space-md)] py-[var(--space-sm)] text-center"
-            style={{ opacity: prefersReduced ? 1 : 0 }}
+            style={{
+              opacity: prefersReduced ? 1 : 0,
+              borderRadius: "var(--radius-technical)",
+            }}
           >
             <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-primary)]">
               {step.label}

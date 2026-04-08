@@ -53,8 +53,7 @@ export function ExperienceTimeline({
       scrollTrigger: {
         trigger: container,
         start: "top 80%",
-        end: "bottom 50%",
-        scrub: true,
+        toggleActions: "play none none none",
       },
     });
 
@@ -119,7 +118,10 @@ export function ExperienceTimeline({
                 cardRefs.current[i] = el;
               }}
               className="border border-[var(--border-visible)] p-[var(--space-md)]"
-              style={{ opacity: prefersReduced ? 1 : 0 }}
+              style={{
+                opacity: prefersReduced ? 1 : 0,
+                borderRadius: "var(--radius-card)",
+              }}
             >
               <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
                 {entry.dateRange}
