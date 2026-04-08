@@ -38,7 +38,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
   if (!project) notFound();
 
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
+    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] pt-[80px] pb-[var(--space-2xl)] md:py-[var(--space-4xl)]">
       {/* Header */}
       <section className="mb-[var(--space-2xl)]">
         <p className="mb-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
@@ -65,36 +65,45 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         </ScrollTextLines>
       </section>
 
-      {/* Screenshots */}
-      {project.images.length > 0 && (
+      {/* Video + Screenshots */}
+      {(project.video || project.images.length > 0) && (
         <section className="mb-[var(--space-3xl)]">
           <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
             SCREENSHOTS
           </p>
+
+          {/* Hero video */}
+          {project.video && (
+            <div
+              className={`mx-auto mb-[var(--space-md)] overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)] ${project.deviceType === "phone" ? "max-w-[50%]" : ""}`}
+              style={{ borderRadius: "var(--radius-card)" }}
+            >
+              <video
+                src={project.video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="block w-full"
+              />
+            </div>
+          )}
           <ScrollGridAnimation
             variant="fade-up"
-            className="grid grid-cols-1 gap-[var(--space-md)] sm:grid-cols-2"
+            className={`mx-auto grid grid-cols-1 gap-[var(--space-md)] sm:grid-cols-2 ${project.deviceType === "phone" ? "max-w-[50%]" : ""}`}
           >
             {project.images.map((src, i) => (
               <div
                 key={i}
-                className="relative aspect-[16/10] overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
                 style={{ borderRadius: "var(--radius-card)" }}
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={src}
                   alt={`${project.name} screenshot ${i + 1}`}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 50vw"
-                  className="object-cover"
-                  {...(i === 0 ? { priority: true } : {})}
+                  className="block w-full"
                 />
-                {/* Placeholder overlay — remove when real images are added */}
-                <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface-raised)]">
-                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-                    [SCREENSHOT {String(i + 1).padStart(2, "0")}]
-                  </span>
-                </div>
               </div>
             ))}
           </ScrollGridAnimation>
