@@ -145,7 +145,7 @@ function AnimatedDevice({
     rotationRef.current +=
       (targetRotation - rotationRef.current) * delta * 4;
 
-    // Scale entrance: lerp 0.75 → modelScale
+    // Scale entrance: lerp 0.75 → 1.0 (applied as scaleRef * modelScale)
     scaleRef.current += (1.0 - scaleRef.current) * delta * 4;
     groupRef.current.scale.setScalar(scaleRef.current * modelScale);
 
@@ -195,7 +195,8 @@ function AnimatedDevice({
     const isSliding =
       Math.abs(phoneProgressRef.current - phoneTarget) > 0.01 ||
       Math.abs(laptopProgressRef.current - laptopTarget) > 0.01;
-    if (isRotating || isTiltSettling || isSliding || isActive) {
+    const isScaling = Math.abs(scaleRef.current - 1.0) > 0.001;
+    if (isRotating || isTiltSettling || isSliding || isScaling || isActive) {
       invalidate();
     }
   });
