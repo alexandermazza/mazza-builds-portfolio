@@ -188,6 +188,14 @@ export function ProjectShowcase({
   const isDraggingRef = useRef(false);
   const currentDragX = useRef(0);
   const isSwipeAnimatingRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   function handlePointerDown(e: React.PointerEvent) {
     if (isSwipeAnimatingRef.current) return;
@@ -222,20 +230,24 @@ export function ProjectShowcase({
     const enterFromX = goingLeft ? 400 : -400;
     const direction: 1 | -1 = goingLeft ? 1 : -1;
 
+    setSwipeDirection(direction);
+
     await carouselControls.start({
       x: exitX,
       transition: { duration: 0.2, ease: EASE_OUT_MOTION },
     });
 
-    setSwipeDirection(direction);
-    goToProject(mobileIndex + (goingLeft ? 1 : -1));
+    if (!isMountedRef.current) return;
 
+    goToProject(mobileIndex + (goingLeft ? 1 : -1));
     carouselControls.set({ x: enterFromX });
 
     await carouselControls.start({
       x: 0,
       transition: { duration: 0.25, ease: EASE_OUT_MOTION },
     });
+
+    if (!isMountedRef.current) return;
 
     isSwipeAnimatingRef.current = false;
   }
@@ -275,7 +287,10 @@ export function ProjectShowcase({
             {projects.map((_, i) => (
               <button
                 key={i}
-                onClick={() => goToProject(i)}
+                onClick={() => {
+                  if (isSwipeAnimatingRef.current) return;
+                  goToProject(i);
+                }}
                 aria-label={`Go to project ${i + 1}`}
                 className="block rounded-full transition-all"
                 style={{
