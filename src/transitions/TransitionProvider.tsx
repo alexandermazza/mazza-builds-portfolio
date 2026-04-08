@@ -9,7 +9,8 @@ import {
   useEffect,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { gsap } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
 import {
   getTransition,
   registerTransitions,
@@ -17,6 +18,10 @@ import {
 import { forwardTransition } from "./animations/forward";
 import { backTransition } from "./animations/back";
 import { enterAnimation } from "./animations/enter";
+
+// Register at module level — these are static imports with no DOM dependency.
+// Avoids a race where a user clicks a TransitionLink before the useEffect fires.
+registerTransitions(forwardTransition, backTransition);
 
 // ── Context ──────────────────────────────────────────────
 
@@ -41,7 +46,7 @@ export function useTransitionContext() {
 
 function waitForImages(
   container: HTMLElement,
-  timeout = 2000
+  timeout = 3000
 ): Promise<void> {
   const images = container.querySelectorAll("img");
   if (images.length === 0) return Promise.resolve();
@@ -63,7 +68,26 @@ function waitForImages(
 
 function cloneCurrentPage(el: HTMLElement): HTMLDivElement {
   const scrollY = window.scrollY;
+
+  // Snapshot WebGL canvases before cloning — cloneNode can't copy GL context
+  const canvases = el.querySelectorAll("canvas");
+  const snapshots: string[] = [];
+  canvases.forEach((c) => {
+    try { snapshots.push(c.toDataURL()); } catch { snapshots.push(""); }
+  });
+
   const clone = el.cloneNode(true) as HTMLDivElement;
+
+  // Replace cloned canvases with static images of the last frame
+  const clonedCanvases = clone.querySelectorAll("canvas");
+  clonedCanvases.forEach((c, i) => {
+    if (!snapshots[i]) return;
+    const img = document.createElement("img");
+    img.src = snapshots[i];
+    img.style.width = "100%";
+    img.style.height = "100%";
+    c.replaceWith(img);
+  });
 
   clone.setAttribute("aria-hidden", "true");
   clone.style.position = "fixed";
@@ -116,11 +140,7 @@ export function TransitionProvider({
   const previousPathRef = useRef(pathname);
   const isPopStateRef = useRef(false);
   const reducedMotionRef = useRef(false);
-
-  // Register animation functions on mount
-  useEffect(() => {
-    registerTransitions(forwardTransition, backTransition);
-  }, []);
+  const isMobileRef = useRef(false);
 
   // Detect reduced motion preference
   useEffect(() => {
@@ -128,6 +148,16 @@ export function TransitionProvider({
     reducedMotionRef.current = mql.matches;
     const handler = (e: MediaQueryListEvent) => {
       reducedMotionRef.current = e.matches;
+    };
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 767px)");
+    isMobileRef.current = mql.matches;
+    const handler = (e: MediaQueryListEvent) => {
+      isMobileRef.current = e.matches;
     };
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
@@ -195,12 +225,20 @@ export function TransitionProvider({
         setIsTransitioning(false);
         previousPathRef.current = nextPath;
         pendingHrefRef.current = null;
-        document.body.style.overflow = "";
+        unlockOverflow();
 
         // 6. Reveal — skip enterAnimation since GSAP already animated the page in.
         // The enter animation's fromTo would hide [data-enter] elements and
         // re-animate them, causing a visible "double load" flash.
         gsap.set(nextEl, { opacity: 1 });
+        const footer = document.querySelector("footer");
+        if (footer) gsap.set(footer, { opacity: 1 });
+
+        // Recalculate ScrollTrigger positions — they were created while the
+        // container was position:fixed / 100vh, so all measurements are wrong.
+        // Defer to next frame to avoid layout thrashing during cleanup.
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+
         transitionRunningRef.current = false;
         dbg("cleanup:done");
       }
@@ -224,6 +262,33 @@ export function TransitionProvider({
       const prevPath = previousPathRef.current;
       dbg("pathname-changed:triggering-transition");
       runTransition(clone, el, prevPath, pathname);
+    } else if (isTransitioningRef.current && isMobileRef.current) {
+      // Mobile: fade in the new page
+      previousPathRef.current = pathname;
+      const nextEl = containerRef.current;
+      if (nextEl) {
+        window.scrollTo(0, 0);
+        gsap.fromTo(
+          nextEl,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.15,
+            ease: "power1.out",
+            onComplete: () => {
+              isTransitioningRef.current = false;
+              setIsTransitioning(false);
+              pendingHrefRef.current = null;
+              unlockOverflow();
+              requestAnimationFrame(() => ScrollTrigger.refresh());
+            },
+          }
+        );
+      }
+      const footer = document.querySelector("footer");
+      if (footer) {
+        gsap.fromTo(footer, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.out" });
+      }
     } else {
       // Non-animated navigation (reduced motion, etc.)
       previousPathRef.current = pathname;
@@ -258,28 +323,58 @@ export function TransitionProvider({
         return;
       }
 
+      if (isMobileRef.current) {
+        isTransitioningRef.current = true;
+        setIsTransitioning(true);
+        pendingHrefRef.current = href;
+        lockOverflow();
+        const currentEl = containerRef.current;
+        if (!currentEl) {
+          isTransitioningRef.current = false;
+          setIsTransitioning(false);
+          unlockOverflow();
+          router.push(href);
+          return;
+        }
+        const footer = document.querySelector("footer");
+        gsap.to(
+          [currentEl, footer].filter(Boolean),
+          {
+            opacity: 0,
+            duration: 0.15,
+            ease: "power1.out",
+            onComplete: () => {
+              router.push(href, { scroll: false });
+            },
+          }
+        );
+        return;
+      }
+
       dbg("navigate:starting-transition", { href });
       isTransitioningRef.current = true;
       setIsTransitioning(true);
       pendingHrefRef.current = href;
-      document.body.style.overflow = "hidden";
+      lockOverflow();
 
       // Clone current page before Next.js swaps content
       const currentEl = containerRef.current;
       if (!currentEl) {
         isTransitioningRef.current = false;
         setIsTransitioning(false);
-        document.body.style.overflow = "";
+        unlockOverflow();
         router.push(href);
         return;
       }
 
       cloneRef.current = cloneCurrentPage(currentEl);
 
-      // Hide the real container BEFORE router.push.
+      // Hide the real container (and footer) BEFORE router.push.
       // The clone covers the viewport, so the user sees the old page.
       // When React swaps children underneath, it's invisible.
       gsap.set(currentEl, { opacity: 0 });
+      const footer = document.querySelector("footer");
+      if (footer) gsap.set(footer, { opacity: 0 });
 
       dbg("navigate:cloned-and-hidden, calling router.push");
       router.push(href, { scroll: false });
@@ -293,12 +388,14 @@ export function TransitionProvider({
           if (containerRef.current) {
             gsap.set(containerRef.current, { clearProps: "all" });
           }
+          const safetyFooter = document.querySelector("footer");
+          if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
           isTransitioningRef.current = false;
           isPopStateRef.current = false;
           transitionRunningRef.current = false;
           setIsTransitioning(false);
           pendingHrefRef.current = null;
-          document.body.style.overflow = "";
+          unlockOverflow();
         }
       }, 5000);
     },
@@ -322,15 +419,50 @@ export function TransitionProvider({
       if (isTransitioningRef.current) return;
       if (reducedMotionRef.current) return;
 
+      if (isMobileRef.current) {
+        isPopStateRef.current = true;
+        isTransitioningRef.current = true;
+        setIsTransitioning(true);
+        lockOverflow();
+        const currentEl = containerRef.current;
+        if (currentEl) {
+          const footer = document.querySelector("footer");
+          gsap.to(
+            [currentEl, footer].filter(Boolean),
+            { opacity: 0, duration: 0.15, ease: "power1.out" }
+          );
+          setTimeout(() => {
+            if (isTransitioningRef.current) {
+              if (containerRef.current) gsap.set(containerRef.current, { opacity: 1 });
+              const safetyFooter = document.querySelector("footer");
+              if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
+              isTransitioningRef.current = false;
+              isPopStateRef.current = false;
+              transitionRunningRef.current = false;
+              setIsTransitioning(false);
+              unlockOverflow();
+            }
+          }, 2000);
+        } else {
+          isTransitioningRef.current = false;
+          isPopStateRef.current = false;
+          setIsTransitioning(false);
+          unlockOverflow();
+        }
+        return;
+      }
+
       isPopStateRef.current = true;
       isTransitioningRef.current = true;
       setIsTransitioning(true);
-      document.body.style.overflow = "hidden";
+      lockOverflow();
 
       const currentEl = containerRef.current;
       if (currentEl) {
         cloneRef.current = cloneCurrentPage(currentEl);
         gsap.set(currentEl, { opacity: 0 });
+        const popFooter = document.querySelector("footer");
+        if (popFooter) gsap.set(popFooter, { opacity: 0 });
 
         setTimeout(() => {
           if (isTransitioningRef.current && cloneRef.current) {
@@ -339,18 +471,20 @@ export function TransitionProvider({
             if (containerRef.current) {
               gsap.set(containerRef.current, { clearProps: "all" });
             }
+            const safetyFooter = document.querySelector("footer");
+            if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
             isTransitioningRef.current = false;
             isPopStateRef.current = false;
             transitionRunningRef.current = false;
             setIsTransitioning(false);
-            document.body.style.overflow = "";
+            unlockOverflow();
           }
         }, 5000);
       } else {
         isPopStateRef.current = false;
         isTransitioningRef.current = false;
         setIsTransitioning(false);
-        document.body.style.overflow = "";
+        unlockOverflow();
       }
     };
 
