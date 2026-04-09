@@ -155,6 +155,7 @@ export function MagneticField() {
   const frameRef = useRef(0);
   // Cached dimensions — avoid offsetWidth/offsetHeight reads in the draw loop
   const sizeRef = useRef({ w: 0, h: 0 });
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -234,6 +235,7 @@ export function MagneticField() {
     let pendingMs = 0;
 
     function draw(_time: number, deltaTime: number) {
+      if (!visibleRef.current) return;
       const mobile = isMobileRef.current;
 
       pendingMs += deltaTime;
@@ -317,9 +319,17 @@ export function MagneticField() {
     gsap.ticker.add(draw);
     window.addEventListener("resize", init);
 
+    // Pause draw loop when canvas is off-screen
+    const io = new IntersectionObserver(
+      ([entry]) => { visibleRef.current = entry.isIntersecting; },
+      { rootMargin: "100px" }
+    );
+    io.observe(canvas);
+
     return () => {
       gsap.ticker.remove(draw);
       window.removeEventListener("resize", init);
+      io.disconnect();
     };
   }, []);
 
