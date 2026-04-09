@@ -8,6 +8,11 @@ interface Point {
   baseY: number;
   x: number;
   y: number;
+  // Per-point phase offsets for sine-wave drift (replaces individual GSAP tweens)
+  phaseX: number;
+  phaseY: number;
+  speedX: number;
+  speedY: number;
 }
 
 const SPACING = 70;
@@ -17,6 +22,8 @@ export function MorphingGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointsRef = useRef<Point[]>([]);
   const colsRef = useRef(0);
+  const visibleRef = useRef(false);
+  const sizeRef = useRef({ w: 0, h: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,22 +35,18 @@ export function MorphingGrid() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    // White lines with low alpha — visible on black without being harsh
     const lineColor = "rgba(255, 255, 255, 0.12)";
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
     function initGrid() {
-      // Kill existing tweens
-      if (pointsRef.current.length) {
-        pointsRef.current.forEach((p) => gsap.killTweensOf(p));
-      }
-
       const dpr = window.devicePixelRatio || 1;
-      canvas!.width = canvas!.offsetWidth * dpr;
-      canvas!.height = canvas!.offsetHeight * dpr;
-      ctx!.scale(dpr, dpr);
-
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeRef.current = { w, h };
+
       const cols = Math.ceil(w / SPACING) + 2;
       const rows = Math.ceil(h / SPACING) + 2;
       const offsetX = (w - (cols - 1) * SPACING) / 2;
@@ -56,27 +59,38 @@ export function MorphingGrid() {
         for (let c = 0; c < cols; c++) {
           const baseX = offsetX + c * SPACING;
           const baseY = offsetY + r * SPACING;
-          pointsRef.current.push({ baseX, baseY, x: baseX, y: baseY });
-        }
-      }
-
-      if (!reducedMotion) {
-        pointsRef.current.forEach((point) => {
-          gsap.to(point, {
-            x: point.baseX + (Math.random() - 0.5) * DRIFT * 2,
-            y: point.baseY + (Math.random() - 0.5) * DRIFT * 2,
-            duration: 2 + Math.random() * 3,
-            ease: "sine.inOut",
-            repeat: -1,
-            yoyo: true,
+          pointsRef.current.push({
+            baseX,
+            baseY,
+            x: baseX,
+            y: baseY,
+            phaseX: Math.random() * Math.PI * 2,
+            phaseY: Math.random() * Math.PI * 2,
+            speedX: 0.3 + Math.random() * 0.4,
+            speedY: 0.3 + Math.random() * 0.4,
           });
-        });
+        }
       }
     }
 
-    function draw() {
-      const w = canvas!.offsetWidth;
-      const h = canvas!.offsetHeight;
+    function draw(_time: number, deltaTime: number) {
+      if (!visibleRef.current) return;
+
+      const { w, h } = sizeRef.current;
+      if (w === 0 || h === 0) return;
+
+      const dt = deltaTime / 1000;
+
+      // Advance point positions via sine waves (replaces 400 GSAP tweens)
+      if (!reducedMotion) {
+        for (const p of pointsRef.current) {
+          p.phaseX += dt * p.speedX;
+          p.phaseY += dt * p.speedY;
+          p.x = p.baseX + Math.sin(p.phaseX) * DRIFT;
+          p.y = p.baseY + Math.sin(p.phaseY) * DRIFT;
+        }
+      }
+
       ctx!.clearRect(0, 0, w, h);
 
       const points = pointsRef.current;
@@ -111,18 +125,26 @@ export function MorphingGrid() {
 
     initGrid();
 
-    // Use GSAP ticker for draw loop (syncs with GSAP's update cycle)
     gsap.ticker.add(draw);
 
     const onResize = () => {
-      initGrid();
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(initGrid, 150);
     };
     window.addEventListener("resize", onResize);
+
+    // Pause draw loop when canvas is off-screen
+    const io = new IntersectionObserver(
+      ([entry]) => { visibleRef.current = entry.isIntersecting; },
+      { rootMargin: "100px" }
+    );
+    io.observe(canvas);
 
     return () => {
       gsap.ticker.remove(draw);
       window.removeEventListener("resize", onResize);
-      pointsRef.current.forEach((p) => gsap.killTweensOf(p));
+      if (resizeTimer) clearTimeout(resizeTimer);
+      io.disconnect();
     };
   }, []);
 
