@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, Children, useCallback } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, GRID_ITEM_STAGGER } from "@/lib/motion";
+import { useIsMobile } from "@/lib/use-is-mobile";
 
 interface Line {
   x1: number;
@@ -27,21 +28,7 @@ export function ConnectedGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [lines, setLines] = useState<Line[]>([]);
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 767px)").matches
-      : false
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    function handleChange(e: MediaQueryListEvent) {
-      setIsMobile(e.matches);
-    }
-    mq.addEventListener("change", handleChange);
-    return () => mq.removeEventListener("change", handleChange);
-  }, []);
+  const isMobile = useIsMobile();
 
   const isInView = useInView(containerRef, { once: true, margin: isMobile ? "0px" : "-60px" });
   const prefersReduced = useReducedMotion();

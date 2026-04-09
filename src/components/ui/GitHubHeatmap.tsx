@@ -3,6 +3,7 @@
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER } from "@/lib/motion";
+import { useIsMobile } from "@/lib/use-is-mobile";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -125,18 +126,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   const wrapperRef = useRef<HTMLDivElement>(null);
   const gridInView = useInView(wrapperRef, { once: true, margin: "0px 0px -40px 0px" });
 
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 767px)").matches;
-  });
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const isMobile = useIsMobile();
 
   const cfg = getGridConfig(compact, isMobile);
 

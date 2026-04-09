@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { gsap } from "@/lib/gsap";
 import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import { SplitFlapText } from "@/components/effects/SplitFlapText";
 import Image from "next/image";
 import { projects } from "@/data/projects";
@@ -34,8 +35,9 @@ export function SpotlightSection() {
   const sizeRef = useRef({ w: 0, h: 0 });
   const visibleRef = useRef(false);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const isMobileRef = useRef(false);
+  useEffect(() => { isMobileRef.current = isMobile; }, [isMobile]);
 
   const isInView = useInView(sectionRef, { once: true, margin: "-40% 0px -40% 0px" });
   const prefersReduced = useReducedMotion();
@@ -43,19 +45,6 @@ export function SpotlightSection() {
   // Daily Roman data
   const dailyRoman = projects.find((p) => p.slug === "daily-roman")!;
   const appStoreUrl = dailyRoman.links.find((l) => l.label === "App Store")?.url ?? "#";
-
-  // Detect mobile
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    isMobileRef.current = mq.matches;
-    function onChange(e: MediaQueryListEvent) {
-      setIsMobile(e.matches);
-      isMobileRef.current = e.matches;
-    }
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
 
   // Canvas setup + animation
   useEffect(() => {
