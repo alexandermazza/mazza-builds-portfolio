@@ -16,6 +16,7 @@ interface LaptopModelProps {
   rotationY: number;
   tiltX: number;
   tiltY: number;
+  visible?: boolean;
 }
 
 export function LaptopModel({
@@ -23,6 +24,7 @@ export function LaptopModel({
   rotationY,
   tiltX,
   tiltY,
+  visible = true,
 }: LaptopModelProps) {
   const { scene } = useGLTF("/models/macbook.glb");
   // Clone so multiple instances don't fight over the same Three.js object
@@ -91,7 +93,7 @@ export function LaptopModel({
 
   // Keep video texture updating every frame
   useFrame((state) => {
-    if (videoRef.current && texture) {
+    if (visible && videoRef.current && texture) {
       texture.needsUpdate = true;
       state.invalidate();
     }

@@ -16,6 +16,7 @@ interface PhoneModelProps {
   rotationY: number;
   tiltX: number;
   tiltY: number;
+  visible?: boolean;
 }
 
 export function PhoneModel({
@@ -23,6 +24,7 @@ export function PhoneModel({
   rotationY,
   tiltX,
   tiltY,
+  visible = true,
 }: PhoneModelProps) {
   const { scene } = useGLTF("/models/iphone.glb");
   // Clone so multiple instances don't fight over the same Three.js object.
@@ -100,7 +102,7 @@ export function PhoneModel({
 
   // Keep video texture updating every frame
   useFrame((state) => {
-    if (videoRef.current && texture) {
+    if (visible && videoRef.current && texture) {
       texture.needsUpdate = true;
       state.invalidate();
     }

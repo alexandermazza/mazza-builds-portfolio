@@ -162,12 +162,12 @@ function AnimatedDevice({
     <group ref={groupRef}>
       <group ref={phoneGroupRef}>
         {phoneTexture && (
-          <PhoneModel screenTexture={phoneTexture} rotationY={0} tiltX={0} tiltY={0} />
+          <PhoneModel screenTexture={phoneTexture} rotationY={0} tiltX={0} tiltY={0} visible={deviceType === "phone"} />
         )}
       </group>
       <group ref={laptopGroupRef}>
         {laptopTexture && (
-          <LaptopModel screenTexture={laptopTexture} rotationY={0} tiltX={0} tiltY={0} />
+          <LaptopModel screenTexture={laptopTexture} rotationY={0} tiltX={0} tiltY={0} visible={deviceType === "laptop"} />
         )}
       </group>
     </group>
