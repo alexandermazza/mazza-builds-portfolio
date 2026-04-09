@@ -87,8 +87,11 @@ export class Engine {
     this.start()
   }
 
+  private resizeTimer: ReturnType<typeof setTimeout> | null = null
+
   private onResize = () => {
-    this.resize()
+    if (this.resizeTimer) clearTimeout(this.resizeTimer)
+    this.resizeTimer = setTimeout(() => this.resize(), 150)
   }
 
   private resize() {
@@ -101,10 +104,18 @@ export class Engine {
     this.renderer.setSize(width, height, false)
   }
 
-  private start() {
+  start() {
     if (this.isRunning) return
     this.isRunning = true
     this.update()
+  }
+
+  stop() {
+    this.isRunning = false
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId)
+      this.animationFrameId = null
+    }
   }
 
   private update = () => {
@@ -136,6 +147,7 @@ export class Engine {
     }
 
     window.removeEventListener("resize", this.onResize)
+    if (this.resizeTimer) clearTimeout(this.resizeTimer)
     this.scroll.dispose()
     this.gallery.dispose()
     this.renderer.dispose()

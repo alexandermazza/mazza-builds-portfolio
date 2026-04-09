@@ -38,9 +38,20 @@ export function DepthGallery({ projects }: DepthGalleryProps) {
     const engine = new Engine(canvas, section, projects, onActivePlaneChange, reducedMotion)
     engineRef.current = engine
 
+    // Pause rendering when gallery is off-screen
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) engine.start()
+        else engine.stop()
+      },
+      { rootMargin: "200px" }
+    )
+    io.observe(section)
+
     return () => {
       engine.dispose()
       engineRef.current = null
+      io.disconnect()
       if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current)
     }
   }, [projects, onActivePlaneChange])
