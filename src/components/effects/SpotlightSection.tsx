@@ -31,6 +31,8 @@ export function SpotlightSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const irisProgress = useRef({ value: 0 });
   const startTime = useRef(0);
+  const sizeRef = useRef({ w: 0, h: 0 });
+  const visibleRef = useRef(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const isMobileRef = useRef(false);
@@ -68,24 +70,28 @@ export function SpotlightSection() {
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
-      canvas!.width = canvas!.offsetWidth * dpr;
-      canvas!.height = canvas!.offsetHeight * dpr;
+      const w = canvas!.offsetWidth;
+      const h = canvas!.offsetHeight;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeRef.current = { w, h };
     }
 
     function draw() {
-      const w = canvas!.offsetWidth;
-      const h = canvas!.offsetHeight;
+      if (!visibleRef.current) return;
+
+      const { w, h } = sizeRef.current;
+      if (w === 0 || h === 0) return;
+
       const progress = irisProgress.current.value;
       const mobile = isMobileRef.current;
       const radiusFraction = mobile ? IRIS_RADIUS_VW_MOBILE : IRIS_RADIUS_VW_DESKTOP;
       const wobbleAmp = mobile ? WOBBLE_AMP_MOBILE : WOBBLE_AMP_DESKTOP;
 
-      // Full iris radius in px
       const maxRadius = w * radiusFraction;
       const currentRadius = maxRadius * progress;
 
-      // Wobble offset — only after iris starts
       let wobbleX = 0;
       let wobbleY = 0;
       if (progress > 0 && !reducedMotion) {
@@ -97,13 +103,11 @@ export function SpotlightSection() {
       const cx = w / 2 + wobbleX;
       const cy = h / 2 + wobbleY;
 
-      // 1. Fill black
       ctx!.globalCompositeOperation = "source-over";
       ctx!.fillStyle = "#000000";
       ctx!.fillRect(0, 0, w, h);
 
       if (currentRadius > 0) {
-        // 2. Punch out the spotlight with destination-out
         ctx!.globalCompositeOperation = "destination-out";
         const gradient = ctx!.createRadialGradient(cx, cy, 0, cx, cy, currentRadius);
         gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
@@ -116,12 +120,21 @@ export function SpotlightSection() {
     }
 
     resize();
+
+    // Pause draw loop when section is off-screen
+    const io = new IntersectionObserver(
+      ([entry]) => { visibleRef.current = entry.isIntersecting; },
+      { rootMargin: "100px" }
+    );
+    if (sectionRef.current) io.observe(sectionRef.current);
+
     gsap.ticker.add(draw);
     window.addEventListener("resize", resize);
 
     return () => {
       gsap.ticker.remove(draw);
       window.removeEventListener("resize", resize);
+      io.disconnect();
     };
   }, []);
 
