@@ -18,6 +18,10 @@ export default async function Image() {
   const spaceMonoRegular = await readFile(
     join(process.cwd(), "public/fonts/SpaceMono-Regular.ttf")
   );
+  const logoData = await readFile(
+    join(process.cwd(), "public/logo.png")
+  );
+  const logoBase64 = `data:image/png;base64,${logoData.toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -30,13 +34,21 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: "24px",
+          gap: "28px",
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoBase64}
+          alt=""
+          width={80}
+          height={80}
+          style={{ marginBottom: "4px" }}
+        />
         <div
           style={{
             fontFamily: "Space Grotesk",
-            fontSize: "72px",
+            fontSize: "96px",
             fontWeight: 700,
             color: "#FFFFFF",
             letterSpacing: "-0.03em",
@@ -47,14 +59,14 @@ export default async function Image() {
         <div
           style={{
             fontFamily: "Space Mono",
-            fontSize: "16px",
+            fontSize: "24px",
             fontWeight: 400,
-            color: "#999999",
+            color: "#E8E8E8",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
           }}
         >
-          SOLO INDIE DEVELOPER
+          BUILDING THINGS THAT WORK
         </div>
       </div>
     ),

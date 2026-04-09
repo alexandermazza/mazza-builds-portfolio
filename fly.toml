@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for mazzabuilds on 2026-04-07T21:47:17-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'mazzabuilds'
+primary_region = 'ord'
+
+[build]
+
+[env]
+  DATABASE_PATH = '/data/usage.db'
+
+[[mounts]]
+  source = 'data'
+  destination = '/data'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

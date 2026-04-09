@@ -1,7 +1,7 @@
 "use client";
 
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useInView } from "motion/react";
 import { DURATION, EASE_OUT_MOTION, LINE_REVEAL_STAGGER } from "@/lib/motion";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -34,7 +34,11 @@ export interface GitHubHeatmapProps extends Omit<ComponentProps<"div">, "childre
 
 const DAYS = 7;
 
-function getGridConfig(compact: boolean) {
+function getGridConfig(compact: boolean, isMobile: boolean) {
+  if (isMobile) {
+    // Smaller cells on mobile so full year fits without scrolling
+    return { cellSize: 5, gap: 1, cellStep: 6, monthLabelHeight: 14, dayLabelWidth: 0 };
+  }
   const cellSize = compact ? 6 : 10;
   const gap = compact ? 1 : 2;
   return {
@@ -104,7 +108,6 @@ function buildMobileGrid(today: Date): { start: Date; weeks: number } {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function GitHubHeatmap({ className = "", compact = false, ...props }: GitHubHeatmapProps) {
-  const cfg = getGridConfig(compact);
   const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
   const [countMap, setCountMap] = useState<Map<string, number>>(new Map());
   const [totalContributions, setTotalContributions] = useState(0);
@@ -119,6 +122,8 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   });
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const gridInView = useInView(wrapperRef, { once: true, margin: "0px 0px -40px 0px" });
 
   const [isMobile, setIsMobile] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -132,6 +137,8 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  const cfg = getGridConfig(compact, isMobile);
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -170,9 +177,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   const { weeks, monthLabels, gridWidth, gridHeight } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { start: startDate, weeks: totalWeeks } = isMobile
-      ? buildMobileGrid(today)
-      : buildGrid(today);
+    const { start: startDate, weeks: totalWeeks } = buildGrid(today);
 
     const w: Cell[][] = [];
     for (let wi = 0; wi < totalWeeks; wi++) {
@@ -204,7 +209,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
       gridWidth: totalWeeks * cfg.cellStep - cfg.gap,
       gridHeight: DAYS * cfg.cellStep - cfg.gap,
     };
-  }, [cfg.cellStep, cfg.gap, isMobile]);
+  }, [cfg.cellStep, cfg.gap]);
 
   // ── Tooltip handlers ──────────────────────────────────────────────────────
 
@@ -239,30 +244,17 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
   const monoLabel =
     "font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-disabled)]";
 
-  if (status === "loading") {
-    return (
-      <div className={className} {...props}>
-        <span className={monoLabel}>[LOADING...]</span>
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <div className={className} {...props}>
-        <span className={monoLabel}>[GITHUB DATA UNAVAILABLE]</span>
-      </div>
-    );
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render (wrapper always mounted so useInView can observe) ─────────────
 
   return (
-    <div className={className} {...props}>
+    <div ref={wrapperRef} className={className} {...props}>
+      {status === "loading" && <span className={monoLabel}>[LOADING...]</span>}
+      {status === "error" && <span className={monoLabel}>[GITHUB DATA UNAVAILABLE]</span>}
+      {status !== "done" ? null : (<>
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
-      <div className={`flex gap-[var(--space-2xl)] ${compact ? "mb-[var(--space-md)]" : "mb-[var(--space-2xl)]"}`}>
+      <div className={`flex gap-[var(--space-2xl)] ${compact || isMobile ? "mb-[var(--space-md)]" : "mb-[var(--space-2xl)]"}`}>
         <div>
-          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
+          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact || isMobile ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
             {totalContributions}
           </div>
           <div className="mt-[var(--space-xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
@@ -270,7 +262,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
           </div>
         </div>
         <div>
-          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
+          <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact || isMobile ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
             {activeDays}
           </div>
           <div className="mt-[var(--space-xs)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
@@ -281,8 +273,8 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
 
       {/* ── Grid wrapper ─────────────────────────────────────────────────── */}
       <div style={{ display: "flex", flexDirection: "row" }}>
-        {/* Day labels column (hidden in compact mode) */}
-        {!compact && (
+        {/* Day labels column (hidden in compact mode and on mobile) */}
+        {!compact && !isMobile && (
           <div
             style={{
               width: cfg.dayLabelWidth,
@@ -339,7 +331,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
           <div
             ref={gridRef}
             role="grid"
-            aria-label={isMobile ? "GitHub contributions heatmap for the past 20 weeks" : "GitHub contributions heatmap for the current year"}
+            aria-label="GitHub contributions heatmap for the current year"
             style={{
               position: "relative",
               width: gridWidth,
@@ -352,7 +344,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
               <motion.div
                 key={wIdx}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                animate={gridInView ? { opacity: 1 } : { opacity: 0 }}
                 transition={{
                   duration: DURATION.transition,
                   delay: wIdx * LINE_REVEAL_STAGGER,
@@ -439,6 +431,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
           </div>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ScrollTextLines, UsageCard, GitHubCard } from "@/components/ui";
 import {
   ScrollLetterAnimation,
@@ -81,16 +82,29 @@ export default function AboutPage() {
         {/* Bio / Identity Spec */}
         <section className="mb-[var(--space-4xl)]">
           <SpecBlock label="SPEC: IDENTITY">
-            <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-              I&apos;m Alex Mazza, a developer based in Chicago. I build
-              AI-powered apps, automation systems, and tools end-to-end — iOS,
-              web, trading bots, the works.
-            </ScrollTextLines>
-            <div className="mt-[var(--space-2xl)]">
-              <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                Day job: AI operations at a healthcare SaaS company. Side
-                projects: whatever I can&apos;t stop thinking about.
-              </ScrollTextLines>
+            <div className="flex flex-col gap-[var(--space-2xl)] md:flex-row md:items-start md:justify-between">
+              <div className="flex-1">
+                <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                  I&apos;m Alex Mazza, a developer based in Chicago. I build
+                  AI-powered apps, automation systems, and tools end-to-end — iOS,
+                  web, trading bots, the works.
+                </ScrollTextLines>
+                <div className="mt-[var(--space-2xl)]">
+                  <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                    Day job: AI operations at a healthcare SaaS company. Side
+                    projects: whatever I can&apos;t stop thinking about.
+                  </ScrollTextLines>
+                </div>
+              </div>
+              <div className="flex-shrink-0 md:ml-[var(--space-2xl)]">
+                <Image
+                  src="/about/sketch.png"
+                  alt="Sketch of Alex Mazza"
+                  width={280}
+                  height={332}
+                  className="rounded-[var(--radius-card)] border border-[var(--border-visible)] opacity-80"
+                />
+              </div>
             </div>
           </SpecBlock>
         </section>

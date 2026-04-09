@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, type MouseEvent } from "react";
+import React, { type ComponentProps, type MouseEvent } from "react";
 import Link from "next/link";
 import { useTransitionContext } from "./TransitionProvider";
 
@@ -9,10 +9,12 @@ type TransitionLinkProps = ComponentProps<typeof Link>;
 export function TransitionLink({
   href,
   onClick,
+  onMouseEnter,
+  onTouchStart,
   children,
   ...props
 }: TransitionLinkProps) {
-  const { navigate, isTransitioning } = useTransitionContext();
+  const { navigate, warmCanvasCache, isTransitioning } = useTransitionContext();
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     // Let browser handle modifier-key clicks (new tab, etc.)
@@ -38,8 +40,24 @@ export function TransitionLink({
     }
   };
 
+  const handleMouseEnter = (e: MouseEvent<HTMLAnchorElement>) => {
+    warmCanvasCache();
+    if (onMouseEnter) onMouseEnter(e);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLAnchorElement>) => {
+    warmCanvasCache();
+    if (onTouchStart) onTouchStart(e);
+  };
+
   return (
-    <Link href={href} onClick={handleClick} {...props}>
+    <Link
+      href={href}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onTouchStart={handleTouchStart}
+      {...props}
+    >
       {children}
     </Link>
   );

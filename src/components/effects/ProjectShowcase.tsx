@@ -7,12 +7,10 @@ import {
   useMotionValueEvent,
   AnimatePresence,
   useReducedMotion,
-  useAnimation,
 } from "motion/react";
-import { DURATION, EASE_OUT_MOTION, SPRING_SNAPPY } from "@/lib/motion";
+import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
 import { StatusBadge, TagChip, ProjectCard } from "@/components/ui";
 import {
-  ScrollLetterAnimation,
   ScrollGridAnimation,
   LinkHover,
 } from "@/components/effects";
@@ -84,9 +82,51 @@ export function ProjectShowcase({
   const displayIndex = hoverIndex ?? activeIndex;
   const activeProject = projects[displayIndex];
 
-  // Preload all project screen textures so they're cached before hover/scroll
+  // Buffered device index — lags behind displayIndex so the device swaps
+  // only after the fade-out completes (avoids double-flash)
+  const [deviceIndex, setDeviceIndex] = useState(displayIndex);
+  const [deviceOpacity, setDeviceOpacity] = useState(1);
+  const fadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevDisplayIndexRef = useRef(displayIndex);
+
+  useEffect(() => {
+    if (prevDisplayIndexRef.current !== displayIndex) {
+      prevDisplayIndexRef.current = displayIndex;
+      if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+
+      if (prefersReduced) {
+        setDeviceIndex(displayIndex);
+        return;
+      }
+
+      // 1) Fade out
+      setDeviceOpacity(0);
+      // 2) After fade-out completes, swap device + fade in
+      fadeTimeoutRef.current = setTimeout(() => {
+        setDeviceIndex(displayIndex);
+        setDeviceOpacity(1);
+      }, 150);
+    }
+    return () => {
+      if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+    };
+  }, [displayIndex, prefersReduced]);
+
+  const deviceProject = projects[deviceIndex];
+
+  // Preload 3D models + screen textures so they're cached before visible
   useEffect(() => {
     const links: HTMLLinkElement[] = [];
+    // Start downloading .glb geometry while the JS bundle loads
+    ["/models/iphone.glb", "/models/macbook.glb"].forEach((href) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "fetch";
+      link.href = href;
+      link.crossOrigin = "anonymous";
+      document.head.appendChild(link);
+      links.push(link);
+    });
     projects.forEach((p) => {
       const src = p.screenTexture;
       if (src.endsWith(".mp4") || src.endsWith(".webm")) {
@@ -173,6 +213,24 @@ export function ProjectShowcase({
   const [mobileIndex, setMobileIndex] = useState(0);
   const mobileProject = projects[mobileIndex];
 
+  // Mobile device fade — mirrors desktop buffer so 3D transitions are smooth
+  const prevMobileIndexRef = useRef(mobileIndex);
+  useEffect(() => {
+    if (!isMobile) return;
+    if (prevMobileIndexRef.current === mobileIndex) return;
+    prevMobileIndexRef.current = mobileIndex;
+    if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+    if (prefersReduced) {
+      setDeviceIndex(mobileIndex);
+      return;
+    }
+    setDeviceOpacity(0);
+    fadeTimeoutRef.current = setTimeout(() => {
+      setDeviceIndex(mobileIndex);
+      setDeviceOpacity(1);
+    }, 300);
+  }, [isMobile, mobileIndex, prefersReduced]);
+
   const goToProject = useCallback(
     (index: number) => {
       setMobileIndex(
@@ -183,7 +241,6 @@ export function ProjectShowcase({
   );
 
   const [swipeDirection, setSwipeDirection] = useState<1 | -1>(1);
-  const carouselControls = useAnimation();
   const pointerStartX = useRef(0);
   const isDraggingRef = useRef(false);
   const currentDragX = useRef(0);
@@ -207,55 +264,35 @@ export function ProjectShowcase({
 
   function handlePointerMove(e: React.PointerEvent) {
     if (!isDraggingRef.current) return;
-    const offset = e.clientX - pointerStartX.current;
-    currentDragX.current = offset;
-    carouselControls.set({ x: offset * 0.25 });
+    currentDragX.current = e.clientX - pointerStartX.current;
   }
 
-  async function handlePointerUp() {
+  function handlePointerUp() {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
 
     const offset = currentDragX.current;
     const THRESHOLD = 50;
 
-    if (Math.abs(offset) < THRESHOLD) {
-      carouselControls.start({ x: 0, transition: SPRING_SNAPPY });
-      return;
-    }
+    if (Math.abs(offset) < THRESHOLD) return;
 
     isSwipeAnimatingRef.current = true;
     const goingLeft = offset < 0;
-    const exitX = goingLeft ? -400 : 400;
-    const enterFromX = goingLeft ? 400 : -400;
     const direction: 1 | -1 = goingLeft ? 1 : -1;
 
     setSwipeDirection(direction);
-
-    await carouselControls.start({
-      x: exitX,
-      transition: { duration: 0.2, ease: EASE_OUT_MOTION },
-    });
-
-    if (!isMountedRef.current) return;
-
     goToProject(mobileIndex + (goingLeft ? 1 : -1));
-    carouselControls.set({ x: enterFromX });
 
-    await carouselControls.start({
-      x: 0,
-      transition: { duration: 0.25, ease: EASE_OUT_MOTION },
-    });
-
-    if (!isMountedRef.current) return;
-
-    isSwipeAnimatingRef.current = false;
+    // Allow next swipe after transition settles
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        isSwipeAnimatingRef.current = false;
+      }
+    }, 300);
   }
 
   function handlePointerCancel() {
-    if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    carouselControls.start({ x: 0, transition: SPRING_SNAPPY });
   }
 
   // Mobile / tablet — full-screen single-device carousel
@@ -264,23 +301,30 @@ export function ProjectShowcase({
       <section id={id} className={`${className}`}>
         <div className="flex h-dvh flex-col bg-[var(--surface)]">
           {/* 3D Device — fills upper portion, swipeable */}
-          <motion.div
+          <div
             className="relative min-h-0 flex-1 overflow-hidden touch-none"
-            animate={carouselControls}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
           >
-            <DeviceScene
-              deviceType={mobileProject.deviceType}
-              screenTexture={mobileProject.screenTexture}
-              scrollProgress={0}
-              isActive={true}
-              projectSlug={mobileProject.slug}
-              modelScale={0.85}
-            />
-          </motion.div>
+            <div
+              className="h-full w-full"
+              style={{
+                opacity: deviceOpacity,
+                transition: "opacity 300ms var(--ease-out)",
+              }}
+            >
+              <DeviceScene
+                deviceType={deviceProject.deviceType}
+                screenTexture={deviceProject.screenTexture}
+                scrollProgress={0}
+                isActive={true}
+                projectSlug={deviceProject.slug}
+                modelScale={0.85}
+              />
+            </div>
+          </div>
 
           {/* Dot indicators */}
           <div className="flex shrink-0 items-center justify-center gap-[var(--space-sm)] py-[var(--space-sm)]">
@@ -308,55 +352,80 @@ export function ProjectShowcase({
             ))}
           </div>
 
-          {/* Project info — compact, pinned to bottom */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mobileProject.slug}
-              initial={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * -20 }}
-              transition={{
-                duration: prefersReduced ? 0 : DURATION.transition,
-                ease: EASE_OUT_MOTION,
-              }}
-              className="shrink-0 px-[var(--space-md)] pb-[var(--space-lg)] pt-[var(--space-xs)]"
-            >
-              {/* Issue number + status */}
-              <div className="mb-[var(--space-xs)] flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-                  ISSUE {String(mobileProject.issueNumber).padStart(2, "0")}
-                </span>
-                <StatusBadge status={mobileProject.status} />
-              </div>
-
-              {/* Name */}
-              <h3 className="mb-[var(--space-xs)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
-                {mobileProject.name}
-              </h3>
-
-              {/* Description */}
-              <p className="mb-[var(--space-sm)] font-sans text-[var(--body-sm)] leading-[1.5] text-[var(--text-secondary)]">
-                {mobileProject.description}
-              </p>
-
-              {/* Tags */}
-              <div className="mb-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">
-                {mobileProject.tags.map((tag) => (
-                  <TagChip key={tag}>{tag}</TagChip>
-                ))}
-              </div>
-
-              {/* View link */}
-              <TransitionLink
-                href={`/projects/${mobileProject.slug}`}
-                className="no-underline"
+          {/* Project info — grid stacking sizes to tallest project, preventing layout shift */}
+          <div className="shrink-0 grid overflow-hidden">
+            {/* Invisible spacers — all projects in same grid cell establish max height */}
+            {projects.map((p) => (
+              <div
+                key={`spacer-${p.slug}`}
+                className="invisible pointer-events-none [grid-area:1/1] px-[var(--space-md)] pb-[var(--space-lg)] pt-[var(--space-xs)]"
+                aria-hidden="true"
               >
-                <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
-                  View project →
-                </span>
-              </TransitionLink>
-            </motion.div>
-          </AnimatePresence>
+                <div className="mb-[var(--space-xs)] flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.08em]">&nbsp;</span>
+                  <StatusBadge status={p.status} />
+                </div>
+                <h3 className="mb-[var(--space-xs)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em]">{p.name}</h3>
+                <p className="mb-[var(--space-sm)] font-sans text-[var(--body-sm)] leading-[1.5]">{p.description}</p>
+                <div className="mb-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">
+                  {p.tags.map((tag) => (
+                    <TagChip key={tag}>{tag}</TagChip>
+                  ))}
+                </div>
+                <span className="font-mono text-[13px] uppercase tracking-[0.06em]">&nbsp;</span>
+              </div>
+            ))}
+
+            {/* Visible animated content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={mobileProject.slug}
+                initial={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={prefersReduced ? { opacity: 1 } : { opacity: 0, x: swipeDirection * -20 }}
+                transition={{
+                  duration: prefersReduced ? 0 : DURATION.transition,
+                  ease: EASE_OUT_MOTION,
+                }}
+                className="[grid-area:1/1] px-[var(--space-md)] pb-[var(--space-lg)] pt-[var(--space-xs)]"
+              >
+                {/* Issue number + status */}
+                <div className="mb-[var(--space-xs)] flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+                    ISSUE {String(mobileProject.issueNumber).padStart(2, "0")}
+                  </span>
+                  <StatusBadge status={mobileProject.status} />
+                </div>
+
+                {/* Name */}
+                <h3 className="mb-[var(--space-xs)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.01em] text-[var(--text-display)]">
+                  {mobileProject.name}
+                </h3>
+
+                {/* Description */}
+                <p className="mb-[var(--space-sm)] font-sans text-[var(--body-sm)] leading-[1.5] text-[var(--text-secondary)]">
+                  {mobileProject.description}
+                </p>
+
+                {/* Tags */}
+                <div className="mb-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">
+                  {mobileProject.tags.map((tag) => (
+                    <TagChip key={tag}>{tag}</TagChip>
+                  ))}
+                </div>
+
+                {/* View link */}
+                <TransitionLink
+                  href={`/projects/${mobileProject.slug}`}
+                  className="no-underline"
+                >
+                  <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
+                    View project →
+                  </span>
+                </TransitionLink>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </section>
     );
@@ -365,16 +434,6 @@ export function ProjectShowcase({
   // Desktop: split-screen scroll lock
   return (
     <section id={id} className={className}>
-      {/* Section header — constrained width */}
-      <div className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)]">
-        <ScrollLetterAnimation
-          as="h2"
-          className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]"
-        >
-          FEATURED PROJECTS
-        </ScrollLetterAnimation>
-      </div>
-
       {/* Scroll region */}
       <div
         ref={outerRef}
@@ -384,6 +443,9 @@ export function ProjectShowcase({
         <div className="sticky top-0 flex h-screen w-full items-stretch bg-[var(--surface)]">
           {/* Left column — Project index */}
           <div className="flex w-[40%] flex-col items-start justify-center pl-[var(--space-4xl)]">
+            <h2 className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+              FEATURED PROJECTS
+            </h2>
             {projects.map((project, i) => {
               const isActive = displayIndex === i;
               return (
@@ -445,14 +507,20 @@ export function ProjectShowcase({
 
           {/* Right column — Detail panel */}
           <div className="flex w-[60%] flex-col justify-center pl-[var(--space-3xl)] pr-[var(--space-4xl)]">
-            {/* 3D Device — persistent canvas, cross-fades between device types */}
-            <div className="relative h-[55%] w-full">
+            {/* 3D Device — CSS opacity fade masks instant swap */}
+            <div
+              className="relative h-[55%] w-full"
+              style={{
+                opacity: deviceOpacity,
+                transition: `opacity 150ms var(--ease-out)`,
+              }}
+            >
               <DeviceScene
-                deviceType={activeProject.deviceType}
-                screenTexture={activeProject.screenTexture}
+                deviceType={deviceProject.deviceType}
+                screenTexture={deviceProject.screenTexture}
                 scrollProgress={projectScrollProgress}
                 isActive={true}
-                projectSlug={activeProject.slug}
+                projectSlug={deviceProject.slug}
               />
             </div>
 

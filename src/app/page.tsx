@@ -1,5 +1,6 @@
 import {
   Button,
+  DictionaryEntry,
   GitHubCard,
   ScrollTextLines,
   TickerText,
@@ -34,16 +35,7 @@ export default function Home() {
             SaaS company. Side projects: whatever I can&apos;t stop thinking
             about.
           </ScrollTextLines>
-          <p className="mb-[var(--space-2xl)] font-sans text-[var(--body-sm)] leading-[1.6] text-[var(--text-disabled)]">
-            <span className="text-[var(--text-primary)] font-medium">mazza</span>
-            {" "}
-            <span className="italic">/ˈmah.zuh/</span>
-            {" · "}
-            <span className="font-mono text-[11px] uppercase tracking-[0.06em]">noun</span>
-            {" · "}
-            <span className="italic">Italian</span>
-            {" — a construction worker&apos;s sledgehammer"}
-          </p>
+          <DictionaryEntry className="mb-[var(--space-2xl)]" />
           <ScrollGridAnimation
             className="grid grid-cols-1 gap-[var(--space-md)] md:grid-cols-2"
             stagger={0.15}

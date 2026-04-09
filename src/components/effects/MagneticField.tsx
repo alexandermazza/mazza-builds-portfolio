@@ -14,7 +14,8 @@ interface BezierLine {
 
 interface Pulse {
   lineIndex: number;
-  progress: { t: number };
+  t: number;
+  speed: number; // progress per second (0→1)
   reverse: boolean;
 }
 
@@ -22,12 +23,28 @@ interface Pulse {
 
 const PULSE_COUNT = 14;
 const LINE_ALPHA = 0.14;
-const PULSE_ALPHA = 0.8;
-const PULSE_TRAIL = 0.1;
-const PULSE_TRAIL_STEPS = 16;
-const PULSE_DOT_SIZE = 2.5;
-const GLOW_RADIUS = 30;
-const GLOW_ALPHA = 0.7;
+const PULSE_TRAIL = 0.04;
+const PULSE_TRAIL_STEPS = 8;
+const PULSE_TRAIL_STEPS_MOBILE = 4;
+const PULSE_DOT_SIZE = 4;
+const TWO_PI = Math.PI * 2;
+
+// ─── Pre-computed color tables ────────────────────────
+// Avoids allocating rgba() strings every frame — major GC win on mobile
+
+function buildColorTable(steps: number, alpha: number): string[] {
+  const table: string[] = [];
+  for (let s = steps; s >= 0; s--) {
+    const fade = 1 - s / steps;
+    table.push(`rgba(255,255,255,${(fade * alpha).toFixed(3)})`);
+  }
+  return table;
+}
+
+// Desktop halo + core, mobile core-only (built lazily in init)
+let desktopHaloColors: string[] = [];
+let desktopCoreColors: string[] = [];
+let mobileCoreColors: string[] = [];
 
 // ─── Helpers ──────────────────────────────────────────
 
@@ -47,14 +64,15 @@ function cubic(
   );
 }
 
-function generateLines(w: number, h: number): BezierLine[] {
+function generateLines(w: number, h: number, mobile: boolean): BezierLine[] {
   const cx = w / 2;
   const cy = h / 2;
   const lines: BezierLine[] = [];
 
   // ── Horizontal flow lines with jittered control points ──
-  for (let i = 0; i < 18; i++) {
-    const t = (i + 0.5) / 18;
+  const hLineCount = mobile ? 10 : 18;
+  for (let i = 0; i < hLineCount; i++) {
+    const t = (i + 0.5) / hLineCount;
     const baseY = t * h;
     const dist = baseY - cy;
     const norm = dist / (h / 2);
@@ -72,7 +90,8 @@ function generateLines(w: number, h: number): BezierLine[] {
   }
 
   // ── S-curve lines — control points push opposite directions ──
-  for (let i = 0; i < 6; i++) {
+  const sCurveCount = mobile ? 3 : 6;
+  for (let i = 0; i < sCurveCount; i++) {
     const baseY = h * (0.15 + Math.random() * 0.7);
     const dist = baseY - cy;
     const norm = dist / (h / 2);
@@ -88,8 +107,9 @@ function generateLines(w: number, h: number): BezierLine[] {
   }
 
   // ── Arc lines from top/bottom edges — curve near center then exit ──
-  for (let i = 0; i < 8; i++) {
-    const fromTop = i < 4;
+  const arcCount = mobile ? 4 : 8;
+  for (let i = 0; i < arcCount; i++) {
+    const fromTop = i < arcCount / 2;
     const edgeY = fromTop ? -40 : h + 40;
     const peakY = cy + (fromTop ? -1 : 1) * h * (0.12 + Math.random() * 0.18);
     const baseX = w * (0.15 + Math.random() * 0.7);
@@ -104,7 +124,8 @@ function generateLines(w: number, h: number): BezierLine[] {
   }
 
   // ── Wide sweeping diagonals ──
-  for (let i = 0; i < 4; i++) {
+  const diagCount = mobile ? 2 : 4;
+  for (let i = 0; i < diagCount; i++) {
     const startY = Math.random() * h;
     const endY = h - startY + (Math.random() - 0.5) * h * 0.3;
     const midDist = ((startY + endY) / 2 - cy) / (h / 2);
@@ -128,6 +149,12 @@ export function MagneticField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linesRef = useRef<BezierLine[]>([]);
   const pulsesRef = useRef<Pulse[]>([]);
+  const staticRef = useRef<HTMLCanvasElement | null>(null);
+  const lastWidthRef = useRef<number>(0);
+  const isMobileRef = useRef(false);
+  const frameRef = useRef(0);
+  // Cached dimensions — avoid offsetWidth/offsetHeight reads in the draw loop
+  const sizeRef = useRef({ w: 0, h: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -140,114 +167,150 @@ export function MagneticField() {
     ).matches;
 
     function init() {
-      pulsesRef.current.forEach((p) => gsap.killTweensOf(p.progress));
+      // Skip re-init when only the height changed (mobile address bar hide/show)
+      const currentWidth = canvas!.offsetWidth;
+      if (lastWidthRef.current && currentWidth === lastWidthRef.current) return;
+      lastWidthRef.current = currentWidth;
+      isMobileRef.current = window.matchMedia("(max-width: 767px)").matches;
 
-      const dpr = window.devicePixelRatio || 1;
-      canvas!.width = canvas!.offsetWidth * dpr;
-      canvas!.height = canvas!.offsetHeight * dpr;
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-
+      const mobile = isMobileRef.current;
+      // Cap DPR at 1 on mobile — the lines are thin/subtle, retina resolution
+      // isn't noticeable but costs 4-9x more pixels to push every frame
+      const dpr = mobile ? 1 : (window.devicePixelRatio || 1);
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeRef.current = { w, h };
 
-      linesRef.current = generateLines(w, h);
+      linesRef.current = generateLines(w, h, mobile);
+
+      // Build color lookup tables (once per init, zero per-frame allocation)
+      const mobileSteps = PULSE_TRAIL_STEPS_MOBILE;
+      const desktopSteps = PULSE_TRAIL_STEPS;
+      desktopHaloColors = buildColorTable(desktopSteps, 0.12);
+      desktopCoreColors = buildColorTable(desktopSteps, 0.8);
+      mobileCoreColors = buildColorTable(mobileSteps, 0.8);
+
+      // Pre-render static field lines to an offscreen canvas
+      const offscreen = document.createElement("canvas");
+      offscreen.width = canvas!.width;
+      offscreen.height = canvas!.height;
+      const offCtx = offscreen.getContext("2d")!;
+      offCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      offCtx.strokeStyle = `rgba(255, 255, 255, ${LINE_ALPHA})`;
+      offCtx.lineWidth = 1;
+      for (const line of linesRef.current) {
+        offCtx.beginPath();
+        offCtx.moveTo(line.p0x, line.p0y);
+        offCtx.bezierCurveTo(
+          line.p1x, line.p1y,
+          line.p2x, line.p2y,
+          line.p3x, line.p3y,
+        );
+        offCtx.stroke();
+      }
+      staticRef.current = offscreen;
 
       if (reducedMotion) return;
 
-      // Create pulses — some travel left→right, others right→left
+      // Create pulses — no GSAP tweens, positions advanced manually in draw()
       const lineCount = linesRef.current.length;
       pulsesRef.current = [];
       for (let i = 0; i < PULSE_COUNT; i++) {
         const reverse = Math.random() > 0.5;
-        const pulse: Pulse = {
+        pulsesRef.current.push({
           lineIndex: Math.floor(Math.random() * lineCount),
-          progress: { t: reverse ? 1 : 0 },
+          t: reverse ? 1 : Math.random(), // stagger start positions
+          speed: 1 / (2 + Math.random() * 2.5), // matches old 2–4.5s duration
           reverse,
-        };
-        pulsesRef.current.push(pulse);
-
-        gsap.to(pulse.progress, {
-          t: reverse ? 0 : 1,
-          duration: 2 + Math.random() * 2.5,
-          ease: "none",
-          repeat: -1,
-          delay: (i / PULSE_COUNT) * 3,
-          onRepeat() {
-            pulse.lineIndex = Math.floor(Math.random() * lineCount);
-          },
         });
       }
     }
 
-    function draw() {
-      const w = canvas!.offsetWidth;
-      const h = canvas!.offsetHeight;
-      ctx!.clearRect(0, 0, w, h);
+    // Accumulate GSAP deltaTime (ms) across skipped frames so movement
+    // stays correct when we throttle to 30fps on mobile
+    let pendingMs = 0;
 
-      const lines = linesRef.current;
-      if (!lines.length) return;
+    function draw(_time: number, deltaTime: number) {
+      const mobile = isMobileRef.current;
 
-      // Draw field lines
-      ctx!.strokeStyle = `rgba(255, 255, 255, ${LINE_ALPHA})`;
-      ctx!.lineWidth = 1;
-      for (const line of lines) {
-        ctx!.beginPath();
-        ctx!.moveTo(line.p0x, line.p0y);
-        ctx!.bezierCurveTo(
-          line.p1x,
-          line.p1y,
-          line.p2x,
-          line.p2y,
-          line.p3x,
-          line.p3y,
-        );
-        ctx!.stroke();
+      pendingMs += deltaTime;
+
+      // Throttle to ~30fps on mobile — skip every other frame
+      if (mobile) {
+        frameRef.current++;
+        if (frameRef.current & 1) return;
       }
 
-      // Draw pulses with comet trails and layered glow
+      const dt = pendingMs / 1000; // ms → seconds
+      pendingMs = 0;
+
+      const { w, h } = sizeRef.current;
+      ctx!.clearRect(0, 0, w, h);
+
+      // Blit pre-rendered static lines
+      if (staticRef.current) {
+        ctx!.drawImage(staticRef.current, 0, 0, w, h);
+      }
+
+      const lines = linesRef.current;
+      const lineCount = lines.length;
+      if (!lineCount) return;
+
+      const trailSteps = mobile ? PULSE_TRAIL_STEPS_MOBILE : PULSE_TRAIL_STEPS;
+      const coreColors = mobile ? mobileCoreColors : desktopCoreColors;
+
+      // Advance + draw pulses — no GSAP tweens, pure manual update
       for (const pulse of pulsesRef.current) {
         const line = lines[pulse.lineIndex];
         if (!line) continue;
 
-        const dir = pulse.reverse ? -1 : 1;
-
-        // Pass 1: wide outer glow (large blur, low alpha)
-        ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA * 0.4})`;
-        for (let s = PULSE_TRAIL_STEPS; s >= 0; s--) {
-          const t = pulse.progress.t - dir * (s / PULSE_TRAIL_STEPS) * PULSE_TRAIL;
-          if (t < 0 || t > 1) continue;
-
-          const x = cubic(t, line.p0x, line.p1x, line.p2x, line.p3x);
-          const y = cubic(t, line.p0y, line.p1y, line.p2y, line.p3y);
-          const fade = 1 - s / PULSE_TRAIL_STEPS;
-
-          ctx!.shadowBlur = fade * GLOW_RADIUS * 2;
-          ctx!.fillStyle = `rgba(255, 255, 255, ${fade * 0.15})`;
-          ctx!.beginPath();
-          ctx!.arc(x, y, PULSE_DOT_SIZE + fade * 3, 0, Math.PI * 2);
-          ctx!.fill();
+        // Advance position
+        if (pulse.reverse) {
+          pulse.t -= dt * pulse.speed;
+          if (pulse.t < 0) {
+            pulse.t = 1;
+            pulse.lineIndex = Math.floor(Math.random() * lineCount);
+          }
+        } else {
+          pulse.t += dt * pulse.speed;
+          if (pulse.t > 1) {
+            pulse.t = 0;
+            pulse.lineIndex = Math.floor(Math.random() * lineCount);
+          }
         }
 
-        // Pass 2: tight inner glow (smaller blur, high alpha)
-        ctx!.shadowColor = `rgba(255, 255, 255, ${GLOW_ALPHA})`;
-        for (let s = PULSE_TRAIL_STEPS; s >= 0; s--) {
-          const t = pulse.progress.t - dir * (s / PULSE_TRAIL_STEPS) * PULSE_TRAIL;
+        const dir = pulse.reverse ? -1 : 1;
+
+        for (let s = trailSteps; s >= 0; s--) {
+          const t = pulse.t - dir * (s / trailSteps) * PULSE_TRAIL;
           if (t < 0 || t > 1) continue;
 
           const x = cubic(t, line.p0x, line.p1x, line.p2x, line.p3x);
           const y = cubic(t, line.p0y, line.p1y, line.p2y, line.p3y);
-          const fade = 1 - s / PULSE_TRAIL_STEPS;
-          const alpha = fade * PULSE_ALPHA;
-          const size = PULSE_DOT_SIZE * (0.4 + fade * 0.6);
+          const idx = trailSteps - s; // 0 = dimmest, trailSteps = brightest
+          const fade = 1 - s / trailSteps;
 
-          ctx!.shadowBlur = fade * GLOW_RADIUS;
-          ctx!.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+          // Outer soft halo — skip on mobile
+          if (!mobile) {
+            ctx!.fillStyle = desktopHaloColors[idx];
+            ctx!.beginPath();
+            ctx!.arc(x, y, PULSE_DOT_SIZE + fade * 6, 0, TWO_PI);
+            ctx!.fill();
+          }
+
+          // Inner bright core
+          const coreSize = mobile
+            ? PULSE_DOT_SIZE * (0.6 + fade * 0.6)
+            : PULSE_DOT_SIZE * (0.4 + fade * 0.6);
+          ctx!.fillStyle = coreColors[idx];
           ctx!.beginPath();
-          ctx!.arc(x, y, size, 0, Math.PI * 2);
+          ctx!.arc(x, y, coreSize, 0, TWO_PI);
           ctx!.fill();
         }
       }
-      ctx!.shadowBlur = 0;
     }
 
     init();
@@ -257,7 +320,6 @@ export function MagneticField() {
     return () => {
       gsap.ticker.remove(draw);
       window.removeEventListener("resize", init);
-      pulsesRef.current.forEach((p) => gsap.killTweensOf(p.progress));
     };
   }, []);
 

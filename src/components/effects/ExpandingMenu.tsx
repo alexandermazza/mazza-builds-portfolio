@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type MouseEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TransitionLink } from "@/transitions";
+import { SplitFlapText } from "@/components/effects/SplitFlapText";
 import { DURATION, EASE_OUT_MOTION, MENU_ITEM_STAGGER } from "@/lib/motion";
 import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
 
@@ -59,49 +60,23 @@ export function ExpandingMenu({ items, className = "" }: ExpandingMenuProps) {
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] w-[44px] items-center justify-center rounded-full border border-[var(--accent)] bg-[var(--surface)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] max-md:top-[var(--space-md)] max-md:left-1/2 max-md:right-auto max-md:-translate-x-1/2 max-md:h-[48px] max-md:w-[48px]"
+        className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[9999] flex h-[44px] items-center rounded-[var(--radius-pill)] border border-[var(--border-visible)] bg-[var(--surface)] px-[var(--space-sm)] font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] max-md:top-[var(--space-md)] max-md:left-1/2 max-md:right-auto max-md:-translate-x-1/2 max-md:h-[48px]"
         style={{
           transitionDuration: "var(--duration-micro)",
           transitionTimingFunction: "var(--ease-out)",
         }}
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
-        <span className="sr-only">Menu</span>
-        <div className="relative flex w-[20px] flex-col items-center gap-[5px]">
-          {/* Hamburger lines (visible when closed) */}
-          <span
-            className="block h-[1.5px] w-full origin-center bg-current transition-all"
-            style={{
-              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
-              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
-              ...(reducedMotion
-                ? { opacity: isOpen ? 0 : 1 }
-                : { transform: isOpen ? "translateY(6.5px) rotate(45deg)" : "none" }),
-              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
-            }}
-          />
-          <span
-            className="block h-[1.5px] w-full origin-center bg-current transition-all"
-            style={{
-              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
-              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
-              opacity: isOpen ? 0 : 1,
-              ...(reducedMotion ? {} : { transform: isOpen ? "scaleX(0)" : "none" }),
-              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
-            }}
-          />
-          <span
-            className="block h-[1.5px] w-full origin-center bg-current transition-all"
-            style={{
-              transitionDuration: reducedMotion ? `${DURATION.micro}s` : `${DURATION.transition}s`,
-              transitionTimingFunction: `cubic-bezier(${EASE_OUT_MOTION.join(",")})`,
-              ...(reducedMotion
-                ? { opacity: isOpen ? 0 : 1 }
-                : { transform: isOpen ? "translateY(-6.5px) rotate(-45deg)" : "none" }),
-              color: isOpen ? "var(--text-primary)" : "var(--text-secondary)",
-            }}
-          />
-        </div>
+        <span className="text-[var(--text-disabled)]">[</span>
+        <SplitFlapText
+          isActive={isOpen}
+          toText="CLOSE"
+          staggerMs={40}
+          externalTrigger
+        >
+          MENU
+        </SplitFlapText>
+        <span className="text-[var(--text-disabled)]">]</span>
       </button>
 
       {/* Overlay */}

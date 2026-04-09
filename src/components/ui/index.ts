@@ -1,4 +1,5 @@
 export { Button } from "./Button";
+export { DictionaryEntry } from "./DictionaryEntry";
 export { Footer } from "./Footer";
 export { FormStatus } from "./FormStatus";
 export { Input } from "./Input";

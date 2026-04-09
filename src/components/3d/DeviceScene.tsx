@@ -77,12 +77,7 @@ function AnimatedDevice({
   const laptopGroupRef = useRef<THREE.Group>(null);
   const { invalidate } = useThree();
 
-  // Transition progress: 1 = visible at y=0, 0 = off-screen
-  const phoneProgressRef = useRef(deviceType === "phone" ? 1 : 0);
-  const laptopProgressRef = useRef(deviceType === "laptop" ? 1 : 0);
-
-  // Always keep both device textures in sync with the current screen —
-  // prevents the departing device from flashing a stale texture
+  // Always keep both device textures in sync with the current screen
   const [phoneTexture, setPhoneTexture] = useState(
     deviceType === "phone" ? screenTexture : ""
   );
@@ -95,16 +90,7 @@ function AnimatedDevice({
     else setLaptopTexture(screenTexture);
   }, [deviceType, screenTexture]);
 
-  // When device type switches, clear the departing device's texture
-  // so it doesn't flash stale content during the slide-out
-  const prevDeviceType = useRef(deviceType);
-  useEffect(() => {
-    if (prevDeviceType.current !== deviceType) {
-      if (prevDeviceType.current === "phone") setPhoneTexture("");
-      else setLaptopTexture("");
-      prevDeviceType.current = deviceType;
-    }
-  }, [deviceType]);
+  // Keep departing device's texture intact — it fades out with opacity
 
   // Kick the first frame after Suspense resolves and the model mounts
   useEffect(() => {
@@ -118,16 +104,9 @@ function AnimatedDevice({
     if (prefersReduced) {
       groupRef.current.rotation.set(0, 0, 0);
       groupRef.current.position.y = 0;
-      groupRef.current.scale.setScalar(modelScale); // ensure full scale instantly
-      // Instant swap for reduced-motion
-      if (phoneGroupRef.current) {
-        phoneGroupRef.current.position.y = deviceType === "phone" ? 0 : -2;
-        phoneGroupRef.current.visible = deviceType === "phone";
-      }
-      if (laptopGroupRef.current) {
-        laptopGroupRef.current.position.y = deviceType === "laptop" ? 0 : 2;
-        laptopGroupRef.current.visible = deviceType === "laptop";
-      }
+      groupRef.current.scale.setScalar(modelScale);
+      if (phoneGroupRef.current) phoneGroupRef.current.visible = deviceType === "phone";
+      if (laptopGroupRef.current) laptopGroupRef.current.visible = deviceType === "laptop";
       return;
     }
 
@@ -164,39 +143,17 @@ function AnimatedDevice({
       groupRef.current.position.y = 0;
     }
 
-    // Vertical slide transition — old device exits up, new enters from below
-    const phoneTarget = deviceType === "phone" ? 1 : 0;
-    const laptopTarget = deviceType === "laptop" ? 1 : 0;
-    const slideSpeed = delta * 12;
-
-    phoneProgressRef.current += (phoneTarget - phoneProgressRef.current) * slideSpeed;
-    laptopProgressRef.current += (laptopTarget - laptopProgressRef.current) * slideSpeed;
-
-    // Snap to target when close enough to avoid lingering visibility
-    if (Math.abs(phoneProgressRef.current - phoneTarget) < 0.05) phoneProgressRef.current = phoneTarget;
-    if (Math.abs(laptopProgressRef.current - laptopTarget) < 0.05) laptopProgressRef.current = laptopTarget;
-
-    if (phoneGroupRef.current) {
-      const p = phoneProgressRef.current;
-      phoneGroupRef.current.position.y = (1 - p) * 2;
-      phoneGroupRef.current.visible = p > 0.05;
-    }
-    if (laptopGroupRef.current) {
-      const p = laptopProgressRef.current;
-      laptopGroupRef.current.position.y = (1 - p) * -2;
-      laptopGroupRef.current.visible = p > 0.05;
-    }
+    // Instant device swap — CSS opacity on the container handles the fade
+    if (phoneGroupRef.current) phoneGroupRef.current.visible = deviceType === "phone";
+    if (laptopGroupRef.current) laptopGroupRef.current.visible = deviceType === "laptop";
 
     // Re-render while animating, tilt is settling, or active (for float)
     const isRotating = Math.abs(rotationRef.current - prevRotation) > 0.0001;
     const isTiltSettling =
       Math.abs(smoothTiltX.current - tiltTargetX.current) > 0.001 ||
       Math.abs(smoothTiltY.current - tiltTargetY.current) > 0.001;
-    const isSliding =
-      Math.abs(phoneProgressRef.current - phoneTarget) > 0.01 ||
-      Math.abs(laptopProgressRef.current - laptopTarget) > 0.01;
     const isScaling = Math.abs(scaleRef.current - 1.0) > 0.001;
-    if (isRotating || isTiltSettling || isSliding || isScaling || isActive) {
+    if (isRotating || isTiltSettling || isScaling || isActive) {
       invalidate();
     }
   });

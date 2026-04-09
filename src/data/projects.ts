@@ -19,8 +19,30 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "daily-roman",
+    slug: "trailmix",
     issueNumber: 1,
+    name: "Trailmix",
+    description:
+      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
+    longDescription:
+      "Trailmix automatically extracts action items from Granola meeting transcripts using LLM-powered validation with confidence scoring, deduplicates them, and delivers them to Slack with approve/reject buttons that optionally create monday.com items on approval. A background worker polls every 30 seconds with circuit breaker protection and encrypted credential storage. Built with Next.js, Drizzle ORM, and NextAuth with a 3D landing page.",
+    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
+    status: "IN PROGRESS",
+    screenshot: "/projects/trailmix/screen.png",
+    images: [
+      "/projects/trailmix/trailmixhome.jpg",
+      "/projects/trailmix/trailmixslack.jpg",
+    ],
+    links: [
+      { label: "Live", url: "https://trailmix.fly.dev" },
+      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/trailmix/screen.png",
+  },
+  {
+    slug: "daily-roman",
+    issueNumber: 2,
     name: "Daily Roman",
     description:
       "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
@@ -44,7 +66,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shopify-app",
-    issueNumber: 2,
+    issueNumber: 3,
     name: "ShopAI",
     description:
       "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
@@ -62,7 +84,7 @@ export const projects: Project[] = [
   },
   {
     slug: "vendor-fingerprint",
-    issueNumber: 3,
+    issueNumber: 4,
     name: "Vendor Fingerprint",
     description:
       "7-stage detection pipeline that identifies which scheduling software healthcare companies use — static fingerprinting, headless browsing, and AI verification.",
@@ -82,7 +104,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shakedown",
-    issueNumber: 4,
+    issueNumber: 5,
     name: "Shakedown",
     description:
       "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
@@ -101,28 +123,6 @@ export const projects: Project[] = [
     screenTexture: "/projects/shakedown/shakedown.png",
   },
   {
-    slug: "trailmix",
-    issueNumber: 5,
-    name: "Trailmix",
-    description:
-      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
-    longDescription:
-      "Trailmix automatically extracts action items from Granola meeting transcripts using LLM-powered validation with confidence scoring, deduplicates them, and delivers them to Slack with approve/reject buttons that optionally create monday.com items on approval. A background worker polls every 30 seconds with circuit breaker protection and encrypted credential storage. Built with Next.js, Drizzle ORM, and NextAuth with a 3D landing page.",
-    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
-    status: "IN PROGRESS",
-    screenshot: "/projects/trailmix/screen.png",
-    images: [
-      "/projects/trailmix/image-01.jpg",
-      "/projects/trailmix/image-02.png",
-    ],
-    links: [
-      { label: "Live", url: "https://trailmix.fly.dev" },
-      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/trailmix/screen.png",
-  },
-  {
     slug: "web-tracker-scanner",
     issueNumber: 6,
     name: "AI Web Tracker Scanner",
@@ -135,9 +135,9 @@ export const projects: Project[] = [
     screenshot: "/projects/web-tracker-scanner/screen.png",
     video: "/projects/web-tracker-scanner/video.mov",
     images: [
-      "/projects/web-tracker-scanner/image-01.png",
-      "/projects/web-tracker-scanner/image-02.png",
-      "/projects/web-tracker-scanner/image-03.png",
+      "/projects/web-tracker-scanner/scannerhome.jpg",
+      "/projects/web-tracker-scanner/scannerscan.jpg",
+      "/projects/web-tracker-scanner/scannerstats.jpg",
     ],
     links: [
       { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
@@ -198,7 +198,7 @@ export const projects: Project[] = [
     status: "LIVE",
     screenshot: "/projects/semrush-enricher/screen.png",
     images: [
-      "/projects/semrush-enricher/image.jpg",
+      "/projects/semrush-enricher/semrush.jpg",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/semrush-enricher" },
@@ -218,12 +218,12 @@ export const projects: Project[] = [
     status: "ARCHIVED",
     screenshot: "/projects/f1-globe/screen.png",
     images: [
-      "/projects/f1-globe/image.png",
+      "/projects/f1-globe/newimage.png",
     ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/f1-globe-calendar" },
     ],
-    deviceType: "phone",
+    deviceType: "laptop",
     screenTexture: "/projects/f1-globe/screen.png",
   },
 ];

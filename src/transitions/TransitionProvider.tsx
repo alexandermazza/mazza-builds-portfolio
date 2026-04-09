@@ -28,6 +28,7 @@ registerTransitions(forwardTransition, backTransition);
 interface TransitionContextValue {
   navigate: (href: string) => void;
   registerContainer: (el: HTMLDivElement | null) => void;
+  warmCanvasCache: () => void;
   isTransitioning: boolean;
 }
 
@@ -66,14 +67,35 @@ function waitForImages(
   ]);
 }
 
+// ── Canvas snapshot cache ────────────────────────────────
+// Pre-captures canvas pixels on idle / hover so cloneCurrentPage
+// never does a synchronous GPU readback at transition time.
+
+const canvasCache = new WeakMap<HTMLCanvasElement, string>();
+
+function snapshotCanvases(container: HTMLElement) {
+  const canvases = container.querySelectorAll("canvas");
+  canvases.forEach((c) => {
+    try {
+      const dataUrl = c.toDataURL();
+      if (dataUrl && dataUrl.length > 6) canvasCache.set(c, dataUrl);
+    } catch { /* cross-origin or detached — skip */ }
+  });
+}
+
 function cloneCurrentPage(el: HTMLElement): HTMLDivElement {
   const scrollY = window.scrollY;
 
-  // Snapshot WebGL canvases before cloning — cloneNode can't copy GL context
+  // Use pre-cached snapshots; fall back to sync toDataURL only on cache miss
   const canvases = el.querySelectorAll("canvas");
   const snapshots: string[] = [];
   canvases.forEach((c) => {
-    try { snapshots.push(c.toDataURL()); } catch { snapshots.push(""); }
+    const cached = canvasCache.get(c);
+    if (cached) {
+      snapshots.push(cached);
+    } else {
+      try { snapshots.push(c.toDataURL()); } catch { snapshots.push(""); }
+    }
   });
 
   const clone = el.cloneNode(true) as HTMLDivElement;
@@ -162,6 +184,34 @@ export function TransitionProvider({
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
   }, []);
+
+  // ── Canvas pre-cache (idle + on-demand) ────────────────
+
+  const warmCanvasCache = useCallback(() => {
+    const el = containerRef.current;
+    if (el) snapshotCanvases(el);
+  }, []);
+
+  useEffect(() => {
+    // Pre-snapshot canvases during idle time so transitions are instant.
+    const hasIdleCb = typeof requestIdleCallback !== "undefined";
+
+    let handle: number;
+    function loop() {
+      warmCanvasCache();
+      handle = hasIdleCb
+        ? (requestIdleCallback(loop, { timeout: 2000 }) as unknown as number)
+        : (setTimeout(loop, 500) as unknown as number);
+    }
+    handle = hasIdleCb
+      ? (requestIdleCallback(loop, { timeout: 1000 }) as unknown as number)
+      : (setTimeout(loop, 200) as unknown as number);
+
+    return () => {
+      if (hasIdleCb) cancelIdleCallback(handle);
+      else clearTimeout(handle);
+    };
+  }, [warmCanvasCache]);
 
   // ── Transition runner ──────────────────────────────────
 
@@ -263,21 +313,26 @@ export function TransitionProvider({
       dbg("pathname-changed:triggering-transition");
       runTransition(clone, el, prevPath, pathname);
     } else if (isTransitioningRef.current && isMobileRef.current) {
-      // Mobile: fade in the new page
+      // Mobile: slide + fade in the new page (direction-aware)
       previousPathRef.current = pathname;
       const nextEl = containerRef.current;
       if (nextEl) {
         window.scrollTo(0, 0);
         const footer = document.querySelector("footer");
+        const enterFromY = isPopStateRef.current ? -30 : 30;
         gsap.fromTo(
           [nextEl, footer].filter(Boolean),
-          { opacity: 0 },
+          { y: enterFromY, opacity: 0 },
           {
+            y: 0,
             opacity: 1,
-            duration: 0.15,
-            ease: "power1.out",
+            duration: 0.3,
+            ease: "power2.out",
+            force3D: true,
             onComplete: () => {
+              gsap.set([nextEl, footer].filter(Boolean), { clearProps: "y,transform" });
               isTransitioningRef.current = false;
+              isPopStateRef.current = false;
               setIsTransitioning(false);
               pendingHrefRef.current = null;
               unlockOverflow();
@@ -287,6 +342,7 @@ export function TransitionProvider({
         );
       } else {
         isTransitioningRef.current = false;
+        isPopStateRef.current = false;
         setIsTransitioning(false);
         pendingHrefRef.current = null;
         unlockOverflow();
@@ -342,9 +398,11 @@ export function TransitionProvider({
         const mobileFadeTween = gsap.to(
           [currentEl, footer].filter(Boolean),
           {
+            y: -30,
             opacity: 0,
-            duration: 0.15,
-            ease: "power1.out",
+            duration: 0.25,
+            ease: "power2.out",
+            force3D: true,
             onComplete: () => {
               router.push(href, { scroll: false });
             },
@@ -353,9 +411,9 @@ export function TransitionProvider({
         setTimeout(() => {
           if (isTransitioningRef.current) {
             mobileFadeTween.kill();
-            if (containerRef.current) gsap.set(containerRef.current, { opacity: 1 });
+            if (containerRef.current) gsap.set(containerRef.current, { opacity: 1, y: 0, clearProps: "transform" });
             const safetyFooter = document.querySelector("footer");
-            if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
+            if (safetyFooter) gsap.set(safetyFooter, { opacity: 1, y: 0, clearProps: "transform" });
             isTransitioningRef.current = false;
             transitionRunningRef.current = false;
             setIsTransitioning(false);
@@ -444,14 +502,20 @@ export function TransitionProvider({
           const footer = document.querySelector("footer");
           const mobileFadeTween = gsap.to(
             [currentEl, footer].filter(Boolean),
-            { opacity: 0, duration: 0.15, ease: "power1.out" }
+            {
+              y: 30,
+              opacity: 0,
+              duration: 0.25,
+              ease: "power2.out",
+              force3D: true,
+            }
           );
           setTimeout(() => {
             if (isTransitioningRef.current) {
               mobileFadeTween.kill();
-              if (containerRef.current) gsap.set(containerRef.current, { opacity: 1 });
+              if (containerRef.current) gsap.set(containerRef.current, { opacity: 1, y: 0, clearProps: "transform" });
               const safetyFooter = document.querySelector("footer");
-              if (safetyFooter) gsap.set(safetyFooter, { opacity: 1 });
+              if (safetyFooter) gsap.set(safetyFooter, { opacity: 1, y: 0, clearProps: "transform" });
               isTransitioningRef.current = false;
               isPopStateRef.current = false;
               transitionRunningRef.current = false;
@@ -509,7 +573,7 @@ export function TransitionProvider({
   }, []);
 
   return (
-    <TransitionContext value={{ navigate, registerContainer, isTransitioning }}>
+    <TransitionContext value={{ navigate, registerContainer, warmCanvasCache, isTransitioning }}>
       {children}
     </TransitionContext>
   );

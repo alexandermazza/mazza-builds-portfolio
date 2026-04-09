@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap, ENTER_EASE } from "@/lib/gsap";
 import { MagneticField } from "./MagneticField";
+import { SplitFlapText } from "./SplitFlapText";
 import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
 
 // ─── Types ────────────────────────────────────────────
@@ -16,6 +17,7 @@ type BootLine =
       barWidth: number;
       suffix: string;
       pauseAt?: number;
+      suffixAccent?: boolean;
     }
   | {
       type: "dots";
@@ -44,6 +46,7 @@ const BOOT_LINES: BootLine[] = [
     prefix: "> applying design tokens ",
     barWidth: 16,
     suffix: " nothing-os-theme",
+    suffixAccent: true,
   },
   {
     type: "bar",
@@ -63,6 +66,7 @@ const BOOT_LINES: BootLine[] = [
     prefix: "> initializing gsap scroll engine ",
     barWidth: 16,
     suffix: " OK",
+    suffixAccent: true,
   },
   { type: "text", text: "> three.js renderer: WebGL 2.0" },
   {
@@ -90,6 +94,7 @@ const BOOT_LINES: BootLine[] = [
     prefix: "> deploy complete ",
     barWidth: 16,
     suffix: " launching.",
+    suffixAccent: true,
   },
 ];
 
@@ -123,6 +128,9 @@ export function TerminalHero() {
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [heroActive, setHeroActive] = useState(false);
+  const [showField, setShowField] = useState(false);
+  const mobileH1Ref = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -131,6 +139,7 @@ export function TerminalHero() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
     const isRepeatVisit = sessionStorage.getItem(SESSION_KEY) === "1";
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
 
     lockOverflow();
 
@@ -152,10 +161,10 @@ export function TerminalHero() {
         }
 
         if (line.type === "bar") {
-          const barEl = el.querySelector<HTMLElement>("[data-bar]");
-          if (barEl) {
-            barEl.textContent = "[" + "█".repeat(line.barWidth) + "]";
-          }
+          const filledEl = el.querySelector<HTMLElement>("[data-bar-filled]");
+          const emptyEl = el.querySelector<HTMLElement>("[data-bar-empty]");
+          if (filledEl) filledEl.textContent = "█".repeat(line.barWidth);
+          if (emptyEl) emptyEl.textContent = "";
         }
 
         if (line.type === "dots") {
@@ -178,6 +187,7 @@ export function TerminalHero() {
         if (revealRef.current) {
           revealRef.current.style.opacity = "1";
         }
+        setShowField(true);
         // Show logo, letters and tagline instantly
         if (logoRef.current) {
           logoRef.current.style.opacity = "1";
@@ -185,6 +195,10 @@ export function TerminalHero() {
         charRefs.current.forEach((el) => {
           if (el) el.style.opacity = "1";
         });
+        if (mobileH1Ref.current) {
+          mobileH1Ref.current.style.opacity = "1";
+        }
+        setHeroActive(true);
         if (taglineRef.current) {
           taglineRef.current.style.opacity = "1";
         }
@@ -212,6 +226,7 @@ export function TerminalHero() {
       if (revealRef.current) {
         revealRef.current.style.opacity = "1";
       }
+      setShowField(true);
 
       const tl = gsap.timeline();
       tlRef.current = tl;
@@ -232,19 +247,26 @@ export function TerminalHero() {
         );
       }
 
-      const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
-      tl.fromTo(
-        validChars,
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.4,
-          stagger: 0.03,
-          ease: ENTER_EASE,
-        },
-        "-=0.3"
-      );
+      if (isMobile) {
+        if (mobileH1Ref.current) {
+          tl.set(mobileH1Ref.current, { opacity: 1 }, "-=0.3");
+          tl.call(() => { setHeroActive(true); });
+        }
+      } else {
+        const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
+        tl.fromTo(
+          validChars,
+          { y: 30, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.4,
+            stagger: 0.03,
+            ease: ENTER_EASE,
+          },
+          "-=0.3"
+        );
+      }
 
       if (taglineRef.current) {
         tl.to(taglineRef.current, {
@@ -286,36 +308,46 @@ export function TerminalHero() {
       if (line.type === "text") {
         const textEl = el.querySelector("[data-text]");
         if (textEl) {
-          tl.to(textEl, {
-            duration: dur,
-            scrambleText: {
-              text: line.text,
-              chars: SCRAMBLE_CHARS,
-              speed: 0.4,
-            },
-          });
+          if (isMobile) {
+            tl.call(() => { (textEl as HTMLElement).textContent = line.text; });
+            tl.to({}, { duration: dur * 0.5 });
+          } else {
+            tl.to(textEl, {
+              duration: dur,
+              scrambleText: {
+                text: line.text,
+                chars: SCRAMBLE_CHARS,
+                speed: 0.4,
+              },
+            });
+          }
         }
       } else if (line.type === "bar") {
         const prefixEl = el.querySelector<HTMLElement>("[data-prefix]");
-        const barEl = el.querySelector<HTMLElement>("[data-bar]");
+        const filledEl = el.querySelector<HTMLElement>("[data-bar-filled]");
+        const emptyEl = el.querySelector<HTMLElement>("[data-bar-empty]");
         const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
         const width = line.barWidth;
         const fillDur = BAR_FILL_DURATION;
 
-        // Scramble prefix
+        // Prefix
         if (prefixEl) {
-          tl.to(prefixEl, {
-            duration: dur * 0.4,
-            scrambleText: {
-              text: line.prefix,
-              chars: SCRAMBLE_CHARS,
-              speed: 0.4,
-            },
-          });
+          if (isMobile) {
+            tl.call(() => { prefixEl.textContent = line.prefix; });
+          } else {
+            tl.to(prefixEl, {
+              duration: dur * 0.4,
+              scrambleText: {
+                text: line.prefix,
+                chars: SCRAMBLE_CHARS,
+                speed: 0.4,
+              },
+            });
+          }
         }
 
         // Fill bar (with optional mid-fill pause)
-        if (barEl) {
+        if (filledEl && emptyEl) {
           if (line.pauseAt) {
             const target = { p: 0 };
             tl.to(target, {
@@ -324,8 +356,8 @@ export function TerminalHero() {
               ease: "none",
               onUpdate() {
                 const filled = Math.floor(target.p * width);
-                barEl.textContent =
-                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+                filledEl.textContent = "█".repeat(filled);
+                emptyEl.textContent = "░".repeat(width - filled);
               },
             });
             tl.to({}, { duration: 0.21 });
@@ -335,8 +367,8 @@ export function TerminalHero() {
               ease: "none",
               onUpdate() {
                 const filled = Math.floor(target.p * width);
-                barEl.textContent =
-                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+                filledEl.textContent = "█".repeat(filled);
+                emptyEl.textContent = "░".repeat(width - filled);
               },
             });
           } else {
@@ -347,8 +379,8 @@ export function TerminalHero() {
               ease: "none",
               onUpdate() {
                 const filled = Math.floor(target.p * width);
-                barEl.textContent =
-                  "[" + "█".repeat(filled) + "░".repeat(width - filled) + "]";
+                filledEl.textContent = "█".repeat(filled);
+                emptyEl.textContent = "░".repeat(width - filled);
               },
             });
           }
@@ -363,16 +395,20 @@ export function TerminalHero() {
         const dotsEl = el.querySelector<HTMLElement>("[data-dots]");
         const suffixEl = el.querySelector<HTMLElement>("[data-suffix]");
 
-        // Scramble prefix
+        // Prefix
         if (prefixEl) {
-          tl.to(prefixEl, {
-            duration: dur * 0.4,
-            scrambleText: {
-              text: line.prefix,
-              chars: SCRAMBLE_CHARS,
-              speed: 0.4,
-            },
-          });
+          if (isMobile) {
+            tl.call(() => { prefixEl.textContent = line.prefix; });
+          } else {
+            tl.to(prefixEl, {
+              duration: dur * 0.4,
+              scrambleText: {
+                text: line.prefix,
+                chars: SCRAMBLE_CHARS,
+                speed: 0.4,
+              },
+            });
+          }
         }
 
         // Extend dots one by one
@@ -406,6 +442,7 @@ export function TerminalHero() {
     // Reveal: instant cut
     tl.set(bootRef.current, { opacity: 0, display: "none" });
     tl.set(revealRef.current, { opacity: 1 });
+    tl.call(() => { setShowField(true); });
 
     // Logo slams in with rotation and scale
     if (logoRef.current) {
@@ -423,38 +460,46 @@ export function TerminalHero() {
       );
     }
 
-    // Letter stagger from below + scramble per character
-    const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
-    tl.fromTo(
-      validChars,
-      { y: 30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.4,
-        stagger: 0.04,
-        ease: ENTER_EASE,
-      },
-      "-=0.3"
-    );
-
-    // ScrambleText each letter (overlaps with the stagger)
-    validChars.forEach((charEl, i) => {
-      const finalChar = HERO_CHARS[i];
-      if (finalChar === " ") return; // skip spaces
-      tl.to(
-        charEl,
+    if (isMobile) {
+      // Mobile: trigger SplitFlapText on enter
+      if (mobileH1Ref.current) {
+        tl.set(mobileH1Ref.current, { opacity: 1 }, "-=0.3");
+        tl.call(() => { setHeroActive(true); });
+      }
+    } else {
+      // Letter stagger from below + scramble per character
+      const validChars = charRefs.current.filter(Boolean) as HTMLSpanElement[];
+      tl.fromTo(
+        validChars,
+        { y: 30, opacity: 0 },
         {
-          duration: 0.3,
-          scrambleText: {
-            text: finalChar,
-            chars: SCRAMBLE_CHARS,
-            speed: 0.6,
-          },
+          y: 0,
+          opacity: 1,
+          duration: 0.4,
+          stagger: 0.04,
+          ease: ENTER_EASE,
         },
-        `-=${0.4 + (validChars.length - 1 - i) * 0.04}` // overlap with stagger
+        "-=0.3"
       );
-    });
+
+      // ScrambleText each letter (overlaps with the stagger)
+      validChars.forEach((charEl, i) => {
+        const finalChar = HERO_CHARS[i];
+        if (finalChar === " ") return; // skip spaces
+        tl.to(
+          charEl,
+          {
+            duration: 0.3,
+            scrambleText: {
+              text: finalChar,
+              chars: SCRAMBLE_CHARS,
+              speed: 0.6,
+            },
+          },
+          `-=${0.4 + (validChars.length - 1 - i) * 0.04}` // overlap with stagger
+        );
+      });
+    }
 
     // Tagline fades in after headline settles
     if (taglineRef.current) {
@@ -504,9 +549,15 @@ export function TerminalHero() {
                 <>
                   <span data-prefix>&nbsp;</span>
                   <span data-bar data-bar-width={line.barWidth}>
-                    {"[" + "░".repeat(line.barWidth) + "]"}
+                    [<span data-bar-filled className="text-[var(--accent)]"></span><span data-bar-empty>{"░".repeat(line.barWidth)}</span>]
                   </span>
-                  <span data-suffix style={{ opacity: 0 }}>
+                  <span
+                    data-suffix
+                    className={
+                      line.suffixAccent ? "text-[var(--accent)]" : ""
+                    }
+                    style={{ opacity: 0 }}
+                  >
                     {line.suffix}
                   </span>
                 </>
@@ -537,7 +588,10 @@ export function TerminalHero() {
         className="relative flex h-full items-center justify-center text-center"
         style={{ opacity: 0 }}
       >
-        <MagneticField />
+        {/* Stable wrapper prevents hydration mismatch during HMR */}
+        <div className="absolute inset-0 h-full w-full">
+          {showField && <MagneticField />}
+        </div>
         <div className="relative z-10 flex flex-col items-center">
           <div
             ref={logoRef}
@@ -553,7 +607,8 @@ export function TerminalHero() {
               className="h-[clamp(80px,15vw,120px)] w-auto"
             />
           </div>
-          <h1 className="font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]">
+          {/* Desktop H1 — GSAP scramble text */}
+          <h1 className="hidden md:block font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]">
             {HERO_CHARS.map((char, i) => (
               <span
                 key={i}
@@ -566,6 +621,16 @@ export function TerminalHero() {
                 {char === " " ? "\u00A0" : char}
               </span>
             ))}
+          </h1>
+          {/* Mobile H1 — SplitFlapText on enter */}
+          <h1
+            ref={mobileH1Ref}
+            className="md:hidden font-sans text-[clamp(48px,12vw,96px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
+            style={{ opacity: 0 }}
+          >
+            <SplitFlapText isActive={heroActive} staggerMs={35}>
+              {HERO_TEXT}
+            </SplitFlapText>
           </h1>
           <p
             ref={taglineRef}
