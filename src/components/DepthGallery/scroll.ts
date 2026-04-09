@@ -25,6 +25,9 @@ export class Scroll {
   private gallery: Gallery
   private reducedMotion: boolean
   private section: HTMLElement | null = null
+  private sectionTop = 0
+  private sectionHeight = 0
+  private viewportHeight = 0
 
   // Camera range (set during init from gallery depth range)
   private cameraStartZ = 0
@@ -64,20 +67,24 @@ export class Scroll {
 
   bindEvents(section: HTMLElement) {
     this.section = section
+    this.cacheLayout()
   }
 
-  /** Read native scroll position and convert to 0..1 progress */
+  /** Cache expensive layout reads — call on bind and on resize */
+  cacheLayout() {
+    if (!this.section) return
+    const rect = this.section.getBoundingClientRect()
+    this.sectionTop = rect.top + window.scrollY
+    this.sectionHeight = this.section.offsetHeight
+    this.viewportHeight = window.innerHeight
+  }
+
+  /** Read native scroll position and convert to 0..1 progress using cached layout */
   private readScrollProgress(): number {
     if (!this.section) return 0
 
-    const rect = this.section.getBoundingClientRect()
-    const sectionHeight = this.section.offsetHeight
-    const viewportHeight = window.innerHeight
-
-    // How far the section top has scrolled past the viewport top
-    const scrolled = -rect.top
-    // Total scrollable distance within the section
-    const scrollableDistance = sectionHeight - viewportHeight
+    const scrolled = window.scrollY - this.sectionTop
+    const scrollableDistance = this.sectionHeight - this.viewportHeight
 
     if (scrollableDistance <= 0) return 0
     return THREE.MathUtils.clamp(scrolled / scrollableDistance, 0, 1)
@@ -123,12 +130,9 @@ export class Scroll {
 
     // Calculate the page scroll position for this plane
     const targetProgress = this.progressForPlane(nearestIndex)
-    const sectionHeight = this.section.offsetHeight
-    const viewportHeight = window.innerHeight
-    const scrollableDistance = sectionHeight - viewportHeight
-    const sectionTop = this.section.offsetTop
+    const scrollableDistance = this.sectionHeight - this.viewportHeight
 
-    const targetScrollTop = sectionTop + targetProgress * scrollableDistance
+    const targetScrollTop = this.sectionTop + targetProgress * scrollableDistance
 
     this.isSnapping = true
     window.scrollTo({ top: targetScrollTop, behavior: "smooth" })
