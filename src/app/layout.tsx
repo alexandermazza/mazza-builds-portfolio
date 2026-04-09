@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { TransitionProvider, TransitionContainer } from "@/transitions";
 import { Footer } from "@/components/ui";
 import { ExpandingMenu } from "@/components/effects";
 import "./globals.css";
+
+const GA_ID = "G-FN3N8MH4F6";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -53,6 +56,18 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link
           rel="preload"
