@@ -72,14 +72,11 @@ export function ProjectShowcase({
 }: ProjectShowcaseProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [projectScrollProgress, setProjectScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const prefersReduced = useReducedMotion();
 
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const displayIndex = hoverIndex ?? activeIndex;
+  const displayIndex = activeIndex;
   const activeProject = projects[displayIndex];
 
   // Buffered device index — lags behind displayIndex so the device swaps
@@ -166,14 +163,6 @@ export function ProjectShowcase({
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     if (isMobile) return;
 
-    // Scroll is authoritative — clear any hover override so the display
-    // tracks the scroll position.  pointermove will re-set hover if the
-    // user is actively moving the mouse.
-    if (hoverIndex !== null) {
-      setHoverIndex(null);
-      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    }
-
     const count = projects.length;
     if (count === 0) return;
     const index = Math.max(
@@ -187,27 +176,6 @@ export function ProjectShowcase({
     const slotProgress = (progress - index * slotSize) / slotSize;
     setProjectScrollProgress(Math.max(0, Math.min(1, slotProgress)));
   });
-
-  // pointermove (not mouseenter) — only fires on real mouse movement,
-  // never from elements scrolling under a stationary cursor
-  const handleRowPointerMove = useCallback((index: number) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoverIndex((prev) => (prev === index ? prev : index));
-  }, []);
-
-  const handleRowPointerLeave = useCallback(() => {
-    // Small debounce prevents flicker when moving between rows
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoverIndex(null);
-    }, 80);
-  }, []);
-
-  // Cleanup hover timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    };
-  }, []);
 
   // Mobile carousel navigation
   const [mobileIndex, setMobileIndex] = useState(0);
@@ -455,8 +423,6 @@ export function ProjectShowcase({
                   key={project.slug}
                   href={`/projects/${project.slug}`}
                   className="group relative block py-[12px] no-underline"
-                  onPointerMove={() => handleRowPointerMove(i)}
-                  onPointerLeave={handleRowPointerLeave}
                 >
                   {/* Accent bar */}
                   <div
