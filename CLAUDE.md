@@ -149,12 +149,12 @@ src/
 ├── lib/
 │   └── motion.ts            # Framer Motion constants
 └── styles/
-    └── tokens.css           # CSS custom properties (dark/light)
+    └── tokens.css           # CSS custom properties (dark + blueprint)
 ```
 
 ## Conventions
 - `prefers-reduced-motion` is respected globally in `globals.css`
-- Dark mode is default; light mode via `prefers-color-scheme` or `.light` class
+- Dark mode only; the `.blueprint` class provides a navy variant scoped to the about page
 - All components are client components (`"use client"`)
 - Barrel export from `@/components/ui`
 - TypeScript strict mode enabled
