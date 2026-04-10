@@ -15,6 +15,8 @@ export interface Project {
   links: { label: string; url: string }[];
   deviceType: DeviceType;
   screenTexture: string;
+  screenBgColor?: string;
+  screenTextureScale?: number;
 }
 
 export const projects: Project[] = [
@@ -215,16 +217,19 @@ export const projects: Project[] = [
     longDescription:
       "Spin the globe to see each Grand Prix pinned to its real-world coordinates and trace the F1 2024 season's journey across continents in order. Built with vanilla JavaScript, Three.js, and WebGL as a visual exploration of geographic data on a 3D sphere. Inspired by the GitHub contribution globe.",
     tags: ["JavaScript", "Three.js", "WebGL"],
-    status: "ARCHIVED",
-    screenshot: "/projects/f1-globe/screen.png",
+    status: "LIVE",
+    screenshot: "/projects/f1-globe/F1-Logo-PNG-Image.png",
     images: [
       "/projects/f1-globe/newimage.png",
     ],
     links: [
+      { label: "Live", url: "https://f1-globe-calendar.vercel.app/" },
       { label: "Source", url: "https://github.com/alexandermazza/f1-globe-calendar" },
     ],
     deviceType: "laptop",
-    screenTexture: "/projects/f1-globe/screen.png",
+    screenTexture: "/projects/f1-globe/F1-Logo-PNG-Image.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
   },
 ];
 

@@ -22,6 +22,8 @@ interface DeviceSceneProps {
   isActive: boolean;
   projectSlug: string;
   modelScale?: number;
+  screenBgColor?: string;
+  screenTextureScale?: number;
 }
 
 /** Smoothly lerps camera position and FOV when device type changes */
@@ -65,6 +67,8 @@ function AnimatedDevice({
   tiltTargetY,
   modelScale = 1,
   isTransitioningRef,
+  screenBgColor,
+  screenTextureScale,
 }: DeviceSceneProps & { tiltTargetX: React.RefObject<number>; tiltTargetY: React.RefObject<number>; modelScale?: number; isTransitioningRef: React.RefObject<boolean> }) {
   const prefersReduced = useReducedMotion();
   const rotationRef = useRef(Math.PI / 2); // Start edge-on at 90°
@@ -167,7 +171,7 @@ function AnimatedDevice({
       </group>
       <group ref={laptopGroupRef}>
         {laptopTexture && (
-          <LaptopModel screenTexture={laptopTexture} rotationY={0} tiltX={0} tiltY={0} visible={deviceType === "laptop"} />
+          <LaptopModel screenTexture={laptopTexture} rotationY={0} tiltX={0} tiltY={0} visible={deviceType === "laptop"} screenBgColor={screenBgColor} screenTextureScale={screenTextureScale} />
         )}
       </group>
     </group>
@@ -181,6 +185,8 @@ export function DeviceScene({
   isActive,
   projectSlug,
   modelScale = 1,
+  screenBgColor,
+  screenTextureScale,
 }: DeviceSceneProps) {
   const { isTransitioning } = useTransitionContext();
   const isTransitioningRef = useRef(isTransitioning);
@@ -247,6 +253,8 @@ export function DeviceScene({
             tiltTargetY={tiltTargetY}
             modelScale={modelScale}
             isTransitioningRef={isTransitioningRef}
+            screenBgColor={screenBgColor}
+            screenTextureScale={screenTextureScale}
           />
         </Suspense>
       </Canvas>

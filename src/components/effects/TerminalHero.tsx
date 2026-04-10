@@ -71,10 +71,10 @@ const BOOT_LINES: BootLine[] = [
   { type: "text", text: "> three.js renderer: WebGL 2.0" },
   {
     type: "dots",
-    prefix: "> checking for the guy who did this",
+    prefix: "> until you're part of the turbo team",
     dotCount: 15,
-    suffix: " we're all trying to find him",
-    suffixAccent: true,
+    suffix: " walk—slowly.",
+    suffixAccent: false,
     pauseMs: 400,
   },
   {

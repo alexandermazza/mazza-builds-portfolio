@@ -322,6 +322,8 @@ export function ProjectShowcase({
                 isActive={true}
                 projectSlug={deviceProject.slug}
                 modelScale={0.85}
+                screenBgColor={deviceProject.screenBgColor}
+                screenTextureScale={deviceProject.screenTextureScale}
               />
             </div>
           </div>
@@ -521,6 +523,8 @@ export function ProjectShowcase({
                 scrollProgress={projectScrollProgress}
                 isActive={true}
                 projectSlug={deviceProject.slug}
+                screenBgColor={deviceProject.screenBgColor}
+                screenTextureScale={deviceProject.screenTextureScale}
               />
             </div>
 

@@ -103,10 +103,11 @@ function toSunday(d: Date): Date {
 
 function buildGrid(today: Date): { start: Date; weeks: number } {
   const jan1 = new Date(today.getFullYear(), 0, 1);
-  const dec31 = new Date(today.getFullYear(), 11, 31);
   const start = toSunday(jan1);
-  const diffMs = dec31.getTime() - start.getTime();
-  const weeks = Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+  const endSunday = toSunday(today);
+  const diffMs = endSunday.getTime() - start.getTime();
+  // Round (not ceil) to absorb DST offsets, then +1 to include the current week.
+  const weeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
   return { start, weeks };
 }
 
@@ -266,8 +267,9 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
       {status === "loading" && <span className={monoLabel}>[LOADING...]</span>}
       {status === "error" && <span className={monoLabel}>[USAGE DATA UNAVAILABLE]</span>}
       {status !== "done" ? null : (<>
+      <div className="flex flex-wrap items-start justify-between gap-x-[var(--space-lg)] gap-y-[var(--space-md)]">
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
-      <div className={`flex gap-[var(--space-2xl)] ${compact || isMobile ? "mb-[var(--space-md)]" : "mb-[var(--space-2xl)]"}`}>
+      <div className="flex gap-[var(--space-2xl)]">
         <div>
           <div className={`font-sans leading-[1] tracking-[-0.02em] text-[var(--text-display)] ${compact || isMobile ? "text-[1.5rem]" : "text-[2.5rem]"}`}>
             {formatTokens(totalTokens)}
@@ -442,6 +444,7 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
             </AnimatePresence>
           </div>
         </div>
+      </div>
       </div>
       </>)}
     </div>

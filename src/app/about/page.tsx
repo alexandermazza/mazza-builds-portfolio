@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 const connections = [
   { label: "GitHub", href: "https://github.com/alexandermazza" },
   { label: "Twitter", href: "https://twitter.com/mazza_builds" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/alexander-mazza/" },
   { label: "Email", href: "mailto:hello@mazzabuilds.com" },
 ];
 
@@ -85,9 +86,10 @@ export default function AboutPage() {
             <div className="flex flex-col gap-[var(--space-2xl)] md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
                 <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                  I&apos;m Alex Mazza, a developer based in Chicago. I build
-                  AI-powered apps, automation systems, and tools end-to-end — iOS,
-                  web, trading bots, the works.
+                  I&apos;m Alex Mazza. Spent years in GTM ops. Now I build the
+                  tools I used to have to pay for — AI-powered apps, automation
+                  systems, and tools end-to-end — iOS, web, trading bots, the
+                  works.
                 </ScrollTextLines>
                 <div className="mt-[var(--space-2xl)]">
                   <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">

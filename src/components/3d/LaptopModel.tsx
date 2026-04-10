@@ -17,6 +17,8 @@ interface LaptopModelProps {
   tiltX: number;
   tiltY: number;
   visible?: boolean;
+  screenBgColor?: string;
+  screenTextureScale?: number;
 }
 
 export function LaptopModel({
@@ -25,6 +27,8 @@ export function LaptopModel({
   tiltX,
   tiltY,
   visible = true,
+  screenBgColor,
+  screenTextureScale,
 }: LaptopModelProps) {
   const { scene } = useGLTF("/models/macbook.glb");
   // Clone so multiple instances don't fight over the same Three.js object
@@ -75,21 +79,51 @@ export function LaptopModel({
       };
     } else {
       videoRef.current = null;
-      const loader = new THREE.TextureLoader();
-      loader.load(screenTexture, (tex) => {
-        if (cancelled) return;
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        setTexture(tex);
-      });
+
+      if (screenBgColor) {
+        // Composite: draw image centered/scaled on a solid background via canvas
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          if (cancelled) return;
+          const canvas = document.createElement("canvas");
+          canvas.width = 1024;
+          canvas.height = 640;
+          const ctx = canvas.getContext("2d")!;
+          // Fill background
+          ctx.fillStyle = screenBgColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Draw image centered and scaled
+          const scale = screenTextureScale ?? 1;
+          const drawW = canvas.width * scale;
+          const drawH = (img.height / img.width) * drawW;
+          const x = (canvas.width - drawW) / 2;
+          const y = (canvas.height - drawH) / 2;
+          ctx.drawImage(img, x, y, drawW, drawH);
+          const tex = new THREE.CanvasTexture(canvas);
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          setTexture(tex);
+        };
+        img.src = screenTexture;
+      } else {
+        const loader = new THREE.TextureLoader();
+        loader.load(screenTexture, (tex) => {
+          if (cancelled) return;
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          setTexture(tex);
+        });
+      }
+
       return () => {
         cancelled = true;
-        // Dispose the texture to free GPU memory
         setTexture((prev) => { prev?.dispose(); return null; });
       };
     }
-  }, [screenTexture]);
+  }, [screenTexture, screenBgColor, screenTextureScale]);
 
   // Keep video texture updating every frame
   useFrame((state) => {

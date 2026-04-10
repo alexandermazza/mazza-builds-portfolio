@@ -33,6 +33,17 @@ const socialLinks = [
     ),
   },
   {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/alexander-mazza/",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+        <rect x="2" y="9" width="4" height="12" />
+        <circle cx="4" cy="4" r="2" />
+      </svg>
+    ),
+  },
+  {
     label: "Email",
     href: "mailto:hello@mazzabuilds.com",
     icon: (
@@ -46,9 +57,9 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)]">
+    <footer className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-lg)] md:py-[var(--space-2xl)]">
       {/* Logo */}
-      <div className="flex justify-center pb-[var(--space-xl)]">
+      <div className="flex justify-center pb-[var(--space-md)] md:pb-[var(--space-xl)]">
         <Image
           src="/logo.png"
           alt="Mazza Builds logo"
@@ -59,7 +70,7 @@ export function Footer() {
       </div>
 
       {/* Nav links — centered */}
-      <div className="flex flex-wrap justify-center gap-[var(--space-xl)] pb-[var(--space-xl)]">
+      <div className="flex flex-wrap justify-center gap-[var(--space-lg)] md:gap-[var(--space-xl)] pb-[var(--space-md)] md:pb-[var(--space-xl)]">
         {navLinks.map((link) => (
           <TransitionLink
             key={link.label}
@@ -78,7 +89,7 @@ export function Footer() {
       <div className="h-px w-full bg-[var(--border)]" />
 
       {/* Social links — centered with icons, equally spaced */}
-      <div className="flex justify-center gap-[var(--space-2xl)] py-[var(--space-xl)]">
+      <div className="flex flex-wrap justify-center gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] md:gap-[var(--space-2xl)] py-[var(--space-md)] md:py-[var(--space-xl)]">
         {socialLinks.map((link) => (
           <a
             key={link.label}
@@ -100,7 +111,7 @@ export function Footer() {
       <div className="h-px w-full bg-[var(--border)]" />
 
       {/* Bottom row */}
-      <div className="flex flex-col gap-[var(--space-sm)] pt-[var(--space-xl)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-[var(--space-sm)] pt-[var(--space-md)] md:pt-[var(--space-xl)] sm:flex-row sm:items-center sm:justify-between">
         <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           &copy; {new Date().getFullYear()} MAZZA BUILDS
         </p>
