@@ -100,7 +100,7 @@ export default function AboutPage() {
               </div>
               <div className="flex-shrink-0 md:ml-[var(--space-2xl)]">
                 <Image
-                  src="/about/sketch.png"
+                  src="/about/sketch.jpg"
                   alt="Sketch of Alex Mazza"
                   width={280}
                   height={332}

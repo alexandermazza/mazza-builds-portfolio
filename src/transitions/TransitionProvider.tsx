@@ -43,30 +43,6 @@ export function useTransitionContext() {
   return ctx;
 }
 
-// ── Helpers ──────────────────────────────────────────────
-
-function waitForImages(
-  container: HTMLElement,
-  timeout = 3000
-): Promise<void> {
-  const images = container.querySelectorAll("img");
-  if (images.length === 0) return Promise.resolve();
-
-  return Promise.race([
-    Promise.all(
-      Array.from(images).map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            if (img.complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          })
-      )
-    ).then(() => {}),
-    new Promise<void>((resolve) => setTimeout(resolve, timeout)),
-  ]);
-}
-
 // ── Canvas snapshot cache ────────────────────────────────
 // Pre-captures canvas pixels on idle / hover so cloneCurrentPage
 // never does a synchronous GPU readback at transition time.
@@ -237,9 +213,9 @@ export function TransitionProvider({
           isPopStateRef.current
         );
 
-        dbg("runTransition:waiting-for-images");
-        await waitForImages(nextEl);
-        dbg("runTransition:images-ready");
+        // Don't wait for images. The forward transition reveals bottom-up
+        // via clip-path, so top-of-page images have the full animation
+        // duration to load, and next/image reserves layout space up front.
 
         // The container was hidden before router.push (in navigate()).
         // The transition function will set its own initial state (clipPath, position, etc.)

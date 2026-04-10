@@ -15,4 +15,4 @@ export const TRANSITION_EASE = "power2.inOut";
 export const ENTER_EASE = "power3.out";
 
 /** Transition duration — matches Codrops demo */
-export const TRANSITION_DURATION = 0.7;
+export const TRANSITION_DURATION = 0.55;
