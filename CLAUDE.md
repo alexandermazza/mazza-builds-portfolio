@@ -52,21 +52,23 @@ All CSS custom properties are in `src/styles/tokens.css`, imported into `globals
 Tailwind theme extensions are in `globals.css` via `@theme inline`.
 
 ### Color Tokens
-| Token | Dark | Light |
-|-------|------|-------|
-| `--black` | `#000000` | `#F5F5F5` |
-| `--surface` | `#111111` | `#FFFFFF` |
-| `--surface-raised` | `#1A1A1A` | `#F0F0F0` |
-| `--border` | `#222222` | `#E8E8E8` |
-| `--border-visible` | `#333333` | `#CCCCCC` |
-| `--text-disabled` | `#666666` | `#999999` |
-| `--text-secondary` | `#999999` | `#666666` |
-| `--text-primary` | `#E8E8E8` | `#1A1A1A` |
-| `--text-display` | `#FFFFFF` | `#000000` |
-| `--accent` | `#FF6B35` | `#FF6B35` |
-| `--success` | `#4A9E5C` | `#4A9E5C` |
-| `--warning` | `#D4A843` | `#D4A843` |
-| `--error` | `#D71921` | `#D71921` |
+| Token | Value |
+|-------|-------|
+| `--black` | `#000000` |
+| `--surface` | `#111111` |
+| `--surface-raised` | `#1A1A1A` |
+| `--border` | `#222222` |
+| `--border-visible` | `#333333` |
+| `--text-disabled` | `#666666` |
+| `--text-secondary` | `#999999` |
+| `--text-primary` | `#E8E8E8` |
+| `--text-display` | `#FFFFFF` |
+| `--accent` | `#FF6B35` |
+| `--success` | `#4A9E5C` |
+| `--warning` | `#D4A843` |
+| `--error` | `#D71921` |
+
+Note: the about page also applies a `.blueprint` class that overrides these tokens with a navy variant. See `src/styles/tokens.css`.
 
 ### Spacing Scale (8px base)
 `--space-2xs` (2px), `--space-xs` (4px), `--space-sm` (8px), `--space-md` (16px),
