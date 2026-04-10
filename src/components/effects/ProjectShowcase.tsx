@@ -10,10 +10,7 @@ import {
 } from "motion/react";
 import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
 import { StatusBadge, TagChip, ProjectCard } from "@/components/ui";
-import {
-  ScrollGridAnimation,
-  LinkHover,
-} from "@/components/effects";
+import { ScrollGridAnimation } from "@/components/effects";
 import { TransitionLink } from "@/transitions";
 import dynamic from "next/dynamic";
 import type { Project } from "@/data/projects";
@@ -473,8 +470,11 @@ export function ProjectShowcase({
             style={{ backgroundColor: "var(--border)" }}
           />
 
-          {/* Right column — Detail panel */}
-          <div className="flex w-[60%] flex-col justify-center pl-[var(--space-3xl)] pr-[var(--space-4xl)]">
+          {/* Right column — Detail panel (entire panel is a click target) */}
+          <TransitionLink
+            href={`/projects/${activeProject.slug}`}
+            className="flex w-[60%] flex-col justify-center pl-[var(--space-3xl)] pr-[var(--space-4xl)] no-underline"
+          >
             {/* 3D Device — CSS opacity fade masks instant swap */}
             <div
               className="relative h-[55%] w-full"
@@ -579,16 +579,13 @@ export function ProjectShowcase({
                         + 0.05,
                   }}
                 >
-                  <LinkHover
-                    href={`/projects/${activeProject.slug}`}
-                    className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]"
-                  >
+                  <span className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
                     View project →
-                  </LinkHover>
+                  </span>
                 </motion.div>
               </motion.div>
             </AnimatePresence>
-          </div>
+          </TransitionLink>
         </div>
       </div>
     </section>
