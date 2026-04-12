@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { ProjectCard } from "@/components/ui";
 import {
   ScrollLetterAnimation,
-  ConnectedGrid,
-  ScrollVelocityOffset,
-  LinkHover,
+  WorkPlayShowcase,
 } from "@/components/effects";
 import { projects } from "@/data/projects";
 
@@ -13,6 +10,16 @@ export const metadata: Metadata = {
   description:
     "Things I've built — from iOS apps to trading bots to AI automation systems",
 };
+
+const WORK_SLUGS = new Set([
+  "trailmix",
+  "vendor-fingerprint",
+  "web-tracker-scanner",
+  "semrush-enricher",
+]);
+
+const workProjects = projects.filter((p) => WORK_SLUGS.has(p.slug));
+const playProjects = projects.filter((p) => !WORK_SLUGS.has(p.slug));
 
 export default function ProjectsPage() {
   return (
@@ -26,25 +33,9 @@ export default function ProjectsPage() {
         </ScrollLetterAnimation>
       </section>
 
-      <ScrollVelocityOffset multiplier={0.15}>
-        <ConnectedGrid columns={2} lineColor="var(--text-disabled)" className="mb-[var(--space-2xl)] md:mb-[var(--space-4xl)]">
-          {projects.map((project) => (
-            <LinkHover
-              key={project.slug}
-              href={`/projects/${project.slug}`}
-              className="block no-underline"
-            >
-              <ProjectCard
-                issueNumber={project.issueNumber}
-                name={project.name}
-                description={project.description}
-                tags={project.tags}
-                status={project.status}
-              />
-            </LinkHover>
-          ))}
-        </ConnectedGrid>
-      </ScrollVelocityOffset>
+      <div className="mb-[var(--space-2xl)] md:mb-[var(--space-4xl)]">
+        <WorkPlayShowcase work={workProjects} play={playProjects} />
+      </div>
     </main>
   );
 }

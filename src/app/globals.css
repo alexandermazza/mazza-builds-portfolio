@@ -29,6 +29,7 @@
   --font-sans: "Space Grotesk", "DM Sans", system-ui, sans-serif;
   --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
   --font-display: "Doto", "Space Mono", monospace;
+  --font-script: "Instrument Serif", "Playfair Display", Georgia, serif;
 
   /* Spacing */
   --spacing-2xs: var(--space-2xs);
