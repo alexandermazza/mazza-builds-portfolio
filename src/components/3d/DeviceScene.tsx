@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { Suspense, useRef, useState, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useReducedMotion } from "motion/react";
 import type { DeviceType } from "@/data/projects";
@@ -24,6 +24,43 @@ interface DeviceSceneProps {
   modelScale?: number;
   screenBgColor?: string;
   screenTextureScale?: number;
+}
+
+/** Ring of point lights arranged in a circle on the XY plane, centered at `center`.
+ *  `center[2]` is the ring's Z depth (positive = in front of the device). */
+function RingLight({
+  count,
+  radius,
+  center,
+  intensity,
+  distance,
+}: {
+  count: number;
+  radius: number;
+  center: [number, number, number];
+  intensity: number;
+  distance: number;
+}) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => {
+        const angle = (i / count) * Math.PI * 2;
+        return (
+          <pointLight
+            key={i}
+            position={[
+              center[0] + Math.cos(angle) * radius,
+              center[1] + Math.sin(angle) * radius,
+              center[2],
+            ]}
+            intensity={intensity}
+            distance={distance}
+            decay={2}
+          />
+        );
+      })}
+    </>
+  );
 }
 
 /** Smoothly lerps camera position and FOV when device type changes */
@@ -133,9 +170,11 @@ function AnimatedDevice({
     groupRef.current.scale.setScalar(scaleRef.current * modelScale);
 
     // Apply scroll-driven Y rotation + smoothed hover tilt
+    // Phone gets dramatic tilt (~17°), laptop gets a moderate bump (~7°)
+    const tiltIntensity = deviceType === "phone" ? 0.7 : 0.20;
     groupRef.current.rotation.set(
-      smoothTiltX.current * 0.05,
-      rotationRef.current + smoothTiltY.current * 0.05,
+      smoothTiltX.current * tiltIntensity,
+      rotationRef.current + smoothTiltY.current * tiltIntensity,
       0
     );
 
@@ -235,11 +274,37 @@ export function DeviceScene({
           canvasRef.current = { invalidate: state.invalidate };
         }}
       >
-        {/* 3-point lighting: key, fill, rim */}
-        <ambientLight intensity={0.8} />
-        <directionalLight position={[2, 3, 5]} intensity={1.0} />
-        <directionalLight position={[-3, 1, 2]} intensity={0.4} />
-        <directionalLight position={[0, 2, -3]} intensity={0.6} />
+        {/* Device-specific lighting — phone gets a tighter, brighter ring
+         *  since its face is narrower than the laptop and was reading too dark */}
+        {deviceType === "phone" ? (
+          <>
+            <ambientLight intensity={0.9} />
+            <RingLight
+              count={14}
+              radius={1.0}
+              center={[0, 0.2, 1.8]}
+              intensity={0.55}
+              distance={6}
+            />
+            {/* Front key light to lift the phone face */}
+            <directionalLight position={[0, 1, 4]} intensity={0.5} />
+            {/* Warm accent kiss on one side (brand orange) */}
+            <pointLight position={[1.2, 0.6, 1.5]} intensity={0.3} distance={4} color="#FF6B35" />
+          </>
+        ) : (
+          <>
+            <ambientLight intensity={0.6} />
+            <RingLight
+              count={12}
+              radius={1.8}
+              center={[0, 0.4, 2.5]}
+              intensity={0.35}
+              distance={8}
+            />
+          </>
+        )}
+        {/* Subtle rim from behind to separate device from background */}
+        <directionalLight position={[0, 2, -3]} intensity={0.4} />
         <CameraAnimator deviceType={deviceType} />
 
         <Suspense fallback={null}>
