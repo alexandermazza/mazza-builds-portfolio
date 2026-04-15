@@ -147,7 +147,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
       )}
 
       {/* Video + Screenshots */}
-      {(project.video || project.images.length > 0) && (
+      {(project.video || (project.videos && project.videos.length > 0) || project.images.length > 0) && (
         <section className="mb-[var(--space-3xl)]">
           <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
             SCREENSHOTS
@@ -169,25 +169,54 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
               />
             </div>
           )}
-          <ScrollGridAnimation
-            variant="fade-up"
-            className={`mx-auto grid grid-cols-1 gap-[var(--space-md)] ${project.images.length % 2 === 0 && project.images.length >= 2 && project.deviceType !== "phone" ? "sm:grid-cols-2" : ""} ${project.deviceType === "phone" ? "max-w-[50%]" : ""}`}
-          >
-            {project.images.map((src, i) => (
-              <div
-                key={i}
-                className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
-                style={{ borderRadius: "var(--radius-card)" }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={src}
-                  alt={`${project.name} screenshot ${i + 1}`}
-                  className="block w-full"
-                />
-              </div>
-            ))}
-          </ScrollGridAnimation>
+
+          {/* Video gallery */}
+          {project.videos && project.videos.length > 0 && (
+            <ScrollGridAnimation
+              variant="fade-up"
+              className={`mx-auto grid grid-cols-1 gap-[var(--space-md)] ${project.images.length > 0 ? "mb-[var(--space-md)]" : ""} ${project.deviceType === "phone" ? "max-w-[50%]" : ""}`}
+            >
+              {project.videos.map((src, i) => (
+                <div
+                  key={src}
+                  className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                  style={{ borderRadius: "var(--radius-card)" }}
+                >
+                  <video
+                    src={src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    aria-label={`${project.name} screen recording ${i + 1}`}
+                    className="block w-full"
+                  />
+                </div>
+              ))}
+            </ScrollGridAnimation>
+          )}
+
+          {project.images.length > 0 && (
+            <ScrollGridAnimation
+              variant="fade-up"
+              className={`mx-auto grid grid-cols-1 gap-[var(--space-md)] ${project.images.length % 2 === 0 && project.images.length >= 2 && project.deviceType !== "phone" ? "sm:grid-cols-2" : ""} ${project.deviceType === "phone" ? "max-w-[50%]" : ""}`}
+            >
+              {project.images.map((src, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden border border-[var(--border)] bg-[var(--surface-raised)]"
+                  style={{ borderRadius: "var(--radius-card)" }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={`${project.name} screenshot ${i + 1}`}
+                    className="block w-full"
+                  />
+                </div>
+              ))}
+            </ScrollGridAnimation>
+          )}
         </section>
       )}
 

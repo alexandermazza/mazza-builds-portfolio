@@ -11,6 +11,7 @@ export interface Project {
   status: ProjectStatus;
   screenshot: string;
   video?: string;
+  videos?: string[];
   images: string[];
   links: { label: string; url: string }[];
   deviceType: DeviceType;
@@ -29,7 +30,7 @@ export const projects: Project[] = [
     longDescription:
       "Trailmix automatically extracts action items from Granola meeting transcripts using LLM-powered validation with confidence scoring, deduplicates them, and delivers them to Slack with approve/reject buttons that optionally create monday.com items on approval. A background worker polls every 30 seconds with circuit breaker protection and encrypted credential storage. Built with Next.js, Drizzle ORM, and NextAuth with a 3D landing page.",
     tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
-    status: "IN PROGRESS",
+    status: "LIVE",
     screenshot: "/projects/trailmix/screen.png",
     images: [
       "/projects/trailmix/trailmixhome.jpg",
@@ -77,6 +78,11 @@ export const projects: Project[] = [
     tags: ["Remix", "Shopify", "OpenAI", "Prisma"],
     status: "LIVE",
     screenshot: "/projects/shopify-app/screen.png",
+    videos: [
+      "/projects/shopify-app/askmeanything.mp4",
+      "/projects/shopify-app/reviewsummary.mp4",
+      "/projects/shopify-app/addtoshop.mp4",
+    ],
     images: [],
     links: [
       { label: "Live", url: "https://shop-ai.co/" },
@@ -213,9 +219,9 @@ export const projects: Project[] = [
     issueNumber: 10,
     name: "F1 Globe Calendar",
     description:
-      "Interactive 3D globe visualizing every race location on the Formula 1 2024 calendar, inspired by the GitHub Globe.",
+      "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
     longDescription:
-      "Spin the globe to see each Grand Prix pinned to its real-world coordinates and trace the F1 2024 season's journey across continents in order. Built with vanilla JavaScript, Three.js, and WebGL as a visual exploration of geographic data on a 3D sphere. Inspired by the GitHub contribution globe.",
+      "Spin the globe to see each Grand Prix pinned to its real-world coordinates and trace the F1 2026 season's journey across continents in order. Updated yearly. Built with vanilla JavaScript, Three.js, and WebGL as a visual exploration of geographic data on a 3D sphere. Inspired by the GitHub contribution globe.",
     tags: ["JavaScript", "Three.js", "WebGL"],
     status: "LIVE",
     screenshot: "/projects/f1-globe/F1-Logo-PNG-Image.png",
