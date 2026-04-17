@@ -16,6 +16,11 @@ import {
 import { TransitionLink } from "@/transitions";
 import { projects } from "@/data/projects";
 
+// Render per request so UsageCard (SQLite on mounted volume) and GitHubCard
+// (needs GITHUB_TOKEN, which Fly only injects at runtime) see their data.
+// Build-time prerender would bake in empty/null initialData.
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main>

@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     "Solo indie developer based in the Midwest. I build things from concept to production.",
 };
 
+// See note in src/app/page.tsx — data comes from runtime-only sources.
+export const dynamic = "force-dynamic";
+
 const connections = [
   { label: "GitHub", href: "https://github.com/alexandermazza" },
   { label: "Twitter", href: "https://twitter.com/mazza_builds" },
