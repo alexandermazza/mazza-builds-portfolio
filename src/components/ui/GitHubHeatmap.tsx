@@ -7,7 +7,7 @@ import { useIsMobile } from "@/lib/use-is-mobile";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface GitHubResponse {
+export interface GitHubResponse {
   data: Array<{ date: string; count: number }>;
   meta: {
     totalContributions: number;
@@ -29,6 +29,7 @@ type MonthLabel = { weekIndex: number; label: string };
 
 export interface GitHubHeatmapProps extends Omit<ComponentProps<"div">, "children"> {
   compact?: boolean;
+  initialData?: GitHubResponse | null;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -109,11 +110,24 @@ function buildMobileGrid(today: Date): { start: Date; weeks: number } {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function GitHubHeatmap({ className = "", compact = false, ...props }: GitHubHeatmapProps) {
-  const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
-  const [countMap, setCountMap] = useState<Map<string, number>>(new Map());
-  const [totalContributions, setTotalContributions] = useState(0);
-  const [activeDays, setActiveDays] = useState(0);
+function seedFromInitialData(initial: GitHubResponse) {
+  const map = new Map<string, number>();
+  for (const entry of initial.data) {
+    map.set(entry.date, entry.count);
+  }
+  return {
+    map,
+    totalContributions: initial.meta.totalContributions,
+    activeDays: initial.meta.activeDays,
+  };
+}
+
+export function GitHubHeatmap({ className = "", compact = false, initialData, ...props }: GitHubHeatmapProps) {
+  const seed = initialData ? seedFromInitialData(initialData) : null;
+  const [status, setStatus] = useState<"loading" | "error" | "done">(seed ? "done" : "loading");
+  const [countMap, setCountMap] = useState<Map<string, number>>(seed ? seed.map : new Map());
+  const [totalContributions, setTotalContributions] = useState(seed ? seed.totalContributions : 0);
+  const [activeDays, setActiveDays] = useState(seed ? seed.activeDays : 0);
 
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
@@ -131,9 +145,10 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
 
   const cfg = getGridConfig(compact, isMobile);
 
-  // ── Fetch ────────────────────────────────────────────────────────────────
+  // ── Fetch (only when no server-rendered initialData was provided) ───────
 
   useEffect(() => {
+    if (initialData) return;
     let cancelled = false;
 
     async function load() {
@@ -161,7 +176,7 @@ export function GitHubHeatmap({ className = "", compact = false, ...props }: Git
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialData]);
 
   // ── Grid geometry (memoized) ─────────────────────────────────────────────
 

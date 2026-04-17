@@ -1,11 +1,11 @@
 import {
   Button,
   DictionaryEntry,
-  GitHubCard,
   ScrollTextLines,
   TickerText,
-  UsageCard,
 } from "@/components/ui";
+import { GitHubCard } from "@/components/ui/GitHubCard";
+import { UsageCard } from "@/components/ui/UsageCard";
 import {
   ScrollGridAnimation,
   MagneticWrapper,

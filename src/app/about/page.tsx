@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ScrollTextLines, UsageCard, GitHubCard } from "@/components/ui";
+import { ScrollTextLines } from "@/components/ui";
+import { GitHubCard } from "@/components/ui/GitHubCard";
+import { UsageCard } from "@/components/ui/UsageCard";
 import {
   ScrollLetterAnimation,
   SpecBlock,

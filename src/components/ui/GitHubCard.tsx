@@ -1,14 +1,14 @@
-"use client";
-
 import { type ComponentProps } from "react";
+import { loadGitHubData } from "@/lib/github-data";
 import { GitHubHeatmap } from "./GitHubHeatmap";
 
 interface GitHubCardProps extends Omit<ComponentProps<"section">, "children"> {
   compact?: boolean;
 }
 
-export function GitHubCard({ className = "", compact = false, ...props }: GitHubCardProps) {
+export async function GitHubCard({ className = "", compact = false, ...props }: GitHubCardProps) {
   const year = new Date().getFullYear();
+  const initialData = await loadGitHubData(year);
 
   return (
     <section
@@ -24,7 +24,7 @@ export function GitHubCard({ className = "", compact = false, ...props }: GitHub
         JAN {year} &rarr; NOW
       </p>
 
-      <GitHubHeatmap compact={compact} />
+      <GitHubHeatmap compact={compact} initialData={initialData} />
     </section>
   );
 }

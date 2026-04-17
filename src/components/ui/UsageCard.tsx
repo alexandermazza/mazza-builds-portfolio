@@ -1,6 +1,5 @@
-"use client";
-
 import { type ComponentProps } from "react";
+import { loadUsageData } from "@/lib/usage-data";
 import { UsageHeatmap } from "./UsageHeatmap";
 
 interface UsageCardProps extends Omit<ComponentProps<"section">, "children"> {
@@ -8,6 +7,7 @@ interface UsageCardProps extends Omit<ComponentProps<"section">, "children"> {
 }
 
 export function UsageCard({ className = "", compact = false, ...props }: UsageCardProps) {
+  const initialData = loadUsageData();
   const startLabel = "JAN 2026";
 
   return (
@@ -16,17 +16,15 @@ export function UsageCard({ className = "", compact = false, ...props }: UsageCa
       style={{ borderRadius: "var(--radius-card)" }}
       {...props}
     >
-      {/* Header label */}
       <span className="font-mono text-[11px] uppercase leading-[1.2] tracking-[0.08em] text-[var(--text-disabled)]">
         BUILT WITH CLAUDE
       </span>
 
-      {/* Date range */}
       <p className="mt-[var(--space-xs)] mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
         {startLabel} &rarr; NOW
       </p>
 
-      <UsageHeatmap compact={compact} />
+      <UsageHeatmap compact={compact} initialData={initialData} />
     </section>
   );
 }

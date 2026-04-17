@@ -11,7 +11,7 @@ interface UsageDay {
   total_tokens: number;
 }
 
-interface UsageResponse {
+export interface UsageResponse {
   data: Array<UsageDay>;
   meta: {
     totalTokens: number;
@@ -34,6 +34,7 @@ type MonthLabel = { weekIndex: number; label: string };
 
 export interface UsageHeatmapProps extends Omit<ComponentProps<"div">, "children"> {
   compact?: boolean;
+  initialData?: UsageResponse | null;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -121,11 +122,22 @@ function buildMobileGrid(today: Date): { start: Date; weeks: number } {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function UsageHeatmap({ className = "", compact = false, ...props }: UsageHeatmapProps) {
-  const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
-  const [tokenMap, setTokenMap] = useState<Map<string, number>>(new Map());
-  const [totalTokens, setTotalTokens] = useState(0);
-  const [activeDays, setActiveDays] = useState(0);
+function seedFromInitialData(initial: UsageResponse) {
+  const map = new Map<string, number>();
+  let days = 0;
+  for (const entry of initial.data) {
+    map.set(entry.date, entry.total_tokens);
+    if (entry.total_tokens > 0) days++;
+  }
+  return { map, totalTokens: initial.meta.totalTokens, activeDays: days };
+}
+
+export function UsageHeatmap({ className = "", compact = false, initialData, ...props }: UsageHeatmapProps) {
+  const seed = initialData ? seedFromInitialData(initialData) : null;
+  const [status, setStatus] = useState<"loading" | "error" | "done">(seed ? "done" : "loading");
+  const [tokenMap, setTokenMap] = useState<Map<string, number>>(seed ? seed.map : new Map());
+  const [totalTokens, setTotalTokens] = useState(seed ? seed.totalTokens : 0);
+  const [activeDays, setActiveDays] = useState(seed ? seed.activeDays : 0);
 
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
@@ -154,9 +166,10 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
 
   const cfg = getGridConfig(compact, isMobile);
 
-  // ── Fetch ────────────────────────────────────────────────────────────────
+  // ── Fetch (only when no server-rendered initialData was provided) ───────
 
   useEffect(() => {
+    if (initialData) return;
     let cancelled = false;
 
     async function load() {
@@ -186,7 +199,7 @@ export function UsageHeatmap({ className = "", compact = false, ...props }: Usag
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialData]);
 
   // ── Grid geometry (client-only to avoid SSR/CSR date mismatch) ──────────
 
