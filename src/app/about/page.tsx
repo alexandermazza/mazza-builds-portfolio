@@ -35,25 +35,25 @@ const experience = [
   {
     title: "GTM AI Operations Manager",
     company: "Freshpaint",
-    dateRange: "FEB 2025 — PRESENT",
+    dateRange: "FEB 2025 - PRESENT",
     description: "AI and automation for go-to-market operations.",
   },
   {
     title: "Revenue Operations Manager",
     company: "Freshpaint",
-    dateRange: "AUG 2024 — FEB 2025",
+    dateRange: "AUG 2024 - FEB 2025",
     description: "Managed revenue operations and streamlined GTM processes.",
   },
   {
     title: "Operations Manager, Sales and Marketing",
     company: "Rattle",
-    dateRange: "MAY 2023 — AUG 2024",
+    dateRange: "MAY 2023 - AUG 2024",
     description: "Owned revenue management and cross-functional sales and marketing operations.",
   },
   {
     title: "Marketing Operations Manager",
     company: "metadata.io",
-    dateRange: "OCT 2021 — MAY 2023",
+    dateRange: "OCT 2021 - MAY 2023",
     description: "System admin for go-to-market team. Automation builder.",
   },
 ];
@@ -92,8 +92,8 @@ export default function AboutPage() {
               <div className="flex-1">
                 <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
                   I&apos;m Alex Mazza. Spent years in GTM ops. Now I build the
-                  tools I used to have to pay for — AI-powered apps, automation
-                  systems, and tools end-to-end — iOS, web, trading bots, the
+                  tools I used to have to pay for - AI-powered apps, automation
+                  systems, and tools end-to-end - iOS, web, trading bots, the
                   works.
                 </ScrollTextLines>
                 <div className="mt-[var(--space-2xl)]">
@@ -123,7 +123,7 @@ export default function AboutPage() {
               41.8781° N, 87.6298° W
             </p>
             <ScrollTextLines className="mb-[var(--space-2xl)] max-w-[400px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-              Based in Chicago — a city built on a grid, which felt
+              Based in Chicago - a city built on a grid, which felt
               appropriate.
             </ScrollTextLines>
           </SpecBlock>

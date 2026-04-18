@@ -95,7 +95,7 @@ export const projects: Project[] = [
     issueNumber: 4,
     name: "Vendor Fingerprint",
     description:
-      "7-stage detection pipeline that identifies which scheduling software healthcare companies use — static fingerprinting, headless browsing, and AI verification.",
+      "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
     longDescription:
       "Given a list of company domains, Vendor Fingerprint resolves homepages, extracts HTML signals, discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis falls short, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent where Haiku gathers signals and Sonnet reasons over the evidence. Each result includes vendor identification, confidence score, booking modality, evidence trail, and the discovered booking URL.",
     tags: ["Python", "Playwright", "Claude API"],
@@ -117,7 +117,7 @@ export const projects: Project[] = [
     description:
       "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
     longDescription:
-      "Shakedown systematically maps every user interaction, catalogs existing coverage, prioritizes uncovered paths by risk, and dispatches 3-5 parallel agents to write tests in rounds — pure functions first, then stateful code with mocking. Works with any stack including Next.js, React Native, Django, Rails, and Go. Named after the nautical term for a thorough test of a new ship — took a real Expo app from 224 to 474 tests in a single session.",
+      "Shakedown systematically maps every user interaction, catalogs existing coverage, prioritizes uncovered paths by risk, and dispatches 3-5 parallel agents to write tests in rounds - pure functions first, then stateful code with mocking. Works with any stack including Next.js, React Native, Django, Rails, and Go. Named after the nautical term for a thorough test of a new ship - took a real Expo app from 224 to 474 tests in a single session.",
     tags: ["Claude Code", "AI Agents", "Testing"],
     status: "LIVE",
     screenshot: "/projects/shakedown/screen.png",
@@ -137,7 +137,7 @@ export const projects: Project[] = [
     description:
       "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
     longDescription:
-      "Crawls medical pages using headless Playwright, captures outgoing network requests, and matches them against a database of 200+ known trackers — flagging privacy risks, PHI collection, and BAA support gaps. Uses Gemini-powered URL classification to triage medical vs. non-medical pages and generates compliance summaries per domain. Features a React dashboard, PDF report generation, HubSpot integration, and CSV batch scanning.",
+      "Crawls medical pages using headless Playwright, captures outgoing network requests, and matches them against a database of 200+ known trackers - flagging privacy risks, PHI collection, and BAA support gaps. Uses Gemini-powered URL classification to triage medical vs. non-medical pages and generates compliance summaries per domain. Features a React dashboard, PDF report generation, HubSpot integration, and CSV batch scanning.",
     tags: ["FastAPI", "React", "Playwright", "Gemini"],
     status: "LIVE",
     screenshot: "/projects/web-tracker-scanner/screen.png",
@@ -159,7 +159,7 @@ export const projects: Project[] = [
     issueNumber: 7,
     name: "Kalshi Weather Trader",
     description:
-      "Autonomous trading bot for Kalshi prediction markets — multi-source weather forecasting, probability analysis, and real-money order execution.",
+      "Autonomous trading bot for Kalshi prediction markets - multi-source weather forecasting, probability analysis, and real-money order execution.",
     longDescription:
       "Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions for temperature buckets, and places maker NO orders when edge exceeds thresholds. Claude-powered agents scan markets every 30 minutes with position recovery and risk management, plus a BTC latency arbitrage strategy that reacts to Coinbase WebSocket price moves. Includes a Flask dashboard with real-time P&L tracking and an automated feedback loop for strategy self-improvement.",
     tags: ["Python", "Claude API", "MCP", "Flask"],
@@ -179,7 +179,7 @@ export const projects: Project[] = [
     issueNumber: 8,
     name: "Kalshi Trading MCP",
     description:
-      "Pip-installable MCP server for Kalshi with 20+ tools — weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
+      "Pip-installable MCP server for Kalshi with 20+ tools - weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
     longDescription:
       "Goes beyond thin API wrappers with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Includes safety controls like price caps, daily limits, cash reserves, NO-only strategy enforcement, and two-step order confirmation to prevent accidental trades. Supports 8 cities with cross-city correlation analysis and AFD change detection.",
     tags: ["Python", "FastMCP", "Kalshi API"],
@@ -199,7 +199,7 @@ export const projects: Project[] = [
     issueNumber: 9,
     name: "Semrush Enricher",
     description:
-      "Web tool that enriches HubSpot domain exports with Semrush traffic data — upload a CSV, paste your API key, get enriched metrics back.",
+      "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
     longDescription:
       "Upload a CSV of up to 1,000 company domains from a HubSpot export, paste your Semrush API key, and get back enriched traffic metrics processed in batches of 200. Deployed as a Flask app with Docker support and one-click deploy options for Render and Google Cloud Run. API keys are used per-request only and never stored or logged.",
     tags: ["Python", "Flask", "Semrush API", "HubSpot"],

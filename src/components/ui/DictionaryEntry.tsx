@@ -18,7 +18,7 @@ const segments = [
   },
   { text: " · " },
   { text: "Italian", className: "italic" },
-  { text: " — a construction worker\u2019s sledgehammer" },
+  { text: " - a construction worker\u2019s sledgehammer" },
 ];
 
 interface DictionaryEntryProps {

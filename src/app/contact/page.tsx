@@ -6,7 +6,7 @@ import { ScrollLetterAnimation } from "@/components/effects";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch — have a project in mind, want to collaborate, or just say hello",
+    "Get in touch - have a project in mind, want to collaborate, or just say hello",
 };
 
 export default function ContactPage() {

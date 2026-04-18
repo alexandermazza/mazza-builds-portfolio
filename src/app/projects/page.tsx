@@ -8,7 +8,7 @@ import { projects } from "@/data/projects";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Things I've built — from iOS apps to trading bots to AI automation systems",
+    "Things I've built - from iOS apps to trading bots to AI automation systems",
 };
 
 const WORK_SLUGS = new Set([

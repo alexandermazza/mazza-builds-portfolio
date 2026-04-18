@@ -134,7 +134,7 @@ export function Footer() {
           >
             MacBook Pro M3
           </a>{" "}
-          by jackbaeten — CC-BY-4.0
+          by jackbaeten - CC-BY-4.0
         </p>
       </div>
     </footer>

@@ -73,7 +73,7 @@ const BOOT_LINES: BootLine[] = [
     type: "dots",
     prefix: "> until you're part of the turbo team",
     dotCount: 15,
-    suffix: " walk—slowly.",
+    suffix: " walk-slowly.",
     suffixAccent: false,
     pauseMs: 400,
   },

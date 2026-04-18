@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://mazzabuilds.com"),
   title: {
     default: "Mazza Builds",
-    template: "%s — Mazza Builds",
+    template: "%s - Mazza Builds",
   },
   description:
     "building things that work",
