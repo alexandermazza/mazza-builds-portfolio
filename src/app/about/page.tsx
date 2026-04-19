@@ -91,10 +91,10 @@ export default function AboutPage() {
             <div className="flex flex-col gap-[var(--space-2xl)] md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
                 <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-                  I&apos;m Alex Mazza. Spent years in GTM ops. Now I build the
-                  tools I used to have to pay for - AI-powered apps, automation
-                  systems, and tools end-to-end - iOS, web, trading bots, the
-                  works.
+                  I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d
+                  rather write the software than evaluate it. AI-powered apps,
+                  automation systems, and tools end-to-end - iOS, web, trading
+                  bots, the works.
                 </ScrollTextLines>
                 <div className="mt-[var(--space-2xl)]">
                   <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">

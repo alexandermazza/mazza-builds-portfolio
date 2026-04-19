@@ -34,8 +34,8 @@ export default function Home() {
             SPEC: IDENTITY
           </p>
           <ScrollTextLines className="mb-[var(--space-2xl)] max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-            I&apos;m Alex Mazza. Spent years in GTM ops. Now I build the tools
-            I used to have to pay for - AI-powered apps, automation systems,
+            I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d
+            rather write the software than evaluate it. AI-powered apps, automation systems,
             and tools end-to-end - iOS, web, trading bots, the works. Day job: AI operations at a healthcare
             SaaS company. Side projects: whatever I can&apos;t stop thinking
             about.
