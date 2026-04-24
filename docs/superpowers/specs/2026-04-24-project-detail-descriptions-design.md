@@ -1,19 +1,19 @@
-# Project Detail Descriptions — Context / Build / Result
+# Project Detail Descriptions: Context / Build / Result
 
 **Date:** 2026-04-24
 **Status:** Draft for review
 
 ## Goal
 
-Replace the single dense `longDescription` paragraph on each project detail page with three clearly-labeled beats — `CONTEXT`, `BUILD`, `RESULT` — so each page reads as a compact case study for non-technical visitors and still rewards a developer who wants engineering depth.
+Replace the single dense `longDescription` paragraph on each project detail page with three clearly-labeled beats (`CONTEXT`, `BUILD`, `RESULT`) so each page reads as a compact case study for non-technical visitors and still rewards a developer who wants engineering depth.
 
 ## Audience balance
 
 Each beat carries a distinct job:
 
-- `CONTEXT` speaks to a general reader (recruiter, visitor) — the gap or curiosity that made the project exist.
-- `BUILD` carries the technical substance — what the thing is and the interesting engineering choices.
-- `RESULT` closes the loop with shipped/traction proof — where it lives, who uses it, what it did.
+- `CONTEXT` speaks to a general reader (recruiter, visitor). It names the gap or curiosity that made the project exist.
+- `BUILD` carries the technical substance: what the thing is and the interesting engineering choices.
+- `RESULT` closes the loop with shipped/traction proof: where it lives, who uses it, what it did.
 
 ## Data model change
 
@@ -32,10 +32,10 @@ export interface Project {
   slug: string;
   issueNumber: number;
   name: string;
-  description: string;   // unchanged — one-line hook
-  context: string;       // new — the gap or curiosity
-  build: string;         // new — what it is + how it works
-  result: string;        // new — where it shipped, what it did
+  description: string;   // unchanged, one-line hook
+  context: string;       // new, the gap or curiosity
+  build: string;         // new, what it is + how it works
+  result: string;        // new, where it shipped, what it did
   tags: string[];
   status: ProjectStatus;
   screenshot: string;
@@ -79,18 +79,19 @@ Space Mono, 11px, uppercase, `tracking-[0.08em]`, `--text-disabled`, `mb-[var(--
 ## Writing rules
 
 - **Voice:** third-person, feature-dense. Matches existing `longDescription` tone.
-- **CONTEXT** — 1–2 sentences (~25–50 words). The gap or curiosity. No features. For experiments (F1 Globe, Daily Roman), "Built to…" replaces any forced problem framing.
-- **BUILD** — 2–4 sentences (~50–100 words). What the thing is + the engineering that matters.
-- **RESULT** — 1–2 sentences (~20–40 words). Shipped where, who uses it, measurable traction when real.
+- **No em dashes.** Use hyphens, commas, or split into sentences.
+- **CONTEXT:** 1-2 sentences (~25-50 words). The gap or curiosity. No features. For experiments like F1 Globe or Daily Roman, "Built to..." can replace any forced problem framing.
+- **BUILD:** 2-4 sentences (~50-100 words). What the thing is plus the engineering that matters.
+- **RESULT:** 1-2 sentences (~20-40 words). Shipped where, who uses it, measurable traction when real.
 
 ## What does NOT change
 
-- `ProjectCard` component — uses `description` only.
-- `/projects` listing page and home page previews — use `description`.
-- `generateMetadata` in the detail page — uses `description`.
+- `ProjectCard` component uses `description` only.
+- `/projects` listing page and home page previews use `description`.
+- `generateMetadata` in the detail page uses `description`.
 - Screenshots, video, links, tags, status, issue numbers, device-scene rendering.
 
-## Draft copy — all 10 projects
+## Draft copy for all 10 projects
 
 ### 1. Trailmix
 
@@ -101,7 +102,7 @@ Granola captures rich meeting notes, but action items die inside the transcript.
 Trailmix is a Next.js 16 app with a background worker that polls Granola every 30 seconds, runs extracted action items through an LLM for confidence scoring and deduplication, then delivers them to Slack with approve/reject buttons. Approvals optionally create monday.com items via GraphQL with mapped columns, groups, and assignees. Built on Drizzle ORM, NextAuth with Google OAuth, AES-256-GCM for stored credentials, and a circuit breaker that disables polling after repeated Slack failures.
 
 **RESULT**
-Live on Fly.io with a 3D-scene landing page. Operates in two modes — monday.com routing or Slack-only delivery — selected during a multi-step onboarding flow.
+Live on Fly.io with a 3D-scene landing page. Operates in two modes, monday.com routing or Slack-only delivery, selected during a multi-step onboarding flow.
 
 ---
 
@@ -137,7 +138,7 @@ Live at shop-ai.co, installable directly from a Shopify store with no theme code
 Identifying which scheduling software a healthcare company uses is slow, manual work. Sales and BD teams need it at list scale.
 
 **BUILD**
-A 7-stage Python pipeline that resolves homepages, extracts HTML signals (script tags, iframes, form actions), discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis is uncertain, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent — Haiku gathers signals by visiting pages, Sonnet reasons over the evidence. Each result includes vendor, confidence score, booking modality, evidence trail, and the discovered booking URL.
+A 7-stage Python pipeline that resolves homepages, extracts HTML signals (script tags, iframes, form actions), discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis is uncertain, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent: Haiku gathers signals by visiting pages, Sonnet reasons over the evidence. Each result includes vendor, confidence score, booking modality, evidence trail, and the discovered booking URL.
 
 **RESULT**
 Explains every classification via its evidence trail. Adding a new vendor is a YAML append, not a code change.
@@ -150,7 +151,7 @@ Explains every classification via its evidence trail. Adding a new vendor is a Y
 New apps ship with big test coverage gaps and accumulated UX debt. Audits of either are manual, slow, and inconsistent.
 
 **BUILD**
-A Claude Code skill with two modes. In `code` mode it baselines the test infrastructure, maps every interaction, catalogs existing coverage in parallel, prioritizes uncovered paths by risk, then dispatches 3-5 parallel agents to write tests in rounds — pure functions first, stateful code second. In `ui` mode it tours the running app in a real browser via Playwright MCP, drives every control, captures screenshots, and sorts findings into bugs, friction, and dead features. Stack-agnostic — works on Next.js, React Native, Django, Rails, and Go.
+A Claude Code skill with two modes. In `code` mode it baselines the test infrastructure, maps every interaction, catalogs existing coverage in parallel, prioritizes uncovered paths by risk, then dispatches 3-5 parallel agents to write tests in rounds: pure functions first, stateful code second. In `ui` mode it tours the running app in a real browser via Playwright MCP, drives every control, captures screenshots, and sorts findings into bugs, friction, and dead features. Stack-agnostic; works on Next.js, React Native, Django, Rails, and Go.
 
 **RESULT**
 Took a real Expo app from 224 to 474 tests in a single session. A separate `ui` mode run on a React+Express app surfaced 15 bugs and 3 dead pages in one sitting. Distributed as an installable Claude Code plugin.
@@ -186,10 +187,10 @@ Runs autonomously with daily outcome tracking that feeds back into agent decisio
 ### 8. Kalshi Trading MCP
 
 **CONTEXT**
-Most Kalshi MCP servers are thin 5–10 tool API wrappers — useful for checking balance, useless for actual market analysis.
+Most Kalshi MCP servers are thin 5-10 tool API wrappers, useful for checking balance but useless for actual market analysis.
 
 **BUILD**
-A pip-installable FastMCP server with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Safety controls include price caps, daily limits, cash reserves, NO-only strategy enforcement, and a two-step `prepare_order` → `confirm_order` flow that prevents accidental trades. Supports 8 cities with cross-city correlation analysis and AFD change detection.
+A pip-installable FastMCP server with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Safety controls include price caps, daily limits, cash reserves, NO-only strategy enforcement, and a two-step `prepare_order` then `confirm_order` flow that prevents accidental trades. Supports 8 cities with cross-city correlation analysis and AFD change detection.
 
 **RESULT**
 Installable via `pip install kalshi-trading-mcp` and plugs into Claude Code or Claude Desktop via standard MCP config. Demo and production environments both supported.
@@ -202,7 +203,7 @@ Installable via `pip install kalshi-trading-mcp` and plugs into Claude Code or C
 HubSpot company exports list domains but carry no traffic data. Enriching a list manually means one lookup per domain.
 
 **BUILD**
-A Flask web tool that takes a CSV of up to 1,000 HubSpot company domains plus a user-supplied Semrush API key, calls the Semrush `/trends/summary` endpoint in batches of 200, and returns an enriched CSV. API keys live in the request scope only — never stored or logged. Docker and one-click deploy paths for Render and Google Cloud Run.
+A Flask web tool that takes a CSV of up to 1,000 HubSpot company domains plus a user-supplied Semrush API key, calls the Semrush `/trends/summary` endpoint in batches of 200, and returns an enriched CSV. API keys live in the request scope only; they are never stored or logged. Docker and one-click deploy paths for Render and Google Cloud Run.
 
 **RESULT**
 Serves traffic-enrichment runs on demand. Per-request key handling means no account setup or tenant data to manage.
@@ -222,9 +223,9 @@ Live at f1-globe-calendar.vercel.app.
 
 ## Implementation order
 
-1. Update `Project` interface in `src/data/projects.ts` — remove `longDescription`, add `context`/`build`/`result`.
+1. Update `Project` interface in `src/data/projects.ts`: remove `longDescription`, add `context`/`build`/`result`.
 2. Replace each project entry's `longDescription` field with the three new fields from the Draft copy section above.
-3. Update `src/app/projects/[slug]/page.tsx` — replace the single description section with three labeled sibling sections.
+3. Update `src/app/projects/[slug]/page.tsx`: replace the single description section with three labeled sibling sections.
 4. Verify no other file still references `longDescription` (grep).
 
 ## Scope bounds
