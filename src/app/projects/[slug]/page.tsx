@@ -58,10 +58,31 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         </div>
       </section>
 
-      {/* Description */}
+      {/* Context / Build / Result */}
       <section className="mb-[var(--space-3xl)]">
+        <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          CONTEXT
+        </p>
         <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-          {project.longDescription}
+          {project.context}
+        </ScrollTextLines>
+      </section>
+
+      <section className="mb-[var(--space-3xl)]">
+        <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          BUILD
+        </p>
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+          {project.build}
+        </ScrollTextLines>
+      </section>
+
+      <section className="mb-[var(--space-3xl)]">
+        <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          RESULT
+        </p>
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+          {project.result}
         </ScrollTextLines>
       </section>
 
