@@ -15,7 +15,10 @@
       "mcp__plugin_playwright_playwright__browser_tabs",
       "mcp__plugin_playwright_playwright__browser_network_requests",
       "mcp__plugin_claude-mem_mcp-search__search",
-      "mcp__plugin_claude-mem_mcp-search__get_observations"
+      "mcp__plugin_claude-mem_mcp-search__get_observations",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "Skill(update-config)",
+      "mcp__plugin_playwright_playwright__browser_hover"
     ]
   }
 }

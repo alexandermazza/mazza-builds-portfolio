@@ -90,14 +90,14 @@ export default function AboutPage() {
           <SpecBlock label="SPEC: IDENTITY">
             <div className="flex flex-col gap-[var(--space-2xl)] md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
-                <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)] [&>span]:mb-[var(--space-sm)] [&>span:last-child]:mb-0">
                   I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d
                   rather write the software than evaluate it. AI-powered apps,
                   automation systems, and tools end-to-end - iOS, web, trading
                   bots, the works.
                 </ScrollTextLines>
                 <div className="mt-[var(--space-2xl)]">
-                  <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+                  <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)] [&>span]:mb-[var(--space-sm)] [&>span:last-child]:mb-0">
                     Day job: AI operations at a healthcare SaaS company. Side
                     projects: whatever I can&apos;t stop thinking about.
                   </ScrollTextLines>

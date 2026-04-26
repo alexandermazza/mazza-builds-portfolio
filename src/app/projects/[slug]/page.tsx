@@ -63,7 +63,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           CONTEXT
         </p>
-        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-display)]">
           {project.context}
         </ScrollTextLines>
       </section>
@@ -72,7 +72,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           BUILD
         </p>
-        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-display)]">
           {project.build}
         </ScrollTextLines>
       </section>
@@ -81,7 +81,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         <p className="mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           RESULT
         </p>
-        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+        <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-display)]">
           {project.result}
         </ScrollTextLines>
       </section>

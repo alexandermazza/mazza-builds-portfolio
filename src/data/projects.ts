@@ -105,8 +105,32 @@ export const projects: Project[] = [
     screenTexture: "/projects/shopify-app/screen.png",
   },
   {
-    slug: "vendor-fingerprint",
+    slug: "pipeline-attribution",
     issueNumber: 4,
+    name: "Pipeline Attribution Agent",
+    description:
+      "LLM agent that classifies HubSpot deals into pipeline-source categories, replacing 15 brittle workflow rules with Claude reasoning over the full deal timeline.",
+    context:
+      "Pipeline source attribution at Freshpaint was a stack of ~15 brittle HubSpot workflow rules that fired on first match. They couldn't weigh signals against each other, couldn't explain themselves, and silently broke whenever a property name or enum value changed.",
+    build:
+      "A FastAPI receiver on Fly.io catches HubSpot deal-creation webhooks, builds a structured snapshot (deal, creator, owner, contacts, companies, custom objects, timeline) via parallel HubSpot reads, then hands it to Claude Opus 4.7 in a tool-use loop where `submit_classification` enforces a typed output schema. Prompt caching on the system block keeps full eval-set runs cheap. Every ops override is captured to a `corrections.jsonl` feedback file, so the system gets smarter over time, and live HubSpot taxonomy is fetched at startup so the agent stays in sync without redeploys.",
+    result:
+      "Phase 1 (offline classifier) hit 76.3% accuracy on a 139-deal seed set against an 80% gate. Three of four categories pass; the next prompt iteration deepens engagement-timeline context to close the gap. Webhook receiver and Fly.io deployment are built but gated behind the accuracy bar.",
+    tags: ["Python", "Claude API", "FastAPI", "HubSpot"],
+    status: "IN PROGRESS",
+    screenshot: "/projects/pipeline-attribution/logo.png",
+    images: [],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/Pipeline-Attribution-Agent" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/pipeline-attribution/logo.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+  },
+  {
+    slug: "vendor-fingerprint",
+    issueNumber: 5,
     name: "Vendor Fingerprint",
     description:
       "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
@@ -130,7 +154,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shakedown",
-    issueNumber: 5,
+    issueNumber: 6,
     name: "Shakedown",
     description:
       "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
@@ -154,7 +178,7 @@ export const projects: Project[] = [
   },
   {
     slug: "web-tracker-scanner",
-    issueNumber: 6,
+    issueNumber: 7,
     name: "AI Web Tracker Scanner",
     description:
       "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
@@ -182,7 +206,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-trader",
-    issueNumber: 7,
+    issueNumber: 8,
     name: "Kalshi Weather Trader",
     description:
       "Autonomous trading bot for Kalshi prediction markets - multi-source weather forecasting, probability analysis, and real-money order execution.",
@@ -206,7 +230,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-mcp",
-    issueNumber: 8,
+    issueNumber: 9,
     name: "Kalshi Trading MCP",
     description:
       "Pip-installable MCP server for Kalshi with 20+ tools - weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
@@ -230,7 +254,7 @@ export const projects: Project[] = [
   },
   {
     slug: "semrush-enricher",
-    issueNumber: 9,
+    issueNumber: 10,
     name: "Semrush Enricher",
     description:
       "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
@@ -254,7 +278,7 @@ export const projects: Project[] = [
   },
   {
     slug: "f1-globe",
-    issueNumber: 10,
+    issueNumber: 11,
     name: "F1 Globe Calendar",
     description:
       "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
