@@ -109,13 +109,13 @@ export const projects: Project[] = [
     issueNumber: 4,
     name: "Pipeline Attribution Agent",
     description:
-      "LLM agent that classifies HubSpot deals into pipeline-source categories, replacing 15 brittle workflow rules with Claude reasoning over the full deal timeline.",
+      "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
     context:
-      "Pipeline source attribution at Freshpaint was a stack of ~15 brittle HubSpot workflow rules that fired on first match. They couldn't weigh signals against each other, couldn't explain themselves, and silently broke whenever a property name or enum value changed.",
+      "Every new sales deal at Freshpaint needs a source tag (paid ads, outbound, partnerships, and so on) so leadership can see what's actually driving revenue. The old setup was a stack of about 15 HubSpot rules that fired on the first match. They couldn't weigh competing signals, couldn't explain their decisions, and quietly broke whenever a field name changed. The result was attribution data the team didn't trust.",
     build:
-      "A FastAPI receiver on Fly.io catches HubSpot deal-creation webhooks, builds a structured snapshot (deal, creator, owner, contacts, companies, custom objects, timeline) via parallel HubSpot reads, then hands it to Claude Opus 4.7 in a tool-use loop where `submit_classification` enforces a typed output schema. Prompt caching on the system block keeps full eval-set runs cheap. Every ops override is captured to a `corrections.jsonl` feedback file, so the system gets smarter over time, and live HubSpot taxonomy is fetched at startup so the agent stays in sync without redeploys.",
+      "When a new deal is created in HubSpot, the system pulls together everything known about it (the contact, the company, marketing touches, sales activity, full timeline) and hands that complete picture to Claude. The model reasons over the evidence the way an analyst would and returns a single source category along with its rationale. Whenever the sales ops team overrides a call, that correction feeds back into the agent, so it keeps getting sharper over time.",
     result:
-      "Phase 1 (offline classifier) hit 76.3% accuracy on a 139-deal seed set against an 80% gate. Three of four categories pass; the next prompt iteration deepens engagement-timeline context to close the gap. Webhook receiver and Fly.io deployment are built but gated behind the accuracy bar.",
+      "Currently classifying deals at 76% accuracy on a 139-deal test set, with three of four categories already past the 80% target. The next round of tuning sharpens how the agent reads engagement history to close the last gap. Once it clears the bar, it goes live in production to replace the old rules.",
     tags: ["Python", "Claude API", "FastAPI", "HubSpot"],
     status: "IN PROGRESS",
     screenshot: "/projects/pipeline-attribution/logo.png",
@@ -300,6 +300,28 @@ export const projects: Project[] = [
     ],
     deviceType: "laptop",
     screenTexture: "/projects/f1-globe/F1-Logo-PNG-Image.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+  },
+  {
+    slug: "event-attributor",
+    issueNumber: 12,
+    name: "In-Person Event Attributor",
+    description:
+      "Tells the marketing team which outreach actually drove people to register and show up at in-person events.",
+    context:
+      "Marketing runs in-person events across cities and wants to know what's working: was it the SDR follow-up, the AE relationship, the email blast, or something else? Without an answer, the next event budget is a guess.",
+    build:
+      "For every attendee, the tool looks back over the months leading up to the event and finds the last meaningful touch before they registered, and again before they showed up. Each touch maps to a category like SDR, AE, Account Manager, Partners, or one of the marketing email tracks. The result is a per-attendee story and an event-level breakdown of what's pulling people in.",
+    result:
+      "Marketing now sees, per event, which channels drove registrations versus which ones got people through the door. Reruns are fast, evidence is auditable, and adding a new event is a one-line config change.",
+    tags: ["Python", "HubSpot", "Attribution"],
+    status: "LIVE",
+    screenshot: "/projects/event-attributor/logo.png",
+    images: [],
+    links: [],
+    deviceType: "laptop",
+    screenTexture: "/projects/event-attributor/logo.png",
     screenBgColor: "#FFFFFF",
     screenTextureScale: 0.6,
   },
