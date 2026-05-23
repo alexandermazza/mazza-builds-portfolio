@@ -25,8 +25,11 @@ import json, sys
 data = json.load(sys.stdin)
 result = []
 for d in data.get('daily', []):
+    raw_date = d.get('period') or d.get('date')
+    if not raw_date:
+        continue
     result.append({
-        'date': d['date'].replace('-', ''),
+        'date': raw_date.replace('-', ''),
         'total_tokens': d.get('totalTokens', 0),
         'input_tokens': d.get('inputTokens', 0),
         'output_tokens': d.get('outputTokens', 0),
