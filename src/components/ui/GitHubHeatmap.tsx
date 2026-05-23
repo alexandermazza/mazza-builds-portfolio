@@ -257,7 +257,7 @@ export function GitHubHeatmap({ className = "", compact = false, initialData, ..
       {status === "loading" && <span className={monoLabel}>[LOADING...]</span>}
       {status === "error" && <span className={monoLabel}>[GITHUB DATA UNAVAILABLE]</span>}
       {status !== "done" ? null : (<>
-      <div className="flex flex-wrap items-start justify-between gap-x-[var(--space-lg)] gap-y-[var(--space-md)]">
+      <div className="flex flex-col gap-[var(--space-lg)]">
       {/* ── Stats bar ────────────────────────────────────────────────────── */}
       <div className="flex gap-[var(--space-2xl)]">
         <div>
