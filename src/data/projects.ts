@@ -119,7 +119,9 @@ export const projects: Project[] = [
     tags: ["Python", "Claude API", "FastAPI", "HubSpot"],
     status: "IN PROGRESS",
     screenshot: "/projects/pipeline-attribution/logo.png",
-    images: [],
+    images: [
+      "/projects/pipeline-attribution/dashboard.jpg",
+    ],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/Pipeline-Attribution-Agent" },
     ],
