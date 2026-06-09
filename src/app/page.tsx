@@ -63,18 +63,18 @@ export default function Home() {
         </div>
         <TickerText
           items={[
-            { label: "IOS APPS", scrollTarget: "spotlight" },
+            "IOS APPS",
             "SHOPIFY TOOLS",
             "AI AGENTS",
             "TRADING BOTS",
             "MCP SERVERS",
-            "WEB APPS",
+            { label: "WEB APPS", scrollTarget: "spotlight" },
           ]}
           scrollTarget="projects"
         />
       </section>
 
-      {/* Spotlight — Daily Roman showcase */}
+      {/* Spotlight — SecondRound showcase */}
       <SpotlightSection />
 
       {/* Projects — full bleed */}

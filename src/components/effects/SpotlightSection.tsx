@@ -2,12 +2,17 @@
 
 import { useRef, useEffect, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
+import dynamic from "next/dynamic";
 import { gsap } from "@/lib/gsap";
 import { DURATION, EASE_OUT_MOTION } from "@/lib/motion";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { SplitFlapText } from "@/components/effects/SplitFlapText";
-import Image from "next/image";
 import { projects } from "@/data/projects";
+
+const DeviceScene = dynamic(
+  () => import("@/components/3d/DeviceScene").then((m) => m.DeviceScene),
+  { ssr: false }
+);
 
 // ─── Constants ────────────────────────────────────────
 
@@ -42,9 +47,9 @@ export function SpotlightSection() {
   const isInView = useInView(sectionRef, { once: true, margin: "-40% 0px -40% 0px" });
   const prefersReduced = useReducedMotion();
 
-  // Daily Roman data
-  const dailyRoman = projects.find((p) => p.slug === "daily-roman")!;
-  const appStoreUrl = dailyRoman.links.find((l) => l.label === "App Store")?.url ?? "#";
+  // SecondRound data
+  const secondRound = projects.find((p) => p.slug === "secondround")!;
+  const liveUrl = secondRound.links.find((l) => l.label === "Live")?.url ?? "https://secondround.app";
 
   // Canvas setup + animation
   useEffect(() => {
@@ -178,7 +183,7 @@ export function SpotlightSection() {
 
       {/* Content */}
       <div className="relative flex flex-col items-center text-center" style={{ zIndex: 1 }}>
-        {/* App icon */}
+        {/* MacBook — 3D device with white screen showing the SecondRound logo */}
         <motion.div
           initial={prefersReduced ? {} : { opacity: 0, y: 16 }}
           animate={isRevealed ? { opacity: 1, y: 0 } : undefined}
@@ -187,16 +192,19 @@ export function SpotlightSection() {
             ease: EASE_OUT_MOTION,
             delay: 0,
           }}
-          className="mb-[var(--space-lg)]"
+          className="mb-[var(--space-md)] h-[210px] w-[320px] md:h-[320px] md:w-[500px]"
         >
-          <Image
-            src="/projects/daily-roman/appicon.png"
-            alt="Daily Roman app icon"
-            width={96}
-            height={96}
-            className="md:h-[96px] md:w-[96px] h-[80px] w-[80px]"
-            style={{ borderRadius: "22%" }}
-          />
+          {isInView && (
+            <DeviceScene
+              deviceType="laptop"
+              screenTexture={secondRound.screenTexture}
+              scrollProgress={0}
+              isActive={isRevealed}
+              projectSlug={secondRound.slug}
+              screenBgColor={secondRound.screenBgColor}
+              screenTextureScale={secondRound.screenTextureScale}
+            />
+          )}
         </motion.div>
 
         {/* App name — SplitFlapText */}
@@ -215,7 +223,7 @@ export function SpotlightSection() {
             staggerMs={40}
             className="font-sans text-[clamp(40px,6vw,72px)] leading-[1.1] tracking-[-0.02em] text-[var(--text-display)]"
           >
-            Daily Roman
+            SecondRound
           </SplitFlapText>
         </motion.div>
 
@@ -228,12 +236,12 @@ export function SpotlightSection() {
             ease: EASE_OUT_MOTION,
             delay: prefersReduced ? 0 : 0.3,
           }}
-          className="mb-[var(--space-xl)] max-w-[280px] font-mono text-[13px] uppercase leading-[1.5] tracking-[0.06em] text-[var(--text-secondary)]"
+          className="mb-[var(--space-xl)] max-w-[340px] font-mono text-[13px] uppercase leading-[1.5] tracking-[0.06em] text-[var(--text-secondary)]"
         >
-          The Duolingo for Ancient Rome
+          Tailored resumes that pass the AI screener
         </motion.p>
 
-        {/* App Store badge */}
+        {/* Visit link */}
         <motion.div
           initial={prefersReduced ? {} : { opacity: 0, y: 16 }}
           animate={isRevealed ? { opacity: 1, y: 0 } : undefined}
@@ -244,24 +252,14 @@ export function SpotlightSection() {
           }}
         >
           <a
-            href={appStoreUrl}
+            href={liveUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-[10px] rounded-[10px] border border-[var(--border-visible)] px-[20px] py-[10px] transition-colors hover:border-[var(--text-secondary)]"
+            className="group inline-flex items-center gap-[8px] rounded-[var(--radius-pill)] border border-[var(--border-visible)] px-[20px] py-[10px] font-mono text-[13px] uppercase tracking-[0.06em] text-white transition-colors hover:border-[var(--accent)]"
             style={{ transitionDuration: "var(--duration-micro)" }}
           >
-            {/* Apple logo — inverted to white */}
-            <Image
-              src="/icons/apple-logo.png"
-              alt=""
-              width={24}
-              height={24}
-              className="brightness-0 invert"
-            />
-            <div className="flex flex-col items-start">
-              <span className="text-[10px] leading-[1.2] text-white">Download on the</span>
-              <span className="text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white">App Store</span>
-            </div>
+            <span>Visit secondround.app</span>
+            <span className="transition-colors group-hover:text-[var(--accent)]">→</span>
           </a>
         </motion.div>
       </div>

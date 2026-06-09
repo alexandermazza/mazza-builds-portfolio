@@ -24,8 +24,32 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "trailmix",
+    slug: "secondround",
     issueNumber: 1,
+    name: "SecondRound",
+    description:
+      "AI resume tailoring built for the AI screener. Add your career once, paste a job description, and get a fresh resume rewritten from your real experience - fit-scored, critiqued, and exported ATS-clean.",
+    context:
+      "By 2026 the first readers of any resume are LLMs: ATS parsers, screening agents, summarize-this-candidate copilots. Most resume tools still optimize for the human reader and treat the AI layer as an afterthought.",
+    build:
+      "A multi-tenant Next.js web app. You add your career once; for every job you paste, a staged LLM pipeline weights each requirement (must-have vs nice-to-have, plus knockout checks), scores your honest fit, then rewrites your bullets from your real experience in a chosen tone. Nothing is fabricated: grounding is enforced in code with a post-generation detector, and refusal is a first-class output when a rewrite would need a fact you never gave. A skeptical-recruiter critic then reads the tailored resume bullet by bullet and flags what to cut, swap, or reword. Built on Supabase/Postgres, NextAuth, Stripe, Zod, and live SSE streaming, with an ATS-clean single-column Typst PDF export.",
+    result:
+      "Live in production at secondround.app. Building is free; Pro unlocks PDF and plain-text export.",
+    tags: ["Next.js", "TypeScript", "Supabase", "Stripe"],
+    status: "LIVE",
+    screenshot: "/projects/secondround/newlogo.png",
+    images: [],
+    links: [
+      { label: "Live", url: "https://secondround.app" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/secondround/newlogo.png",
+    screenBgColor: "#ffffff",
+    screenTextureScale: 0.5,
+  },
+  {
+    slug: "trailmix",
+    issueNumber: 2,
     name: "Trailmix",
     description:
       "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
@@ -51,7 +75,7 @@ export const projects: Project[] = [
   },
   {
     slug: "daily-roman",
-    issueNumber: 2,
+    issueNumber: 3,
     name: "Daily Roman",
     description:
       "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
@@ -79,7 +103,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shopify-app",
-    issueNumber: 3,
+    issueNumber: 4,
     name: "ShopAI",
     description:
       "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
@@ -106,7 +130,7 @@ export const projects: Project[] = [
   },
   {
     slug: "pipeline-attribution",
-    issueNumber: 4,
+    issueNumber: 5,
     name: "Pipeline Attribution Agent",
     description:
       "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
@@ -132,7 +156,7 @@ export const projects: Project[] = [
   },
   {
     slug: "vendor-fingerprint",
-    issueNumber: 5,
+    issueNumber: 6,
     name: "Vendor Fingerprint",
     description:
       "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
@@ -156,7 +180,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shakedown",
-    issueNumber: 6,
+    issueNumber: 7,
     name: "Shakedown",
     description:
       "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
@@ -180,7 +204,7 @@ export const projects: Project[] = [
   },
   {
     slug: "web-tracker-scanner",
-    issueNumber: 7,
+    issueNumber: 8,
     name: "AI Web Tracker Scanner",
     description:
       "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
@@ -208,7 +232,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-trader",
-    issueNumber: 8,
+    issueNumber: 9,
     name: "Kalshi Weather Trader",
     description:
       "Autonomous trading bot for Kalshi prediction markets - multi-source weather forecasting, probability analysis, and real-money order execution.",
@@ -232,7 +256,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-mcp",
-    issueNumber: 9,
+    issueNumber: 10,
     name: "Kalshi Trading MCP",
     description:
       "Pip-installable MCP server for Kalshi with 20+ tools - weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
@@ -256,7 +280,7 @@ export const projects: Project[] = [
   },
   {
     slug: "semrush-enricher",
-    issueNumber: 10,
+    issueNumber: 11,
     name: "Semrush Enricher",
     description:
       "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
@@ -280,7 +304,7 @@ export const projects: Project[] = [
   },
   {
     slug: "f1-globe",
-    issueNumber: 11,
+    issueNumber: 12,
     name: "F1 Globe Calendar",
     description:
       "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
@@ -307,7 +331,7 @@ export const projects: Project[] = [
   },
   {
     slug: "event-attributor",
-    issueNumber: 12,
+    issueNumber: 13,
     name: "In-Person Event Attributor",
     description:
       "Tells the marketing team which outreach actually drove people to register and show up at in-person events.",
