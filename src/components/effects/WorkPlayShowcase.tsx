@@ -80,7 +80,8 @@ function Column({
               name={project.name}
               description={project.description}
               tags={project.tags}
-              status={project.status}
+              logo={project.logo}
+              logoBgColor={project.logoBgColor}
             />
           </LinkHover>
         ))}

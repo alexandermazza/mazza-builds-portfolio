@@ -18,6 +18,8 @@ const WORK_SLUGS = new Set([
   "web-tracker-scanner",
   "semrush-enricher",
   "event-attributor",
+  "event-hub",
+  "persona-automator",
 ]);
 
 const workProjects = projects.filter((p) => WORK_SLUGS.has(p.slug));

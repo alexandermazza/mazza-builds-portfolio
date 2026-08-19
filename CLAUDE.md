@@ -100,13 +100,13 @@ Note: the about page also applies a `.blueprint` class that overrides these toke
 - Ghost: transparent, no border, secondary text, hover brightens
 - All buttons: Space Mono, 13px, ALL CAPS, 0.06em tracking, min-height 44px
 
-### `<ProjectCard issueNumber={1} name="..." description="..." tags={[...]} status="LIVE" />`
+### `<ProjectCard issueNumber={1} name="..." description="..." tags={[...]} logo="/projects/x/logo.png" logoBgColor="#FFFFFF" />`
 - Nothing-styled card with `--surface` bg, `--border` border, `--radius-card`
 - Issue number: `ISSUE 01` in Space Mono, `--text-disabled`
+- Logo: 32px square, `--radius-compact`, `--border-visible` border, top-right (same mark as the homepage device screen; `logoBgColor` defaults to white)
 - Name: Space Grotesk at `--heading` size, `--text-display`
 - Description: `--body-sm`, `--text-secondary`
 - Tags rendered as `<TagChip>` components
-- Status rendered as `<StatusBadge>`
 
 ### `<StatusBadge status="LIVE" | "IN PROGRESS" | "ARCHIVED" />`
 - Technical radius (4px), bordered, Space Mono ALL CAPS 11px

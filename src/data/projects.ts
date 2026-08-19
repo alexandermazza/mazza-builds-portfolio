@@ -20,6 +20,10 @@ export interface Project {
   screenTexture: string;
   screenBgColor?: string;
   screenTextureScale?: number;
+  /** Small square logo shown on the projects-page card. Same mark as the device screen. Omit to show nothing. */
+  logo?: string;
+  /** Background behind the card logo (for transparent marks). Defaults to white. */
+  logoBgColor?: string;
 }
 
 export const projects: Project[] = [
@@ -46,165 +50,11 @@ export const projects: Project[] = [
     screenTexture: "/projects/secondround/newlogo.png",
     screenBgColor: "#ffffff",
     screenTextureScale: 0.5,
-  },
-  {
-    slug: "trailmix",
-    issueNumber: 2,
-    name: "Trailmix",
-    description:
-      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
-    context:
-      "Granola captures rich meeting notes, but action items die inside the transcript. Nothing routes them into the tools where work actually happens.",
-    build:
-      "Trailmix is a Next.js 16 app with a background worker that polls Granola every 30 seconds, runs extracted action items through an LLM for confidence scoring and deduplication, then delivers them to Slack with approve/reject buttons. Approvals optionally create monday.com items via GraphQL with mapped columns, groups, and assignees. Built on Drizzle ORM, NextAuth with Google OAuth, AES-256-GCM for stored credentials, and a circuit breaker that disables polling after repeated Slack failures.",
-    result:
-      "Live on Fly.io with a 3D-scene landing page. Operates in two modes, monday.com routing or Slack-only delivery, selected during a multi-step onboarding flow.",
-    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
-    status: "LIVE",
-    screenshot: "/projects/trailmix/screen.png",
-    images: [
-      "/projects/trailmix/trailmixhome.jpg",
-      "/projects/trailmix/trailmixslack.jpg",
-    ],
-    links: [
-      { label: "Live", url: "https://trailmix.fly.dev" },
-      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/trailmix/screen.png",
-  },
-  {
-    slug: "daily-roman",
-    issueNumber: 3,
-    name: "Daily Roman",
-    description:
-      "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
-    context:
-      "Ancient Roman history is fascinating but rarely shows up in daily learning apps. Most are language drills or generic trivia.",
-    build:
-      "A React Native/Expo iOS app that serves one AI-generated fact per day across 8 historical eras and 18 topics, paired with a Leitner-based spaced-repetition quiz system with 6 question types. Features a 3D coin flip mechanic, Latin-to-English morphing animations, a scholar progression from Tiro to Imperator, an interactive map of the Roman Empire, and iOS home screen widgets.",
-    result:
-      "Live on the App Store. The one-fact-a-day cadence and widget surfacing drive daily engagement without push-notification fatigue.",
-    tags: ["React Native", "Expo", "TypeScript"],
-    status: "LIVE",
-    screenshot: "/projects/daily-roman/screen.png",
-    video: "/projects/daily-roman/video.mp4",
-    images: [
-      "/projects/daily-roman/image-01.png",
-      "/projects/daily-roman/image-02.png",
-      "/projects/daily-roman/image-03.png",
-      "/projects/daily-roman/image-04.png",
-    ],
-    links: [
-      { label: "App Store", url: "https://apps.apple.com/mx/app/daily-roman-ancient-history/id6759132785?l=en-GB" },
-    ],
-    deviceType: "phone",
-    screenTexture: "/projects/daily-roman/screen.png",
-  },
-  {
-    slug: "shopify-app",
-    issueNumber: 4,
-    name: "ShopAI",
-    description:
-      "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
-    context:
-      "Shoppers land on a product page with questions the copy doesn't answer and reviews too long to read. Most bounce before buying.",
-    build:
-      "A Shopify Theme App Extension that answers natural-language product questions with OpenAI-powered, context-aware responses, and summarizes reviews into a sentiment snapshot so buyers can skip the scroll. Merchants configure brand voice, policies, and product context for on-brand responses without writing code. Built on Remix with Prisma.",
-    result:
-      "Live at shop-ai.co, installable directly from a Shopify store with no theme code changes.",
-    tags: ["Remix", "Shopify", "OpenAI", "Prisma"],
-    status: "LIVE",
-    screenshot: "/projects/shopify-app/screen.png",
-    videos: [
-      "/projects/shopify-app/askmeanything.mp4",
-      "/projects/shopify-app/reviewsummary.mp4",
-      "/projects/shopify-app/addtoshop.mp4",
-    ],
-    images: [],
-    links: [
-      { label: "Live", url: "https://shop-ai.co/" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/shopify-app/screen.png",
-  },
-  {
-    slug: "pipeline-attribution",
-    issueNumber: 5,
-    name: "Pipeline Attribution Agent",
-    description:
-      "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
-    context:
-      "Every new sales deal at Freshpaint needs a source tag (paid ads, outbound, partnerships, and so on) so leadership can see what's actually driving revenue. The old setup was a stack of about 15 HubSpot rules that fired on the first match. They couldn't weigh competing signals, couldn't explain their decisions, and quietly broke whenever a field name changed. The result was attribution data the team didn't trust.",
-    build:
-      "When a new deal is created in HubSpot, the system pulls together everything known about it (the contact, the company, marketing touches, sales activity, full timeline) and hands that complete picture to Claude. The model reasons over the evidence the way an analyst would and returns a single source category along with its rationale. Whenever the sales ops team overrides a call, that correction feeds back into the agent, so it keeps getting sharper over time.",
-    result:
-      "Currently classifying deals at 76% accuracy on a 139-deal test set, with three of four categories already past the 80% target. The next round of tuning sharpens how the agent reads engagement history to close the last gap. Once it clears the bar, it goes live in production to replace the old rules.",
-    tags: ["Python", "Claude API", "FastAPI", "HubSpot"],
-    status: "IN PROGRESS",
-    screenshot: "/projects/pipeline-attribution/logo.png",
-    images: [
-      "/projects/pipeline-attribution/dashboard.jpg",
-    ],
-    links: [
-      { label: "Source", url: "https://github.com/alexandermazza/Pipeline-Attribution-Agent" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/pipeline-attribution/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-  },
-  {
-    slug: "vendor-fingerprint",
-    issueNumber: 6,
-    name: "Vendor Fingerprint",
-    description:
-      "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
-    context:
-      "Identifying which scheduling software a healthcare company uses is slow, manual work. Sales and BD teams need it at list scale.",
-    build:
-      "A 7-stage Python pipeline that resolves homepages, extracts HTML signals (script tags, iframes, form actions), discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis is uncertain, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent: Haiku gathers signals by visiting pages, Sonnet reasons over the evidence. Each result includes vendor, confidence score, booking modality, evidence trail, and the discovered booking URL.",
-    result:
-      "Explains every classification via its evidence trail. Adding a new vendor is a YAML append, not a code change.",
-    tags: ["Python", "Playwright", "Claude API"],
-    status: "LIVE",
-    screenshot: "/projects/vendor-fingerprint/screen.png",
-    images: [
-      "/projects/vendor-fingerprint/image.png",
-    ],
-    links: [
-      { label: "Source", url: "https://github.com/alexandermazza/booking-vendor-scraper" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/vendor-fingerprint/screen.png",
-  },
-  {
-    slug: "shakedown",
-    issueNumber: 7,
-    name: "Shakedown",
-    description:
-      "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
-    context:
-      "New apps ship with big test coverage gaps and accumulated UX debt. Audits of either are manual, slow, and inconsistent.",
-    build:
-      "A Claude Code skill with two modes. In `code` mode it baselines the test infrastructure, maps every interaction, catalogs existing coverage in parallel, prioritizes uncovered paths by risk, then dispatches 3-5 parallel agents to write tests in rounds: pure functions first, stateful code second. In `ui` mode it tours the running app in a real browser via Playwright MCP, drives every control, captures screenshots, and sorts findings into bugs, friction, and dead features. Stack-agnostic; works on Next.js, React Native, Django, Rails, and Go.",
-    result:
-      "Took a real Expo app from 224 to 474 tests in a single session. A separate `ui` mode run on a React+Express app surfaced 15 bugs and 3 dead pages in one sitting. Distributed as an installable Claude Code plugin.",
-    tags: ["Claude Code", "AI Agents", "Testing"],
-    status: "LIVE",
-    screenshot: "/projects/shakedown/screen.png",
-    images: [
-      "/projects/shakedown/image.png",
-    ],
-    links: [
-      { label: "Source", url: "https://github.com/alexandermazza/shakedown" },
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/shakedown/shakedown.png",
+    logo: "/projects/secondround/newlogo.png",
   },
   {
     slug: "web-tracker-scanner",
-    issueNumber: 8,
+    issueNumber: 2,
     name: "AI Web Tracker Scanner",
     description:
       "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
@@ -229,10 +79,195 @@ export const projects: Project[] = [
     ],
     deviceType: "laptop",
     screenTexture: "/projects/web-tracker-scanner/screen.png",
+    logo: "/projects/web-tracker-scanner/logo.png",
+  },
+  {
+    slug: "pipeline-attribution",
+    issueNumber: 3,
+    name: "Pipeline Attribution Agent",
+    description:
+      "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
+    context:
+      "Every new sales deal at Freshpaint needs a source tag (paid ads, outbound, partnerships, and so on) so leadership can see what's actually driving revenue. The old setup was a stack of about 15 HubSpot rules that fired on the first match. They couldn't weigh competing signals, couldn't explain their decisions, and quietly broke whenever a field name changed. The result was attribution data the team didn't trust.",
+    build:
+      "When a new deal is created in HubSpot, the system pulls together everything known about it (the contact, the company, marketing touches, sales activity, full timeline) and hands that complete picture to Claude. The model reasons over the evidence the way an analyst would and returns a single source category along with its rationale. Whenever the sales ops team overrides a call, that correction feeds back into the agent, so it keeps getting sharper over time.",
+    result:
+      "Currently classifying deals at 76% accuracy on a 139-deal test set, with three of four categories already past the 80% target. The next round of tuning sharpens how the agent reads engagement history to close the last gap. Once it clears the bar, it goes live in production to replace the old rules.",
+    tags: ["Python", "Claude API", "FastAPI", "HubSpot"],
+    status: "IN PROGRESS",
+    screenshot: "/projects/pipeline-attribution/logo.png",
+    images: [
+      "/projects/pipeline-attribution/dashboard.jpg",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/Pipeline-Attribution-Agent" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/pipeline-attribution/logo.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+    logo: "/projects/pipeline-attribution/logo.png",
+  },
+  {
+    slug: "persona-automator",
+    issueNumber: 4,
+    name: "Persona Automator",
+    description:
+      "Headless service that reads Sales-pipeline contacts out of HubSpot and auto-classifies each one's persona and seniority with an LLM, on a recurring cron.",
+    context:
+      "Freshpaint's sales contacts in HubSpot are missing the two fields that make segmentation possible: what persona someone is and how senior they are. Filling them by hand across thousands of deal contacts doesn't scale, so the fields sit empty and every list build or report starts from a guess.",
+    build:
+      "A headless Python service that runs on a fly.io cron every four hours on weekdays. Each run pulls the contacts attached to Sales-pipeline deals, sends each one to an LLM through OpenRouter, and writes the predicted persona and seniority back to their HubSpot fields. The model is a single swappable env var, defaulting to a cheap Gemini Flash Lite tier and escalated by changing one slug. Classification is vertical-aware, and a dry-run mode writes predictions to a CSV for human review before anything touches HubSpot. Already-classified contacts are skipped by change detection so reruns stay cheap, and per-run and per-company caps let a change roll out as a small canary before full volume.",
+    result:
+      "Live on fly.io, running unattended on its weekday cron. Persona and seniority now populate themselves as deals move, instead of being a field nobody gets around to filling in.",
+    tags: ["Python", "HubSpot", "LLM", "OpenRouter"],
+    status: "LIVE",
+    screenshot: "/projects/persona-automator/logo.png",
+    images: [],
+    links: [],
+    deviceType: "laptop",
+    screenTexture: "/projects/persona-automator/logo.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+    logo: "/projects/persona-automator/logo.png",
+  },
+  {
+    slug: "trailmix",
+    issueNumber: 5,
+    name: "Trailmix",
+    description:
+      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
+    context:
+      "Granola captures rich meeting notes, but action items die inside the transcript. Nothing routes them into the tools where work actually happens.",
+    build:
+      "Trailmix is a Next.js 16 app with a background worker that polls Granola every 30 seconds, runs extracted action items through an LLM for confidence scoring and deduplication, then delivers them to Slack with approve/reject buttons. Approvals optionally create monday.com items via GraphQL with mapped columns, groups, and assignees. Built on Drizzle ORM, NextAuth with Google OAuth, AES-256-GCM for stored credentials, and a circuit breaker that disables polling after repeated Slack failures.",
+    result:
+      "Live on Fly.io with a 3D-scene landing page. Operates in two modes, monday.com routing or Slack-only delivery, selected during a multi-step onboarding flow.",
+    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
+    status: "LIVE",
+    screenshot: "/projects/trailmix/screen.png",
+    images: [
+      "/projects/trailmix/trailmixhome.jpg",
+      "/projects/trailmix/trailmixslack.jpg",
+    ],
+    links: [
+      { label: "Live", url: "https://trailmix.fly.dev" },
+      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/trailmix/screen.png",
+    logo: "/projects/trailmix/trailmix-logo-white.png",
+    logoBgColor: "#000000",
+  },
+  {
+    slug: "daily-roman",
+    issueNumber: 6,
+    name: "Daily Roman",
+    description:
+      "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
+    context:
+      "Ancient Roman history is fascinating but rarely shows up in daily learning apps. Most are language drills or generic trivia.",
+    build:
+      "A React Native/Expo iOS app that serves one AI-generated fact per day across 8 historical eras and 18 topics, paired with a Leitner-based spaced-repetition quiz system with 6 question types. Features a 3D coin flip mechanic, Latin-to-English morphing animations, a scholar progression from Tiro to Imperator, an interactive map of the Roman Empire, and iOS home screen widgets.",
+    result:
+      "Live on the App Store. The one-fact-a-day cadence and widget surfacing drive daily engagement without push-notification fatigue.",
+    tags: ["React Native", "Expo", "TypeScript"],
+    status: "LIVE",
+    screenshot: "/projects/daily-roman/screen.png",
+    video: "/projects/daily-roman/video.mp4",
+    images: [
+      "/projects/daily-roman/image-01.png",
+      "/projects/daily-roman/image-02.png",
+      "/projects/daily-roman/image-03.png",
+      "/projects/daily-roman/image-04.png",
+    ],
+    links: [
+      { label: "App Store", url: "https://apps.apple.com/mx/app/daily-roman-ancient-history/id6759132785?l=en-GB" },
+    ],
+    deviceType: "phone",
+    screenTexture: "/projects/daily-roman/screen.png",
+    logo: "/projects/daily-roman/appicon.png",
+  },
+  {
+    slug: "shopify-app",
+    issueNumber: 7,
+    name: "ShopAI",
+    description:
+      "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
+    context:
+      "Shoppers land on a product page with questions the copy doesn't answer and reviews too long to read. Most bounce before buying.",
+    build:
+      "A Shopify Theme App Extension that answers natural-language product questions with OpenAI-powered, context-aware responses, and summarizes reviews into a sentiment snapshot so buyers can skip the scroll. Merchants configure brand voice, policies, and product context for on-brand responses without writing code. Built on Remix with Prisma.",
+    result:
+      "Live at shop-ai.co, installable directly from a Shopify store with no theme code changes.",
+    tags: ["Remix", "Shopify", "OpenAI", "Prisma"],
+    status: "LIVE",
+    screenshot: "/projects/shopify-app/screen.png",
+    videos: [
+      "/projects/shopify-app/askmeanything.mp4",
+      "/projects/shopify-app/reviewsummary.mp4",
+      "/projects/shopify-app/addtoshop.mp4",
+    ],
+    images: [],
+    links: [
+      { label: "Live", url: "https://shop-ai.co/" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/shopify-app/screen.png",
+    logo: "/projects/shopify-app/shopailogo.png",
+  },
+  {
+    slug: "vendor-fingerprint",
+    issueNumber: 8,
+    name: "Vendor Fingerprint",
+    description:
+      "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
+    context:
+      "Identifying which scheduling software a healthcare company uses is slow, manual work. Sales and BD teams need it at list scale.",
+    build:
+      "A 7-stage Python pipeline that resolves homepages, extracts HTML signals (script tags, iframes, form actions), discovers booking links, and fingerprints them against 37+ known vendors like MyChart, Zocdoc, and Calendly. When static analysis is uncertain, it escalates to headless Chromium via Playwright to capture live network requests, then to a two-tier Claude agent: Haiku gathers signals by visiting pages, Sonnet reasons over the evidence. Each result includes vendor, confidence score, booking modality, evidence trail, and the discovered booking URL.",
+    result:
+      "Explains every classification via its evidence trail. Adding a new vendor is a YAML append, not a code change.",
+    tags: ["Python", "Playwright", "Claude API"],
+    status: "LIVE",
+    screenshot: "/projects/vendor-fingerprint/screen.png",
+    images: [
+      "/projects/vendor-fingerprint/image.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/booking-vendor-scraper" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/vendor-fingerprint/screen.png",
+    logo: "/projects/vendor-fingerprint/vendorfingerprint.png",
+  },
+  {
+    slug: "shakedown",
+    issueNumber: 9,
+    name: "Shakedown",
+    description:
+      "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
+    context:
+      "New apps ship with big test coverage gaps and accumulated UX debt. Audits of either are manual, slow, and inconsistent.",
+    build:
+      "A Claude Code skill with two modes. In `code` mode it baselines the test infrastructure, maps every interaction, catalogs existing coverage in parallel, prioritizes uncovered paths by risk, then dispatches 3-5 parallel agents to write tests in rounds: pure functions first, stateful code second. In `ui` mode it tours the running app in a real browser via Playwright MCP, drives every control, captures screenshots, and sorts findings into bugs, friction, and dead features. Stack-agnostic; works on Next.js, React Native, Django, Rails, and Go.",
+    result:
+      "Took a real Expo app from 224 to 474 tests in a single session. A separate `ui` mode run on a React+Express app surfaced 15 bugs and 3 dead pages in one sitting. Distributed as an installable Claude Code plugin.",
+    tags: ["Claude Code", "AI Agents", "Testing"],
+    status: "LIVE",
+    screenshot: "/projects/shakedown/screen.png",
+    images: [
+      "/projects/shakedown/image.png",
+    ],
+    links: [
+      { label: "Source", url: "https://github.com/alexandermazza/shakedown" },
+    ],
+    deviceType: "laptop",
+    screenTexture: "/projects/shakedown/shakedown.png",
   },
   {
     slug: "kalshi-trader",
-    issueNumber: 9,
+    issueNumber: 10,
     name: "Kalshi Weather Trader",
     description:
       "Autonomous trading bot for Kalshi prediction markets - multi-source weather forecasting, probability analysis, and real-money order execution.",
@@ -256,7 +291,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-mcp",
-    issueNumber: 10,
+    issueNumber: 11,
     name: "Kalshi Trading MCP",
     description:
       "Pip-installable MCP server for Kalshi with 20+ tools - weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
@@ -280,7 +315,7 @@ export const projects: Project[] = [
   },
   {
     slug: "semrush-enricher",
-    issueNumber: 11,
+    issueNumber: 12,
     name: "Semrush Enricher",
     description:
       "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
@@ -301,10 +336,11 @@ export const projects: Project[] = [
     ],
     deviceType: "laptop",
     screenTexture: "/projects/semrush-enricher/screen.png",
+    logo: "/projects/semrush-enricher/semrush.png",
   },
   {
     slug: "f1-globe",
-    issueNumber: 12,
+    issueNumber: 13,
     name: "F1 Globe Calendar",
     description:
       "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
@@ -328,10 +364,11 @@ export const projects: Project[] = [
     screenTexture: "/projects/f1-globe/F1-Logo-PNG-Image.png",
     screenBgColor: "#FFFFFF",
     screenTextureScale: 0.6,
+    logo: "/projects/f1-globe/F1-Logo-PNG-Image.png",
   },
   {
     slug: "event-attributor",
-    issueNumber: 13,
+    issueNumber: 14,
     name: "In-Person Event Attributor",
     description:
       "Tells the marketing team which outreach actually drove people to register and show up at in-person events.",
@@ -350,6 +387,31 @@ export const projects: Project[] = [
     screenTexture: "/projects/event-attributor/logo.png",
     screenBgColor: "#FFFFFF",
     screenTextureScale: 0.6,
+    logo: "/projects/event-attributor/logo.png",
+  },
+  {
+    slug: "event-hub",
+    issueNumber: 15,
+    name: "Event Hub",
+    description:
+      "Internal Freshpaint reporting app that pulls the entire event program out of HubSpot and answers, per quarter, what each event actually did for pipeline.",
+    context:
+      "Freshpaint's events team tracks every conference, House Call, and field event in HubSpot, but the numbers they're judged on don't live on the event record. They're scattered across events, deals, pipelines, stages, and companies, and have to be re-derived every time someone asks. Every quarterly review turned into a manual export-and-reconcile exercise.",
+    build:
+      "A Next.js 15 app on a single Fly.io machine. An hourly sync pulls a full HubSpot snapshot into SQLite inside one all-or-nothing transaction, then four pipeline KPIs (open, influenced, influenced revenue, created) are computed in SQL at read time, so a definition change is a one-line edit with no resync. Stage semantics come from synced pipeline metadata rather than hardcoded IDs, so a HubSpot rename can't silently break a number. Events missing a location get one inferred by a cheap-first LLM pass, each card is auto-illustrated with a license-clean city photo chosen by a vision model, and every event plots onto a WebGL globe. Google sign-in is enforced server-side and restricted to @freshpaint.io.",
+    result:
+      "Live and used by the team on one always-on Fly.io machine. The quarterly 'what did events do for pipeline' reconciliation is now a page: pick a quarter and every event is there with its KPIs already deduped and attributed, each number drilling down to its source deals in HubSpot.",
+    tags: ["Next.js", "TypeScript", "SQLite", "HubSpot"],
+    status: "LIVE",
+    screenshot: "/projects/event-hub/logo.png",
+    video: "/projects/event-hub/video.mp4",
+    images: [],
+    links: [],
+    deviceType: "laptop",
+    screenTexture: "/projects/event-hub/logo.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+    logo: "/projects/event-hub/logo.png",
   },
 ];
 

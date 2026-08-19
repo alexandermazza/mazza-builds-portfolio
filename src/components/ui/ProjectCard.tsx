@@ -1,18 +1,18 @@
 "use client";
 
 import { type ComponentProps } from "react";
-import { StatusBadge } from "./StatusBadge";
 import { TagChip } from "./TagChip";
 import { SplitFlapText } from "@/components/effects/SplitFlapText";
-
-type Status = "LIVE" | "IN PROGRESS" | "ARCHIVED";
 
 interface ProjectCardProps extends Omit<ComponentProps<"article">, "children"> {
   issueNumber: number;
   name: string;
   description: string;
   tags: string[];
-  status: Status;
+  /** Square logo rendered top-right, same mark as the homepage device screen. Omit to render nothing. */
+  logo?: string;
+  /** Background behind the logo for transparent marks. Defaults to white. */
+  logoBgColor?: string;
 }
 
 export function ProjectCard({
@@ -20,7 +20,8 @@ export function ProjectCard({
   name,
   description,
   tags,
-  status,
+  logo,
+  logoBgColor = "#FFFFFF",
   className = "",
   ...props
 }: ProjectCardProps) {
@@ -36,12 +37,31 @@ export function ProjectCard({
       }}
       {...props}
     >
-      {/* Tertiary: issue number + status */}
-      <div className="mb-[var(--space-md)] flex items-center justify-between">
+      {/* Tertiary: issue number + logo */}
+      <div className="mb-[var(--space-md)] flex min-h-[32px] items-center justify-between">
         <span className="font-mono text-[11px] uppercase leading-[1.2] tracking-[0.08em] text-[var(--text-disabled)]">
           ISSUE {formattedNumber}
         </span>
-        <StatusBadge status={status} />
+        {logo && (
+          <span
+            aria-hidden="true"
+            className="flex h-[32px] w-[32px] shrink-0 items-center justify-center overflow-hidden border border-[var(--border-visible)]"
+            style={{
+              borderRadius: "var(--radius-compact)",
+              backgroundColor: logoBgColor,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logo}
+              alt=""
+              width={32}
+              height={32}
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+          </span>
+        )}
       </div>
 
       {/* Primary: project name */}
