@@ -149,8 +149,10 @@ export default function AboutPage() {
               className="grid grid-cols-1 gap-[var(--space-md)] md:grid-cols-2"
               stagger={0.15}
             >
-              <UsageCard />
-              <GitHubCard />
+              {/* compact: full-size grid outgrows the half-width column
+                  mid-year; compact fits all 52 weeks (same as homepage) */}
+              <UsageCard compact />
+              <GitHubCard compact />
             </ScrollGridAnimation>
           </SpecBlock>
         </section>
