@@ -88,12 +88,14 @@ function formatDateLabel(d: Date): string {
   return `${MONTH_ABBREVS[d.getMonth()]} ${d.getDate()}`;
 }
 
+// Monochrome ramp (Nothing OS glyph style). Provider-agnostic on purpose:
+// no brand hue, and stays legible on both the dark and blueprint surfaces.
 function cellColor(tokens: number): string {
   if (tokens <= 0) return "rgba(255,255,255,0.06)";
-  if (tokens <= 2_000_000) return "rgba(255,107,53,0.20)";
-  if (tokens <= 15_000_000) return "rgba(255,107,53,0.45)";
-  if (tokens <= 40_000_000) return "rgba(255,107,53,0.70)";
-  return "#FF6B35";
+  if (tokens <= 2_000_000) return "rgba(255,255,255,0.18)";
+  if (tokens <= 15_000_000) return "rgba(255,255,255,0.36)";
+  if (tokens <= 40_000_000) return "rgba(255,255,255,0.62)";
+  return "#FFFFFF";
 }
 
 function toSunday(d: Date): Date {
@@ -361,7 +363,7 @@ export function UsageHeatmap({ className = "", compact = false, initialData, ...
           <div
             ref={gridRef}
             role="grid"
-            aria-label="Claude token usage heatmap for the current year"
+            aria-label="AI token usage heatmap for the current year"
             style={{
               position: "relative",
               width: gridWidth,

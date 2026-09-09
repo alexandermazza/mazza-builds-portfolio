@@ -17,7 +17,7 @@ export function UsageCard({ className = "", compact = false, ...props }: UsageCa
       {...props}
     >
       <span className="font-mono text-[11px] uppercase leading-[1.2] tracking-[0.08em] text-[var(--text-disabled)]">
-        BUILT WITH CLAUDE
+        AI BUILD ACTIVITY
       </span>
 
       <p className="mt-[var(--space-xs)] mb-[var(--space-lg)] font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
