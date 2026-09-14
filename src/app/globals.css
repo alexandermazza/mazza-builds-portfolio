@@ -82,3 +82,26 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Failsafe: reveal content when client JS never boots ──────────────────
+   The hero sits behind a fixed opaque boot overlay and ~150 elements ship at
+   inline opacity:0, revealed only by GSAP after hydration. If the bundle is
+   blocked by a proxy, the browser is older than Next's baseline, or storage
+   access throws, none of that runs and the visitor is stranded on a black
+   screen with no way to tell the site apart from a dead server.
+
+   These rules undo the hidden state. They are applied by the inline watchdog
+   in layout.tsx (html.js-stalled) and mirrored in its <noscript> block.
+   Scoped to inline opacity only, so runtime-hidden UI (menu panel, page
+   transition overlay) is untouched. */
+.js-stalled [data-boot-overlay] {
+  display: none !important;
+}
+
+.js-stalled [style*="opacity:0"] {
+  opacity: 1 !important;
+}
+
+.js-stalled body {
+  overflow: visible !important;
+}

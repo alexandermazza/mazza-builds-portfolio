@@ -6,6 +6,7 @@ export { Input } from "./Input";
 export { Textarea } from "./Textarea";
 export { MagneticFilings } from "./MagneticFilings";
 export { GitHubHeatmap } from "./GitHubHeatmap";
+export { HydrationBeacon } from "./HydrationBeacon";
 export { ProjectCard } from "./ProjectCard";
 export { ScrollTextLines } from "./ScrollTextLines";
 export { SplitTextScatter } from "./SplitTextScatter";
