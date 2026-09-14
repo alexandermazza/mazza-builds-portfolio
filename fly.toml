@@ -20,7 +20,13 @@ primary_region = 'ord'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  # Keep one machine warm. At 0 the only machine slept after ~5 minutes idle and
+  # the next visitor paid a 6-9s cold start: ~1.2s to boot the VM plus ~5.4s for
+  # Next to become reachable. This is a portfolio sent to recruiters, so that
+  # wait lands on exactly the people it should not. Costs ~$5.92/month for this
+  # shared-cpu-1x:1024MB against roughly $0.50 when it was sleeping.
+  # auto_stop_machines stays on so any additional machines still scale to zero.
+  min_machines_running = 1
 
 [[vm]]
   memory = '1gb'
