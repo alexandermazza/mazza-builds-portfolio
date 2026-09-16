@@ -271,13 +271,13 @@ export const projects: Project[] = [
     issueNumber: 10,
     name: "Kalshi Weather Trader",
     description:
-      "Autonomous trading bot for Kalshi prediction markets - multi-source weather forecasting, probability analysis, and real-money order execution.",
+      "Quantitative weather forecasting system for Kalshi event contracts - multi-source ensemble modelling, probability distribution analysis, and automated execution under risk limits.",
     context:
-      "Kalshi's weather markets mis-price short-dated temperature contracts when forecast distributions disagree with market-implied probabilities.",
+      "Short-dated temperature contracts get mispriced when forecast distributions disagree with market-implied probabilities. The hard part is the meteorology, not the execution.",
     build:
-      "Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions for temperature buckets, and places maker NO orders when edge exceeds thresholds. Claude-powered agents scan markets every 30 minutes with position recovery and risk management. A separate BTC latency-arbitrage strategy reacts to Coinbase WebSocket price moves faster than Kalshi can reprice. APScheduler drives the engine, SQLAlchemy persists state, and a Flask dashboard surfaces real-time P&L.",
+      "Pulls multi-source forecasts from NWS, HRRR, GFS, and ECMWF ensembles, calculates probability distributions across temperature buckets, and acts only when modelled edge clears a threshold. Claude-powered agents re-evaluate every 30 minutes with position recovery and risk management. APScheduler drives the engine, SQLAlchemy persists state, and a Flask dashboard surfaces live performance.",
     result:
-      "Runs autonomously with daily outcome tracking that feeds back into agent decisions. Real capital at stake.",
+      "Runs autonomously with daily outcome tracking that feeds back into agent decisions, closing the loop between forecast accuracy and position sizing.",
     tags: ["Python", "Claude API", "MCP", "Flask"],
     status: "LIVE",
     screenshot: "/projects/kalshi-trader/screen.png",
@@ -295,11 +295,11 @@ export const projects: Project[] = [
     issueNumber: 11,
     name: "Kalshi Trading MCP",
     description:
-      "Pip-installable MCP server for Kalshi with 20+ tools - weather forecasting, ensemble analysis, safety controls, and two-step order confirmation.",
+      "Pip-installable MCP server for Kalshi with 20+ tools - ensemble weather forecasting, quantitative market analysis, safety controls, and two-step confirmation.",
     context:
-      "Most Kalshi MCP servers are thin 5-10 tool API wrappers, useful for checking balance but useless for actual market analysis.",
+      "Most Kalshi MCP servers are thin 5-10 tool API wrappers, useful for checking balance but useless for actual quantitative analysis.",
     build:
-      "A pip-installable FastMCP server with 20+ tools covering account management, market analysis, order execution, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Safety controls include price caps, daily limits, cash reserves, NO-only strategy enforcement, and a two-step `prepare_order` then `confirm_order` flow that prevents accidental trades. Supports 8 cities with cross-city correlation analysis and AFD change detection.",
+      "A pip-installable FastMCP server with 20+ tools covering account management, market analysis, multi-source weather forecasting (NWS, HRRR, GFS, ECMWF), real-time METAR observations, and position drift monitoring. Safety controls include price caps, daily limits, cash reserves, strategy enforcement, and a two-step `prepare_order` then `confirm_order` flow that makes accidental actions impossible. Supports 8 cities with cross-city correlation analysis and AFD change detection.",
     result:
       "Installable via `pip install kalshi-trading-mcp` and plugs into Claude Code or Claude Desktop via standard MCP config. Demo and production environments both supported.",
     tags: ["Python", "FastMCP", "Kalshi API"],

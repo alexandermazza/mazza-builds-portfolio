@@ -36,7 +36,7 @@ export default function Home() {
           <ScrollTextLines className="mb-[var(--space-2xl)] max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-primary)] [&>span]:mb-[var(--space-sm)] [&>span:last-child]:mb-0">
             I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d
             rather write the software than evaluate it. AI-powered apps, automation systems,
-            and tools end-to-end - iOS, web, trading bots, the works. Day job: AI operations at a healthcare
+            and tools end-to-end - iOS, web, trading systems, the works. Day job: AI operations at a healthcare
             SaaS company. Side projects: whatever I can&apos;t stop thinking
             about.
           </ScrollTextLines>
@@ -66,7 +66,7 @@ export default function Home() {
             "IOS APPS",
             "SHOPIFY TOOLS",
             "AI AGENTS",
-            "TRADING BOTS",
+            "TRADING SYSTEMS",
             "MCP SERVERS",
             { label: "WEB APPS", scrollTarget: "spotlight" },
           ]}

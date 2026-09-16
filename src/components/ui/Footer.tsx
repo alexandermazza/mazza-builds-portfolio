@@ -111,9 +111,20 @@ export function Footer() {
       <div className="h-px w-full bg-[var(--border)]" />
 
       {/* Bottom row */}
-      <div className="flex flex-col gap-[var(--space-sm)] pt-[var(--space-md)] md:pt-[var(--space-xl)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-[var(--space-sm)] sm:gap-[var(--space-xl)] pt-[var(--space-md)] md:pt-[var(--space-xl)] sm:flex-row sm:items-center sm:justify-between">
         <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           &copy; {new Date().getFullYear()} MAZZA BUILDS
+          <span className="mx-[var(--space-sm)] text-[var(--border-visible)]">/</span>
+          <a
+            href="/privacy"
+            className="underline underline-offset-2 transition-colors hover:text-[var(--text-secondary)]"
+            style={{
+              transitionDuration: "var(--duration-micro)",
+              transitionTimingFunction: "var(--ease-out)",
+            }}
+          >
+            PRIVACY
+          </a>
         </p>
         <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
           3D models:{" "}
