@@ -1,0 +1,113 @@
+{
+  "rows": [
+    {
+      "id": "7c2c1b69-0a93-494d-9586-d9ab55aae10c",
+      "title": "Senior GTM Engineer",
+      "company": "Engine",
+      "locations": [
+        "United States"
+      ],
+      "posted_at": "2026-09-17T00:50:12.000Z",
+      "url": "https://job-boards.greenhouse.io/engine/jobs/7997827003",
+      "countries": [
+        "United States"
+      ],
+      "workplace_type": "Hybrid",
+      "employment_type": [
+        "FULL_TIME"
+      ],
+      "already_had": false
+    },
+    {
+      "id": "15dc018b-9594-4bd7-9c0f-77884372972f",
+      "title": "Go-to-Market Engineer",
+      "company": "RingCentral",
+      "locations": [
+        "Denver, Colorado, United States"
+      ],
+      "posted_at": "2026-09-17T00:00:00.000Z",
+      "url": "https://ringcentral.wd1.myworkdayjobs.com/RingCentral_Careers/job/Denver-Colorado/Go-to-Market-Engineer_R078561",
+      "countries": [
+        "United States"
+      ],
+      "workplace_type": "Hybrid",
+      "employment_type": [
+        "FULL_TIME"
+      ],
+      "already_had": false
+    },
+    {
+      "id": "02b74168-ca92-4616-9c72-39a01ece1b37",
+      "title": "AI Ops Engineer GTM",
+      "company": "Agiloft",
+      "locations": [
+        "United States"
+      ],
+      "posted_at": "2026-09-17T00:00:00.000Z",
+      "url": "https://jobs.lever.co/agiloft/86522290-d4a5-4f5a-8ffd-ac4654405dd8",
+      "countries": [
+        "United States"
+      ],
+      "workplace_type": "Remote OK",
+      "employment_type": [
+        "FULL_TIME"
+      ],
+      "already_had": false
+    },
+    {
+      "id": "52364515-3be5-40af-aece-3d9dc7af77f1",
+      "title": "Senior GTM Engineer",
+      "company": "Jobgether",
+      "locations": [
+        "United States"
+      ],
+      "posted_at": "2026-09-17T00:00:00.000Z",
+      "url": "https://jobs.lever.co/jobgether/a3196d19-2ec8-45ea-8618-bfcdb288e276",
+      "countries": [
+        "United States"
+      ],
+      "workplace_type": "Hybrid",
+      "employment_type": [
+        "FULL_TIME"
+      ],
+      "already_had": false
+    }
+  ],
+  "cursor": null,
+  "postings": {
+    "pulled": 4,
+    "matching": 4,
+    "already_had": 0,
+    "used": 4,
+    "left": 1,
+    "period": "day",
+    "window": {
+      "kind": "since",
+      "day": "2026-09-17"
+    },
+    "next_posted_after": "2026-09-18",
+    "upgrade": {
+      "price_usd": 20,
+      "free": {
+        "postings": 5,
+        "postings_period": "day",
+        "quick_judgments": 150,
+        "full_judgments": 75,
+        "semantic": 50,
+        "pulls_per_day": 10,
+        "counts_per_day": 50,
+        "routines": 0
+      },
+      "pro": {
+        "postings": 1500,
+        "postings_period": "month",
+        "quick_judgments": 1500,
+        "full_judgments": 750,
+        "semantic": "unlimited",
+        "pulls_per_day": 50,
+        "counts_per_day": 200,
+        "routines": 3
+      }
+    }
+  }
+}
