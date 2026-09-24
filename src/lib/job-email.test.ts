@@ -59,6 +59,26 @@ describe("buildDigest", () => {
     expect(buildDigest([job()], 0, now).text.toLowerCase()).not.toContain("credit");
   });
 
+  it("escapes employer text and the apply link so the email cannot be broken", () => {
+    const digest = buildDigest(
+      [
+        job({
+          title: "GTM Engineer <AI & Growth>",
+          company: '"Acme" <script>alert(1)</script>',
+          url: 'https://example.com/job?a="b',
+        }),
+      ],
+      0,
+      now,
+    );
+    expect(digest.html).not.toContain("<script>");
+    expect(digest.html).toContain("&lt;script&gt;");
+    expect(digest.html).toContain("GTM Engineer &lt;AI &amp; Growth&gt;");
+    expect(digest.html).toContain('href="https://example.com/job?a=&quot;b"');
+    // The plain text part is not markup, so it keeps the original characters.
+    expect(digest.text).toContain("GTM Engineer <AI & Growth>");
+  });
+
   it("puts remote roles first", () => {
     const digest = buildDigest(
       [

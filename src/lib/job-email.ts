@@ -5,6 +5,16 @@ import { rankJobs } from "./job-filter";
 const FROM = "Mazza Builds Jobs <contact@mazzabuilds.com>";
 const TO = "alexmazza96@gmail.com";
 
+/** Titles, company names and links come from employers, so nothing goes into the HTML raw. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function thousands(value: number): string {
   return `$${Math.round(value / 1000)}k`;
 }
@@ -61,9 +71,9 @@ export function buildDigest(
         ? `${job.locations} (${job.workplace_type})`
         : job.locations;
       return `<tr>
-        <td style="padding:8px 12px 8px 0"><a href="${job.url}">${job.title}</a></td>
-        <td style="padding:8px 12px 8px 0">${job.company}</td>
-        <td style="padding:8px 12px 8px 0">${where}</td>
+        <td style="padding:8px 12px 8px 0"><a href="${escapeHtml(job.url)}">${escapeHtml(job.title)}</a></td>
+        <td style="padding:8px 12px 8px 0">${escapeHtml(job.company)}</td>
+        <td style="padding:8px 12px 8px 0">${escapeHtml(where)}</td>
         <td style="padding:8px 12px 8px 0">${formatPay(job.comp_min, job.comp_max)}</td>
         <td style="padding:8px 0">${hoursOld(job.posted_at, now)}</td>
       </tr>`;

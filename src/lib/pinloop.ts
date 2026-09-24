@@ -11,8 +11,13 @@ export const TITLE_QUERY =
 export const COUNTRY = "United States";
 export const SOURCE = "career sites";
 
-/** How long one Pinloop call may take. npx resolves the package on the first run. */
-const TIMEOUT_MS = 120_000;
+/**
+ * How long each Pinloop call may take. npx resolves the package on the first run.
+ * The two together stay under the 240s the GitHub Actions caller waits, so a slow
+ * scan reports a result rather than timing out on the client and looking broken.
+ */
+const PULL_TIMEOUT_MS = 90_000;
+const FETCH_TIMEOUT_MS = 45_000;
 
 export interface PinloopRow {
   id: string;
@@ -83,6 +88,45 @@ export function retryLimitFromRefusal(message: string): number | null {
   return Number.isFinite(left) && left > 0 ? left : null;
 }
 
+/**
+ * How many postings the refused call would have handed over. It is a floor rather
+ * than the full count of what matched, and it is the only number a refusal carries,
+ * so it is what the record of missed postings is built from.
+ */
+export function matchedFromRefusal(message: string): number {
+  const match = /would take (\d+)|could take up to (\d+)/i.exec(message);
+  if (!match) return 0;
+  const found = Number(match[1] ?? match[2]);
+  return Number.isFinite(found) ? found : 0;
+}
+
+/**
+ * What the CLI is allowed to see. `pinloop@latest` is resolved from the registry at
+ * run time on the machine holding the database, so it is handed the variables it
+ * needs and none of this app's secrets.
+ */
+export function childEnv(
+  configDir: string,
+  source: Record<string, string | undefined> = process.env,
+): Record<string, string | undefined> {
+  const passed: Record<string, string | undefined> = {
+    PINLOOP_CONFIG_DIR: configDir,
+    NO_COLOR: "1",
+  };
+  for (const name of [
+    "PATH",
+    "HOME",
+    "NODE_ENV",
+    "npm_config_cache",
+    "TMPDIR",
+    "NODE_EXTRA_CA_CERTS",
+  ]) {
+    const value = source[name];
+    if (value !== undefined) passed[name] = value;
+  }
+  return passed;
+}
+
 export function parsePull(stdout: string): PullResult {
   const data = asJson(stdout);
   const empty: PullResult = {
@@ -144,13 +188,22 @@ export function parseFetch(stdout: string): FetchRecord[] {
   });
 }
 
-async function cli(args: string[], configDir: string): Promise<string> {
-  const { stdout } = await run("npx", ["--yes", "pinloop@latest", ...args], {
-    timeout: TIMEOUT_MS,
-    maxBuffer: 10 * 1024 * 1024,
-    env: { ...process.env, PINLOOP_CONFIG_DIR: configDir, NO_COLOR: "1" },
-  });
-  return stdout;
+async function cli(args: string[], configDir: string, timeoutMs: number): Promise<string> {
+  try {
+    const { stdout } = await run("npx", ["--yes", "pinloop@latest", ...args], {
+      timeout: timeoutMs,
+      maxBuffer: 10 * 1024 * 1024,
+      env: childEnv(configDir) as NodeJS.ProcessEnv,
+    });
+    return stdout;
+  } catch (err) {
+    // A non-zero exit still carries whatever the CLI printed. A refusal or a server
+    // error arrives as JSON on stdout, and throwing that away would lose both the
+    // reason and the smaller limit a refusal names.
+    const printed = (err as { stdout?: unknown }).stdout;
+    if (typeof printed === "string" && printed.trim().startsWith("{")) return printed;
+    throw err;
+  }
 }
 
 export async function pull(opts: {
@@ -175,6 +228,7 @@ export async function pull(opts: {
       "--json",
     ],
     opts.configDir,
+    PULL_TIMEOUT_MS,
   );
   return parsePull(stdout);
 }
@@ -184,6 +238,6 @@ export async function fetchRecords(
   opts: { configDir: string },
 ): Promise<FetchRecord[]> {
   if (ids.length === 0) return [];
-  const stdout = await cli(["fetch", ids.join(","), "--json"], opts.configDir);
+  const stdout = await cli(["fetch", ids.join(","), "--json"], opts.configDir, FETCH_TIMEOUT_MS);
   return parseFetch(stdout);
 }

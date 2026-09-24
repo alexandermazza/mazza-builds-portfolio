@@ -87,7 +87,7 @@ describe("jobs-db", () => {
     expect(jobsDb.getUnemailedJobs()).toHaveLength(0);
   });
 
-  it("records a scan", () => {
+  it("records a scan and reads it back", () => {
     jobsDb.recordScan({
       run_at: "2026-09-24T12:00:00.000Z",
       posted_after: "2026-09-23",
@@ -100,6 +100,45 @@ describe("jobs-db", () => {
       emailed: 1,
       error: null,
     });
-    // No throw is the assertion; the stored row is read back in the scan tests.
+    const last = jobsDb.getLastScan();
+    expect(last?.pulled).toBe(4);
+    expect(last?.missed).toBe(3);
+    expect(last?.posted_after).toBe("2026-09-23");
+  });
+
+  it("does not let a stored out-of-area role mask a later in-area one", () => {
+    // Navan/Austin arrives first and is stored out of area. When the same role turns
+    // up in New York days later, its company key must not read as already seen.
+    jobsDb.insertJobs([
+      job({
+        id: "66666666-6666-6666-6666-666666666666",
+        company: "Navan",
+        company_key: "navan|staff gtm engineer",
+        locations: "Austin, Texas, United States",
+        workplace_type: "On-site",
+        out_of_area: 1,
+      }),
+    ]);
+    const known = jobsDb.findKnown([], ["navan|staff gtm engineer"]);
+    expect(known.companyKeys.has("navan|staff gtm engineer")).toBe(false);
+  });
+
+  describe("the scan lock", () => {
+    const start = new Date("2026-09-24T12:00:00.000Z");
+
+    it("is held by the first caller and refused to the second", () => {
+      expect(jobsDb.acquireScanLock(start)).toBe(true);
+      expect(jobsDb.acquireScanLock(new Date(start.getTime() + 1000))).toBe(false);
+      jobsDb.releaseScanLock();
+      expect(jobsDb.acquireScanLock(start)).toBe(true);
+      jobsDb.releaseScanLock();
+    });
+
+    it("expires so a crashed run cannot block every later one", () => {
+      expect(jobsDb.acquireScanLock(start)).toBe(true);
+      const later = new Date(start.getTime() + 16 * 60 * 1000);
+      expect(jobsDb.acquireScanLock(later)).toBe(true);
+      jobsDb.releaseScanLock();
+    });
   });
 });

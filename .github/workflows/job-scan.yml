@@ -15,7 +15,7 @@ jobs:
         run: |
           code=$(curl -sS -o response.json -w "%{http_code}" -X POST \
             -H "Authorization: Bearer ${{ secrets.JOB_SCAN_SECRET }}" \
-            --max-time 180 \
+            --max-time 240 \
             "${JOB_SCAN_ENDPOINT:-https://mazzabuilds.com/api/jobs/scan}")
           cat response.json
           echo ""

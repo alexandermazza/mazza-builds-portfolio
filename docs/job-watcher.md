@@ -46,9 +46,29 @@ fly ssh console --app mazzabuilds -C "mkdir -p /data/.pinloop"
 fly ssh sftp shell --app mazzabuilds
 # at the sftp prompt:
 put /Users/alexmazza/.pinloop/credentials.json /data/.pinloop/credentials.json
-# then quit, and fix the permissions (pinloop refuses a file others can read):
-fly ssh console --app mazzabuilds -C "chmod 600 /data/.pinloop/credentials.json"
 ```
+
+Then set the ownership and permissions. This part is not optional: `fly ssh` runs as
+root, the app runs as uid 1001 (`nextjs` in the Dockerfile), and Pinloop rewrites this
+file every time it refreshes the token, so uid 1001 needs to both read and write it.
+Pinloop also refuses a file that group or others can read.
+
+```bash
+fly ssh console --app mazzabuilds -C "chown -R 1001:1001 /data/.pinloop"
+fly ssh console --app mazzabuilds -C "chmod 600 /data/.pinloop/credentials.json"
+fly ssh console --app mazzabuilds -C "mkdir -p /data/.npm && chown -R 1001:1001 /data/.npm"
+```
+
+The last line is the npm cache the scan needs, because it resolves the Pinloop CLI with
+`npx` at run time and the rest of the container is read-only to that user.
+
+Check it from the app's own user before trusting the first cron run:
+
+```bash
+fly ssh console --app mazzabuilds -C "su nextjs -s /bin/sh -c 'PINLOOP_CONFIG_DIR=/data/.pinloop npx --yes pinloop@latest'"
+```
+
+That should print the account line and the remaining allowance, not a sign-in prompt.
 
 After this, run Pinloop on Fly only. A refreshed token can invalidate the copy on your Mac, and
 two machines taking turns refreshing the same login can sign each other out.
@@ -66,6 +86,7 @@ curl -X POST -H "Authorization: Bearer $JOB_SCAN_SECRET" https://mazzabuilds.com
 ```json
 {
   "ok": true,
+  "skipped": false,
   "pulled": 4,
   "kept": 2,
   "outOfArea": 1,
@@ -74,12 +95,18 @@ curl -X POST -H "Authorization: Bearer $JOB_SCAN_SECRET" https://mazzabuilds.com
   "creditsLeft": 1,
   "emailed": true,
   "postedAfter": "2026-09-23",
+  "refused": null,
   "error": null
 }
 ```
 
 - `pulled` is how many postings Pinloop handed over, and every one of them spends a credit.
-- `kept` is how many were new, in area, and went into the email.
+- `kept` is how many of this run's postings were new and in area. The email carries everything
+  still waiting, so `kept` can be 0 while `emailed` is true, which means an earlier run stored
+  roles that could not be sent at the time.
+- `refused` holds Pinloop's words when the day's credits ran out. That is an ordinary busy day,
+  so it still returns 200 and still emails anything waiting.
+- `skipped` is true when another scan was already running and this one stood down.
 - `outOfArea` roles are stored but not emailed, so the database still shows what the search finds.
 - `duplicates` covers repeats by id, by company plus title, and aggregator reposts.
 - `missed` is how many matched that the day's credits could not reach. A `missed` count that stays

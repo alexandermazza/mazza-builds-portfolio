@@ -72,13 +72,30 @@ describe("runScan", () => {
     expect(sent).toHaveLength(0);
   });
 
-  it("records a refusal without advancing the date", async () => {
+  it("treats an out-of-credits day as a normal day, not a failure", async () => {
     jobsDb.setState("last_posted_after", "2026-09-18");
-    const summary = await scan.runScan(deps(fixture("pull-refused.json")), now);
-    expect(summary.ok).toBe(false);
-    expect(summary.error).toContain("0 left today");
+    const asked: number[] = [];
+    const base = deps(fixture("pull-refused.json"));
+    const summary = await scan.runScan(
+      {
+        ...base,
+        pull: async ({ limit }) => {
+          asked.push(limit);
+          return parsePull(fixture("pull-refused.json"));
+        },
+      },
+      now,
+    );
+    // A refusal is expected on a busy day, so the caller must not see it as an error.
+    expect(summary.ok).toBe(true);
+    expect(summary.refused).toContain("0 left today");
     expect(summary.emailed).toBe(false);
     expect(jobsDb.getState("last_posted_after")).toBe("2026-09-18");
+    // Nothing is left to spend, so there must be no second pull.
+    expect(asked).toEqual([5]);
+    // The count of what the credits could not reach is the reason this record exists.
+    expect(summary.missed).toBeGreaterThan(0);
+    expect(jobsDb.getLastScan()?.missed).toBe(summary.missed);
   });
 
   it("records a pinloop error without advancing the date", async () => {
@@ -89,6 +106,52 @@ describe("runScan", () => {
     expect(summary.ok).toBe(false);
     expect(summary.error).toBe("Pinloop could not finish");
     expect(jobsDb.getState("last_posted_after")).toBe("2026-09-18");
+  });
+
+  it("keeps the rows and the date when the email fails, and sends them next time", async () => {
+    // Resend throws on a network failure rather than returning an error, and the
+    // credits are already spent by then, so the day's pull must survive it.
+    jobsDb.setState("last_posted_after", "2026-09-18");
+    const base = deps(fixture("pull-career-sites.json"));
+    const summary = await scan.runScan(
+      {
+        ...base,
+        sendDigest: async () => {
+          throw new Error("socket hang up");
+        },
+      },
+      now,
+    );
+    expect(summary.ok).toBe(true);
+    expect(summary.emailed).toBe(false);
+    expect(summary.error).toContain("socket hang up");
+    expect(jobsDb.getState("last_posted_after")).not.toBe("2026-09-18");
+    expect(jobsDb.getUnemailedJobs().length).toBeGreaterThan(0);
+
+    const sent: { jobs: number }[] = [];
+    const second = await scan.runScan(deps(fixture("pull-refused.json"), sent), now);
+    expect(second.emailed).toBe(true);
+    expect(sent[0].jobs).toBeGreaterThan(0);
+    expect(jobsDb.getUnemailedJobs()).toHaveLength(0);
+  });
+
+  it("refuses to run while another scan holds the lock", async () => {
+    const asked: number[] = [];
+    const base = deps(fixture("pull-day3-with-dupe.json"));
+    const guarded = {
+      ...base,
+      pull: async (opts: { postedAfter: string; limit: number; configDir: string }) => {
+        asked.push(opts.limit);
+        // A second call arrives while this one is still in flight.
+        const second = await scan.runScan(base, now);
+        expect(second.skipped).toBe(true);
+        return parsePull(fixture("pull-day3-with-dupe.json"));
+      },
+    };
+    const summary = await scan.runScan(guarded, now);
+    expect(summary.skipped).toBe(false);
+    // One scan, one pull: the second invocation must not spend a second set of credits.
+    expect(asked).toHaveLength(1);
   });
 
   it("retries once with the smaller limit a refusal names", async () => {

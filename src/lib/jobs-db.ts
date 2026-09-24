@@ -128,13 +128,58 @@ export function findKnown(
 
   if (companyKeys.length > 0) {
     const placeholders = companyKeys.map(() => "?").join(",");
+    // Only a stored in-area row makes a company key "seen". A role first logged in a
+    // city Alex cannot take must not mask the same role when it appears in one he can.
     const rows = handle
-      .prepare(`SELECT company_key FROM jobs WHERE company_key IN (${placeholders})`)
+      .prepare(
+        `SELECT company_key FROM jobs WHERE company_key IN (${placeholders}) AND out_of_area = 0`,
+      )
       .all(...companyKeys) as { company_key: string }[];
     for (const row of rows) found.companyKeys.add(row.company_key);
   }
 
   return found;
+}
+
+/** How long one scan may hold the lock before a later run treats it as dead. */
+const LOCK_TTL_MS = 15 * 60 * 1000;
+const LOCK_KEY = "scan_lock";
+
+/**
+ * Stops two scans running at once, which would spend the day's credits twice and
+ * send the digest twice. better-sqlite3 is synchronous, so the read and the write
+ * inside one transaction cannot interleave with another caller in this process.
+ */
+export function acquireScanLock(now: Date, ttlMs: number = LOCK_TTL_MS): boolean {
+  const handle = db();
+  const attempt = handle.transaction(() => {
+    const row = handle.prepare(`SELECT value FROM job_state WHERE key = ?`).get(LOCK_KEY) as
+      | { value: string }
+      | undefined;
+    if (row) {
+      const held = Date.parse(row.value);
+      if (Number.isFinite(held) && now.getTime() - held < ttlMs) return false;
+    }
+    handle
+      .prepare(
+        `INSERT INTO job_state (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      )
+      .run(LOCK_KEY, now.toISOString());
+    return true;
+  });
+  return attempt() as boolean;
+}
+
+export function releaseScanLock(): void {
+  db().prepare(`DELETE FROM job_state WHERE key = ?`).run(LOCK_KEY);
+}
+
+export function getLastScan(): ScanRecord | null {
+  const row = db().prepare(`SELECT * FROM job_scans ORDER BY id DESC LIMIT 1`).get() as
+    | ScanRecord
+    | undefined;
+  return row ?? null;
 }
 
 export function getState(key: string): string | null {
