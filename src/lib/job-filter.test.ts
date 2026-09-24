@@ -35,6 +35,11 @@ describe("isTargetLocation", () => {
     expect(isTargetLocation(["Chicago, Illinois, United States"], "Hybrid")).toBe(true);
   });
 
+  it("keeps a role that names no city, because the city cannot be ruled out", () => {
+    // Engine listed a hybrid Senior GTM Engineer role as "United States" and nothing more.
+    expect(isTargetLocation(["United States"], "Hybrid")).toBe(true);
+  });
+
   it("drops on-site roles elsewhere", () => {
     expect(isTargetLocation(["Denver, Colorado, United States"], "Hybrid")).toBe(false);
     expect(isTargetLocation(["Lehi, Utah, United States"], "Hybrid")).toBe(false);

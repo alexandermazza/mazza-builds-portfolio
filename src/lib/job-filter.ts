@@ -6,6 +6,8 @@ export const AGGREGATORS = ["jobgether"];
 
 const TARGET_CITY = /(chicago|new york|nyc|san francisco|bay area|\bsf\b)/i;
 const REMOTE = new Set(["remote solely", "remote ok"]);
+/** A location that names a country and no city, so the office could be anywhere. */
+const NO_CITY = /^(united states|usa|us|remote|anywhere)$/i;
 
 export function companyKey(company: string, title: string): string {
   const flatten = (value: string) =>
@@ -23,7 +25,11 @@ export function isRemote(workplaceType: string | null): boolean {
 
 export function isTargetLocation(locations: string[], workplaceType: string | null): boolean {
   if (isRemote(workplaceType)) return true;
-  return locations.some((location) => TARGET_CITY.test(location));
+  if (locations.length === 0) return false;
+  if (locations.some((location) => TARGET_CITY.test(location))) return true;
+  // A posting that names a country and no city cannot be ruled out, and the day's
+  // list is short enough that a maybe is cheaper than a missed role.
+  return locations.every((location) => NO_CITY.test(location.trim()));
 }
 
 export function classifyRows(
