@@ -22,7 +22,7 @@ Folder names and dropped filenames often have **spaces** (e.g. `FP Events Logo.p
 
 ## Step 1 — Ask the user three things
 
-1. **Where** — Work or Play? (It goes at the **bottom** of the list either way — newest last.)
+1. **Where** - Work or Play? And placement: bottom of the list (default, newest last) or promoted near the top (see Step 4).
 2. **Name** — display name (e.g. "Event Hub"). The **slug** is the kebab-case folder name under `public/projects/`.
 3. **What to reference** — a GitHub repo (`owner/name`) and/or live URL. The repo README is the source for the description.
 
@@ -57,7 +57,21 @@ No em dashes anywhere (project rule). Don't fabricate; if the README doesn't say
 
 ## Step 4 — Append the entry to `src/data/projects.ts`
 
-Add as the **last** array element. `issueNumber` = current max + 1. (Issue numbers are not strictly chronological: array position = issue number, and the top of the array is manually pinned for promotion - SecondRound (1, flagship, surfaced separately by `SpotlightSection`), then AI Web Tracker Scanner, Pipeline Attribution Agent, and Persona Automator. Leave those where they are and append everything else after them. If the user asks to reorder, renumber so issue numbers stay sequential.) Match this shape:
+Add as the **last** array element. `issueNumber` = current max + 1. (Issue numbers are not strictly chronological: array position = issue number, and the top of the array is manually pinned for promotion - SecondRound (1, flagship, surfaced separately by `SpotlightSection`), then Distill, AI Web Tracker Scanner, Pipeline Attribution Agent, and Persona Automator. Leave those where they are and append everything else after them.)
+
+**Promoting a project to the top.** One array position drives both surfaces: the homepage showcase renders the whole array in order, and the projects page filters the same array into Work/Play columns in order. So "near the top of the homepage and top of the Work column" = insert directly after SecondRound (keep SecondRound at 1; it's the flagship). Give the new entry `issueNumber: 2` and bump every following entry by one so numbers stay sequential 1..N:
+
+```bash
+python3 - <<'PY'
+import re
+p = 'src/data/projects.ts'
+s = open(p).read()
+s = re.sub(r'issueNumber: (\d+),', lambda m: f'issueNumber: {int(m.group(1)) + 1 if int(m.group(1)) >= 2 else 1},', s)
+open(p, 'w').write(s)
+PY
+```
+
+then paste the new entry (with `issueNumber: 2`) before the old #2 and add it to the pinned list above. Match this shape:
 
 ```ts
 {

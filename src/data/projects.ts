@@ -54,8 +54,32 @@ export const projects: Project[] = [
     logoBgColor: "#0E7A5F",
   },
   {
-    slug: "web-tracker-scanner",
+    slug: "distill",
     issueNumber: 2,
+    name: "Distill",
+    description:
+      "Internal go-to-market intelligence service that reads HubSpot, Gong, and the open web, runs it through Claude, and turns it into sales dashboards, executive briefings, and per-account strategy docs.",
+    context:
+      "Freshpaint's revenue data is complete and nearly unusable. Deals live in HubSpot, call transcripts live in Gong, and competitive context lives on the open web, but none of them answer the questions the business actually asks: are we on pace this quarter, how much pipeline is left to find, and what did buyers say they wanted. Every answer meant a manual CRM pull, a spreadsheet, and hours of reading transcripts, and two people picking two definitions of the same word produced numbers that couldn't be reconciled.",
+    build:
+      "One Node/TypeScript and React service on a single Fly.io machine with no database: in-process cron jobs compute dashboard snapshots to JSON on a volume, and the routes serve the files. Every document-producing call pairs a prompt builder with a Zod schema, and a response that fails validation goes back to Claude once with the error before the call gives up. Models are picked per call, so routine transcript summarization runs on Haiku and only judgment-heavy work reaches Opus, with the shared account context prompt-cached across nine parallel section calls. The account-plan pipeline fans out across HubSpot, Gong, web research, and ad libraries, streams progress over SSE, and repairs the generated org chart in code rather than trusting the model with tree structure. The metric definitions got as much work as the model calls: pace against a prorated goal instead of raw attainment, coverage against the quota still to find, and report totals that throw rather than ship if they don't reconcile. Every integration is read-only, so nothing the system infers can touch the CRM.",
+    result:
+      "Live on Fly.io behind Google sign-in restricted to Freshpaint. Sales, account management, marketing, and field each get a view shaped for their decision off one data spine, the CRO briefing regenerates four times every weekday, and an account plan that used to take hours of transcript reading now takes about a minute.",
+    tags: ["TypeScript", "Claude API", "HubSpot", "Gong"],
+    status: "LIVE",
+    screenshot: "/projects/distill/logo.png",
+    video: "/projects/distill/video.mp4",
+    images: [],
+    links: [],
+    deviceType: "laptop",
+    screenTexture: "/projects/distill/logo.png",
+    screenBgColor: "#FFFFFF",
+    screenTextureScale: 0.6,
+    logo: "/projects/distill/logo.png",
+  },
+  {
+    slug: "web-tracker-scanner",
+    issueNumber: 3,
     name: "AI Web Tracker Scanner",
     description:
       "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
@@ -84,7 +108,7 @@ export const projects: Project[] = [
   },
   {
     slug: "pipeline-attribution",
-    issueNumber: 3,
+    issueNumber: 4,
     name: "Pipeline Attribution Agent",
     description:
       "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
@@ -111,7 +135,7 @@ export const projects: Project[] = [
   },
   {
     slug: "persona-automator",
-    issueNumber: 4,
+    issueNumber: 5,
     name: "Persona Automator",
     description:
       "Headless service that reads Sales-pipeline contacts out of HubSpot and auto-classifies each one's persona and seniority with an LLM, on a recurring cron.",
@@ -134,7 +158,7 @@ export const projects: Project[] = [
   },
   {
     slug: "trailmix",
-    issueNumber: 5,
+    issueNumber: 6,
     name: "Trailmix",
     description:
       "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
@@ -162,7 +186,7 @@ export const projects: Project[] = [
   },
   {
     slug: "daily-roman",
-    issueNumber: 6,
+    issueNumber: 7,
     name: "Daily Roman",
     description:
       "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
@@ -191,7 +215,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shopify-app",
-    issueNumber: 7,
+    issueNumber: 8,
     name: "ShopAI",
     description:
       "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
@@ -219,7 +243,7 @@ export const projects: Project[] = [
   },
   {
     slug: "vendor-fingerprint",
-    issueNumber: 8,
+    issueNumber: 9,
     name: "Vendor Fingerprint",
     description:
       "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
@@ -244,7 +268,7 @@ export const projects: Project[] = [
   },
   {
     slug: "shakedown",
-    issueNumber: 9,
+    issueNumber: 10,
     name: "Shakedown",
     description:
       "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
@@ -268,7 +292,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-trader",
-    issueNumber: 10,
+    issueNumber: 11,
     name: "Kalshi Weather Trader",
     description:
       "Quantitative weather forecasting system for Kalshi event contracts - multi-source ensemble modelling, probability distribution analysis, and automated execution under risk limits.",
@@ -292,7 +316,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kalshi-mcp",
-    issueNumber: 11,
+    issueNumber: 12,
     name: "Kalshi Trading MCP",
     description:
       "Pip-installable MCP server for Kalshi with 20+ tools - ensemble weather forecasting, quantitative market analysis, safety controls, and two-step confirmation.",
@@ -316,7 +340,7 @@ export const projects: Project[] = [
   },
   {
     slug: "semrush-enricher",
-    issueNumber: 12,
+    issueNumber: 13,
     name: "Semrush Enricher",
     description:
       "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
@@ -341,7 +365,7 @@ export const projects: Project[] = [
   },
   {
     slug: "f1-globe",
-    issueNumber: 13,
+    issueNumber: 14,
     name: "F1 Globe Calendar",
     description:
       "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
@@ -369,7 +393,7 @@ export const projects: Project[] = [
   },
   {
     slug: "event-attributor",
-    issueNumber: 14,
+    issueNumber: 15,
     name: "In-Person Event Attributor",
     description:
       "Tells the marketing team which outreach actually drove people to register and show up at in-person events.",
@@ -392,7 +416,7 @@ export const projects: Project[] = [
   },
   {
     slug: "event-hub",
-    issueNumber: 15,
+    issueNumber: 16,
     name: "Event Hub",
     description:
       "Internal Freshpaint reporting app that pulls the entire event program out of HubSpot and answers, per quarter, what each event actually did for pipeline.",

@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 const WORK_SLUGS = new Set([
+  "distill",
   "trailmix",
   "pipeline-attribution",
   "vendor-fingerprint",
