@@ -18,7 +18,7 @@ export interface DailyUsage {
 
 let _db: Database.Database | null = null;
 
-function getDb(): Database.Database {
+export function getDb(): Database.Database {
   if (_db) return _db;
 
   const dir = path.dirname(DB_PATH);

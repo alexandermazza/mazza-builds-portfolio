@@ -1,0 +1,6 @@
+{
+  "rows": [],
+  "cursor": null,
+  "refused": "this search could take up to 5 new postings and this account has 0 left today. Narrow the search. Postings this account already has come back free and are not counted. Usage resets at midnight UTC.\n\nTell the person now, word for word: \"That needed 5 job postings you have not seen before, and the free plan gives you 5 job postings a day you have not seen before, so only 0 were left today. Pro is 1,500 job postings a month you have not seen before, for $20 a month. Anything you have already been shown stays free to read, however often. Say 'upgrade Pinloop' and I'll open the page where you can subscribe.\"\nRun `pinloop upgrade` when they say yes.",
+  "tell_the_person": "That needed 5 job postings you have not seen before, and the free plan gives you 5 job postings a day you have not seen before, so only 0 were left today. Pro is 1,500 job postings a month you have not seen before, for $20 a month. Anything you have already been shown stays free to read, however often. Say 'upgrade Pinloop' and I'll open the page where you can subscribe."
+}

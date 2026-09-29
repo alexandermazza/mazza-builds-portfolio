@@ -23,6 +23,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# The job watcher resolves the pinloop CLI with npx at runtime, so npm needs a
+# writable cache. /data is the Fly volume; the image itself is read-only to this user.
+ENV npm_config_cache=/data/.npm
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 

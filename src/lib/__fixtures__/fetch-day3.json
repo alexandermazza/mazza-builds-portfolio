@@ -1,0 +1,154 @@
+{
+ "rows": [
+  {
+   "id": "7c2c1b69-0a93-494d-9586-d9ab55aae10c",
+   "company_id": "5a4bd692-2b0f-4247-8dc4-409b79defd64",
+   "external_id": "2367363172",
+   "title": "Senior GTM Engineer",
+   "locations": [
+    "United States"
+   ],
+   "workplace_type": "Hybrid",
+   "employment_type": [
+    "FULL_TIME"
+   ],
+   "description_text": "About Engine\nEngine is the all-in-one travel and spend management platform trusted by 38K+ businesses and groups representing 1.8M+ travelers. We're the retailer and the rails of business travel, one of the fastest-growing companies in travel tech, built on a decade of proprietary technology, supply, and pricing no one else can replicate. Other travel and AI companies run on our infrastructure to ",
+   "compensation": {
+    "max": 187000,
+    "min": 135150,
+    "unit": "YEAR",
+    "currency": "USD"
+   },
+   "posting_url": "https://job-boards.greenhouse.io/engine/jobs/7997827003",
+   "posted_at": "2026-09-17T00:50:12.000Z",
+   "last_seen_at": "2026-09-18T00:08:13.345Z",
+   "created_at": "2026-09-18T00:08:13.345Z",
+   "updated_at": "2026-09-18T00:08:13.345Z",
+   "countries": [
+    "United States"
+   ],
+   "closed_at": null,
+   "duplicate_of": null,
+   "vendor_created_at": "2026-09-17T01:09:36.854Z",
+   "last_checked_at": null,
+   "experience_level": "5-10",
+   "education": null,
+   "category": "Technology",
+   "feed": "career sites",
+   "company": "Engine"
+  },
+  {
+   "id": "02b74168-ca92-4616-9c72-39a01ece1b37",
+   "company_id": "283fa7dd-9b98-4153-bcbb-6316976ae548",
+   "external_id": "2369107642",
+   "title": "AI Ops Engineer GTM",
+   "locations": [
+    "United States"
+   ],
+   "workplace_type": "Remote OK",
+   "employment_type": [
+    "FULL_TIME"
+   ],
+   "description_text": "As the most trusted global leader in data-first contract lifecycle management (CLM) software, Agiloft helps organizations manage the end-to-end process of proposing, negotiating, signing, and leveraging contracts using our flexible Data-first Agreement Platform (DAP). With contract data as the foundation, customers quickly and collaboratively reach agreement and leverage contract visibility to thr",
+   "compensation": null,
+   "posting_url": "https://jobs.lever.co/agiloft/86522290-d4a5-4f5a-8ffd-ac4654405dd8",
+   "posted_at": "2026-09-17T00:00:00.000Z",
+   "last_seen_at": "2026-09-18T00:08:13.391Z",
+   "created_at": "2026-09-18T00:08:13.391Z",
+   "updated_at": "2026-09-18T00:08:13.391Z",
+   "countries": [
+    "United States"
+   ],
+   "closed_at": null,
+   "duplicate_of": null,
+   "vendor_created_at": "2026-09-17T20:55:36.300Z",
+   "last_checked_at": null,
+   "experience_level": "2-5",
+   "education": [
+    "bachelor degree"
+   ],
+   "category": "Technology",
+   "feed": "career sites",
+   "company": "Agiloft"
+  },
+  {
+   "id": "15dc018b-9594-4bd7-9c0f-77884372972f",
+   "company_id": "6622b628-b3bb-404c-a7be-790ecffa32c8",
+   "external_id": "2369229398",
+   "title": "Go-to-Market Engineer",
+   "locations": [
+    "Denver, Colorado, United States"
+   ],
+   "workplace_type": "Hybrid",
+   "employment_type": [
+    "FULL_TIME"
+   ],
+   "description_text": "**This role requires 4-days a week in office at the Denver location\nSay hello to opportunities.\nIf you’re looking to be part of what’s next in communication, you’re in the right place.\nAt RingCentral, we believe the best customer experiences happen when humans and AI work together. Our agentic voice AI portfolio—AIR, AVA, and ACE—brings together automation, assistance, and insights across the enti",
+   "compensation": {
+    "max": 225000,
+    "min": 145000,
+    "unit": "YEAR",
+    "currency": "USD"
+   },
+   "posting_url": "https://ringcentral.wd1.myworkdayjobs.com/RingCentral_Careers/job/Denver-Colorado/Go-to-Market-Engineer_R078561",
+   "posted_at": "2026-09-17T00:00:00.000Z",
+   "last_seen_at": "2026-09-18T00:08:13.367Z",
+   "created_at": "2026-09-18T00:08:13.367Z",
+   "updated_at": "2026-09-18T00:08:13.367Z",
+   "countries": [
+    "United States"
+   ],
+   "closed_at": null,
+   "duplicate_of": null,
+   "vendor_created_at": "2026-09-17T21:51:10.834Z",
+   "last_checked_at": null,
+   "experience_level": "2-5",
+   "education": null,
+   "category": "Technology",
+   "feed": "career sites",
+   "company": "RingCentral"
+  },
+  {
+   "id": "52364515-3be5-40af-aece-3d9dc7af77f1",
+   "company_id": "abf7ce40-b6bf-4eba-8751-2869cc0b2a69",
+   "external_id": "2368008483",
+   "title": "Senior GTM Engineer",
+   "locations": [
+    "United States"
+   ],
+   "workplace_type": "Hybrid",
+   "employment_type": [
+    "FULL_TIME"
+   ],
+   "description_text": "This position is listed on behalf of a partner company, who manages all applications and next steps. Our partner is looking for a Senior GTM Engineer based in United States.\nThis is a high-impact engineering role at the intersection of software development and go-to-market strategy. You’ll build production-grade systems that help Sales and Growth teams identify, prioritize, and engage high-potenti",
+   "compensation": {
+    "max": 187000,
+    "min": 135150,
+    "unit": "YEAR",
+    "currency": "USD"
+   },
+   "posting_url": "https://jobs.lever.co/jobgether/a3196d19-2ec8-45ea-8618-bfcdb288e276",
+   "posted_at": "2026-09-17T00:00:00.000Z",
+   "last_seen_at": "2026-09-18T00:08:13.408Z",
+   "created_at": "2026-09-18T00:08:13.408Z",
+   "updated_at": "2026-09-18T00:08:13.408Z",
+   "countries": [
+    "United States"
+   ],
+   "closed_at": null,
+   "duplicate_of": null,
+   "vendor_created_at": "2026-09-17T08:56:27.717Z",
+   "last_checked_at": null,
+   "experience_level": "5-10",
+   "education": null,
+   "category": "Engineering",
+   "feed": "career sites",
+   "company": "Jobgether"
+  }
+ ],
+ "not_found": [],
+ "coverage": {
+  "covered": 4,
+  "total": 4
+ }
+}
