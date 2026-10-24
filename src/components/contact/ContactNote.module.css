@@ -1,11 +1,12 @@
 /* Ported from contact.html. A note, not a form: the fields sit inside a sentence, the message gets a big
    open box, and a paper plane made of light warms from white to amber as the note fills in. */
 
+/* full width, with the 1280px column made of padding, so clipping trims the plane's overhang at the screen edge, not the column's */
 .main {
   --line: rgba(255, 255, 255, 0.16);
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: clamp(32px, 7vw, 96px) var(--gr) 64px var(--gl);
+  --side: max(0px, (100% - 1280px) / 2);
+  padding: clamp(32px, 7vw, 96px) calc(var(--gr) + var(--side)) 64px calc(var(--gl) + var(--side));
+  overflow-x: clip;
 }
 .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); }
 .eyebrow { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
@@ -13,14 +14,16 @@
 .intro { margin: 24px 0 0; max-width: 34ch; font-size: clamp(18px, 1.6vw, 21px); line-height: 1.5; color: var(--ink-2); }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* entrance: everything rises in, one beat apart */
-.rise { opacity: 0; transform: translateY(18px); animation: rise 900ms var(--ease) forwards; animation-delay: calc(var(--d, 0) * 90ms + 120ms); }
-@keyframes rise { to { opacity: 1; transform: none; } }
+/* entrance: everything rises in, one beat apart. Backwards fill, not forwards, so once it ends it stops holding
+   opacity and the note's fade away and back can run. */
+.rise { animation: rise 900ms var(--ease) backwards; animation-delay: calc(var(--d, 0) * 90ms + 120ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } }
 
 /* the note */
 .note { margin-top: clamp(40px, 6vw, 72px); }
 .letter { margin: 0; font-size: clamp(26px, 3.1vw, 42px); line-height: 1.55; font-weight: 500; letter-spacing: -0.01em; }
-.blank { position: relative; display: inline-block; max-width: 100%; vertical-align: baseline; }
+/* clip, not hidden: it keeps the text baseline, and stops the hidden mirror running past the screen edge */
+.blank { position: relative; display: inline-block; max-width: 100%; vertical-align: baseline; overflow: clip; }
 /* letter-spacing normal: preflight makes inputs inherit the sentence's -0.01em, but the mockup's inputs (and so its sizing) never did */
 .blank input { width: var(--w, 9ch); max-width: 100%; min-width: 4ch; padding: 0 2px; border: 0; border-radius: 0; background: none; outline: none; color: var(--ink); font-weight: 600; letter-spacing: normal;
   border-bottom: 2px solid var(--line); transition: border-color 300ms ease; caret-color: var(--amber); }
@@ -99,6 +102,6 @@
 }
 @media (max-width: 560px) { .letter { font-size: 25px; } .box textarea { font-size: 17px; } }
 @media (prefers-reduced-motion: reduce) {
-  .rise { opacity: 1; transform: none; animation: none; }
+  .rise { animation: none; }
   .going svg { animation: none; }
 }

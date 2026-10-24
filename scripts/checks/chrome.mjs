@@ -23,8 +23,30 @@ const texts = (locator) => locator.evaluateAll((els) => els.map((el) => el.textC
 
 async function footer(page, route) {
   const foot = page.getByRole("contentinfo").last();
-  check((await foot.locator('a[href="mailto:hello@mazzabuilds.com"]').count()) > 0, route, "footer email link not found");
-  check((await foot.locator('a[href="/privacy"]').count()) > 0, route, "footer privacy link not found");
+  for (const [name, sel] of [["email", 'a[href="mailto:hello@mazzabuilds.com"]'], ["privacy", 'a[href="/privacy"]']]) {
+    const link = foot.locator(sel).first();
+    check((await link.count()) > 0, route, `footer ${name} link not found`);
+    // anything fixed over the footer (a full-screen canvas, say) would swallow the click
+    await link.scrollIntoViewIfNeeded();
+    const cover = await link.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return el.contains(hit) ? "" : hit ? `${hit.tagName}.${hit.className}` : "nothing";
+    });
+    check(!cover, route, `footer ${name} link is covered by ${cover}`);
+  }
+}
+
+// static pages are built once, so the footer has to read the year in the browser
+async function year() {
+  const route = "/contact";
+  const { page, errors } = await openPage(route);
+  await page.clock.setFixedTime(new Date("2031-06-01T12:00:00Z"));
+  await page.reload({ waitUntil: "load" });
+  await page
+    .waitForFunction(() => document.querySelector("footer")?.textContent.includes("2031"), null, { timeout: 8000 })
+    .catch(async () => check(false, route, `footer reads "${await page.getByRole("contentinfo").last().textContent()}" in 2031`));
+  expectNoErrors(errors, `${route} (2031)`);
 }
 
 async function phone(route) {
@@ -55,6 +77,8 @@ async function phone(route) {
   await footer(page, route);
   await assertNoOverflow(page);
   expectNoErrors(pageErrors(errors), `${route} (phone)`);
+  // swiftshader draws every open scene on the CPU, and scrolling to the footer wakes the heavier ones, so close as we go
+  await page.context().close();
 }
 
 async function desktop(route) {
@@ -76,6 +100,7 @@ async function desktop(route) {
   await footer(page, route);
   await assertNoOverflow(page);
   expectNoErrors(pageErrors(errors), `${route} (desktop)`);
+  await page.context().close();
 }
 
 export default async function chrome() {
@@ -83,4 +108,5 @@ export default async function chrome() {
     await phone(route);
     await desktop(route);
   }
+  await year();
 }

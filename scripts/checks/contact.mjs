@@ -58,6 +58,15 @@ async function fill(page, { name, email, message }) {
 
 const doneHeading = (page) => page.getByRole("heading", { name: "It's on its way" });
 
+// the note should be seen fading while it is still shown, not just snap out or in
+const fades = (page, when) =>
+  page
+    .waitForFunction(() => {
+      const note = document.getElementById("note");
+      return !note.hidden && Number(getComputedStyle(note).opacity) < 0.9;
+    }, null, { timeout: 8000, polling: "raf" })
+    .catch(() => check(false, `the note never faded ${when}`));
+
 async function emptySubmit() {
   const c = await open();
   check((await c.page.locator("#hint").count()) === 1, "#hint not found");
@@ -72,8 +81,11 @@ async function emptySubmit() {
 async function sendAndWriteAnother() {
   const c = await open();
   c.reply((route) => route.fulfill({ json: { success: true } }));
+  // the entrance rise must be over first, or it would pass for the fade
+  await c.page.waitForFunction(() => getComputedStyle(document.getElementById("note")).opacity === "1", null, { timeout: 8000 });
   await fill(c.page, JORDAN);
   await c.page.click("#send");
+  await fades(c.page, "on send");
   await doneHeading(c.page).waitFor({ timeout: 8000 }).catch(() => check(false, `"It's on its way" did not show after sending`));
 
   check(c.posts.length === 1 && c.posts[0].type.includes("application/json"), "the note did not POST JSON to /api/contact");
@@ -86,6 +98,7 @@ async function sendAndWriteAnother() {
   check(msg.includes("Jordan") && msg.includes("jordan@example.com"), `#done-msg reads "${msg}"`);
 
   await c.page.getByRole("button", { name: "Write another" }).click();
+  await fades(c.page, 'back in on "Write another"');
   await c.page.locator("#name").waitFor({ state: "visible", timeout: 5000 }).catch(() => check(false, '"Write another" did not bring the note back'));
   for (const id of ["name", "email"]) {
     const box = await c.page.locator(`#${id}`).boundingBox();
@@ -131,7 +144,25 @@ async function phone() {
   const skyTop = await c.page.locator("#sky").evaluate((el) => el.parentElement.getBoundingClientRect().top);
   const h1Top = await c.page.locator("h1").evaluate((el) => el.getBoundingClientRect().top);
   check(skyTop < h1Top, "the plane is not above the heading at phone width");
+  // the blanks grow with what's typed, so typing must not widen the page either
+  await fill(c.page, JORDAN);
+  await assertNoOverflow(c.page);
   await c.finish(`${ROUTE} (phone)`);
+
+  const small = await open({ phone: true, viewport: { width: 360, height: 740 } });
+  await assertNoOverflow(small.page);
+  await fill(small.page, { name: "Maximiliana Featherstonehaugh-Worthington", email: "maximiliana.featherstonehaugh@a-very-long-company-name.example.com", message: "Hi." });
+  await assertNoOverflow(small.page);
+  await small.finish(`${ROUTE} (360px)`);
+}
+
+// the plane's canvas overhangs its square, which runs past the screen edge between phone and wide desktop widths
+async function tablet() {
+  for (const width of [1024, 1180, 1366]) {
+    const c = await open({ viewport: { width, height: 800 } });
+    await assertNoOverflow(c.page);
+    await c.finish(`${ROUTE} (${width}px)`);
+  }
 }
 
 async function noWebgl() {
@@ -141,8 +172,11 @@ async function noWebgl() {
     .waitForFunction(() => getComputedStyle(document.getElementById("sky").parentElement).display === "none", null, { timeout: 8000 })
     .catch(() => check(false, "the plane box still shows without WebGL"));
   check(await c.page.locator("#name").isVisible(), "the note is not visible without WebGL");
-  // three.js logs its own console error when it cannot make a context; page errors are what would break the page
-  await c.finish(`${ROUTE} (no WebGL)`, (list) => list.filter((e) => e.kind === "pageerror"));
+  await c.finish(`${ROUTE} (no WebGL)`);
+
+  const p = await open({ webgl: false, phone: true });
+  await p.page.waitForTimeout(1500);
+  await p.finish(`${ROUTE} (no WebGL, phone)`);
 }
 
 async function noJs() {
@@ -168,6 +202,7 @@ export default async function contact() {
   );
   await failure("the request throws", (route) => route.abort());
   await phone();
+  await tablet();
   await noWebgl();
   await noJs();
 }

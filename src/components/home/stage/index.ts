@@ -121,6 +121,8 @@ export function mountHomeStage(
     state.proj = best;
     root.toggleAttribute("data-day", s === "work" && (best === 1 || best === 2));
     layer.toggleAttribute("data-on", s === "graph");
+    // the labels are buttons: while their layer is invisible they must not be tab stops either
+    layer.inert = s !== "graph";
     if (s !== slot) { slot = s; safe(() => sync(false)); }
   }
   const onResize = () => { if (active) applyRenderer(active); onScroll(); };
@@ -149,6 +151,7 @@ export function mountHomeStage(
     removeEventListener("resize", onResize);
     root.removeAttribute("data-day");
     layer.removeAttribute("data-on");
+    layer.inert = false;
     canvas.removeAttribute("data-fade");
     Object.values(cache).forEach((p) => p.dispose());
     bloom.dispose();

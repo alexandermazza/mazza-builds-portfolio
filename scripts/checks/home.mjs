@@ -64,6 +64,24 @@ async function desktop() {
   const work = await page.locator('#work a[href^="/projects/"]').evaluateAll((els) => els.map((a) => a.getAttribute("href")));
   check(JSON.stringify(work) === JSON.stringify(WORK), `Selected work links are ${JSON.stringify(work)}`);
 
+  // the graph's labels live in a fixed layer that is hidden until the graph is on screen; tabbing must not land on them unseen
+  await page.locator("#graph-labels button").first().waitFor({ state: "attached", timeout: 15000 })
+    .catch(() => check(false, "the graph labels never mounted"));
+  // stop at the footer: tabbing out of the document stops headless Chromium drawing frames, which stalls the reveals
+  await page.locator(`#work a[href="${WORK.at(-1)}"]`).focus();
+  for (let i = 1; ; i++) {
+    await page.keyboard.press("Tab");
+    const seen = await page.evaluate(() => {
+      const el = document.activeElement;
+      let o = 1;
+      for (let n = el; n; n = n.parentElement) o *= +getComputedStyle(n).opacity;
+      return { o, what: `${el.tagName} "${el.textContent.trim().slice(0, 40)}"`, footer: !!el.closest("footer") };
+    });
+    check(seen.o > 0.1, `Tab ${i} after Selected work focused ${seen.what} at opacity ${seen.o.toFixed(2)}`);
+    if (seen.footer) break;
+    check(i < 20, "20 Tabs after Selected work never reached the footer");
+  }
+
   await readable(page, "desktop");
   await assertNoOverflow(page);
   expectNoErrors(errors, "/ (desktop)");

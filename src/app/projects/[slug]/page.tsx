@@ -9,6 +9,9 @@ import { StoryMedia } from "@/components/projects/StoryMedia";
 import { HALF, MoonIcon, SunIcon } from "@/components/projects/shift";
 import styles from "@/components/projects/StoryPage.module.css";
 
+// the longest word sets how big a title can be and still fit a phone
+const longest = (text: string) => Math.max(...text.split(" ").map((w) => w.length));
+
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -44,7 +47,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {p.half === "day" ? <SunIcon /> : <MoonIcon />}
             {HALF[p.half].label} · {p.kind}
           </p>
-          <h1 style={{ "--chars": Math.max(...p.name.split(" ").map((w) => w.length)) } as CSSProperties}>{p.name}</h1>
+          <h1 style={{ "--chars": longest(p.name) } as CSSProperties}>{p.name}</h1>
           <p className={styles.pitch}>{p.line}</p>
         </header>
         <StoryMedia project={{ name, video, poster, image, fill, markColor, textColor, mark, markScale }} />
@@ -118,7 +121,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
         <TransitionLink className={`${styles.next} ${rollHot}`} href={`/projects/${next.slug}`}>
           <small>{nextLabel}</small>
-          <strong>
+          <strong style={{ "--chars": longest(next.name) + 1 } as CSSProperties}>
             <RollText text={next.name} />
             <span className={styles.arr} aria-hidden="true">
               →

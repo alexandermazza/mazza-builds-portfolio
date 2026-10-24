@@ -27,15 +27,16 @@ async function story(page, p) {
 }
 
 export default async function project({ base }) {
-  for (const phone of [false, true]) {
+  // desktop, the 390px phone we design for, and 320px, the narrowest still in use
+  for (const width of [0, 390, 320]) {
     let opened;
     for (const p of projects) {
       const route = `/projects/${p.slug}`;
       if (opened) await opened.page.goto(new URL(route, base).href, { waitUntil: "load" });
-      else opened = await openPage(route, { phone });
+      else opened = await openPage(route, width ? { phone: true, viewport: { width, height: 740 } } : {});
       await story(opened.page, p);
-      if (phone) await assertNoOverflow(opened.page);
-      expectNoErrors(opened.errors, `${route}${phone ? " (phone)" : ""}`);
+      if (width) await assertNoOverflow(opened.page);
+      expectNoErrors(opened.errors, `${route}${width ? ` (${width}px)` : ""}`);
     }
   }
 

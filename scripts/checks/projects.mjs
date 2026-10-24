@@ -86,10 +86,13 @@ async function noJs() {
 }
 
 async function phone() {
-  for (const query of ["", "?shift=night"]) {
-    const { page, errors } = await openPage(`${ROUTE}${query}`, { phone: true });
-    await assertNoOverflow(page);
-    expectNoErrors(errors, `${ROUTE}${query} (phone)`);
+  // 390 is the phone we design for; 320 is the narrowest still in use
+  for (const width of [390, 320]) {
+    for (const query of ["", "?shift=night"]) {
+      const { page, errors } = await openPage(`${ROUTE}${query}`, { phone: true, viewport: { width, height: 740 } });
+      await assertNoOverflow(page);
+      expectNoErrors(errors, `${ROUTE}${query} (${width}px)`);
+    }
   }
 }
 

@@ -91,7 +91,10 @@ export function mountPlane(canvas: HTMLCanvasElement, box: HTMLElement): PlaneSk
   const small = matchMedia("(pointer: coarse)").matches || innerWidth < 820;
   let renderer: WebGLRenderer;
   try {
-    renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: "high-performance" });
+    // asking for the context first means no WebGL is a quiet no-op, not a three.js console error
+    const context = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: true, stencil: false, powerPreference: "high-performance" });
+    if (!context) throw new Error("WebGL unavailable");
+    renderer = new WebGLRenderer({ canvas, context, antialias: false, alpha: false, powerPreference: "high-performance" });
   } catch {
     box.style.display = "none"; // no WebGL: the note still works, just without the plane
     return NOOP;

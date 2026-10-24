@@ -284,11 +284,12 @@
   color: var(--ink-2);
 }
 
+/* sized to fit like the h1; --chars counts the arrow too */
 .next strong {
   font-family: var(--display);
   font-weight: 900;
   text-transform: uppercase;
-  font-size: clamp(56px, 9vw, 150px);
+  font-size: min(clamp(56px, 9vw, 150px), calc((100vw - var(--gl) - var(--gr)) / (var(--chars, 1) * 0.52)));
   line-height: 0.95;
 }
 

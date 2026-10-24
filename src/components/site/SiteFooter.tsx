@@ -1,4 +1,5 @@
 import { TransitionLink } from "@/transitions";
+import { Year } from "./Year";
 import styles from "./SiteFooter.module.css";
 
 export function SiteFooter() {
@@ -10,7 +11,9 @@ export function SiteFooter() {
       <TransitionLink className={styles.link} href="/privacy">
         Privacy
       </TransitionLink>
-      <p className={styles.copy}>&copy; {new Date().getFullYear()} Mazza Builds</p>
+      <p className={styles.copy}>
+        &copy; <Year built={new Date().getFullYear()} /> Mazza Builds
+      </p>
     </footer>
   );
 }

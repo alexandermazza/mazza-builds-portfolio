@@ -45,8 +45,9 @@
   z-index: 1;
 }
 
+/* PROJECTS is about 3.65em wide, so under ~360px the 88px floor gives way to fit the screen */
 .head h1 {
-  font-size: clamp(88px, 16vw, 236px);
+  font-size: min(clamp(88px, 16vw, 236px), calc((100vw - var(--gl) - var(--gr)) / 3.7));
   line-height: 0.8;
 }
 
