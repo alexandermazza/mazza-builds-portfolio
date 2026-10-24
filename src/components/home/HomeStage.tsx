@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import { useTransitionContext } from "@/transitions";
 import type { buildConstellation } from "@/lib/constellation";
 import type { StageItem } from "./stage";
@@ -15,7 +14,6 @@ interface HomeStageProps {
 
 /** The fixed particle stage behind the homepage, plus the scroll reveals. The page's copy is the children. */
 export function HomeStage({ items, links, children }: HomeStageProps) {
-  const canvas = useRef<HTMLCanvasElement>(null);
   const root = useRef<HTMLElement>(null);
   const { navigate } = useTransitionContext();
 
@@ -35,25 +33,26 @@ export function HomeStage({ items, links, children }: HomeStageProps) {
     return () => io.disconnect();
   }, []);
 
-  // the canvas lives on body, outside the transition container, so the transition's idle snapshots
-  // never read it back (a GPU stall every couple of seconds); it is decoration, so it can wait for mount
-  const [host, setHost] = useState<HTMLElement | null>(null);
-  useEffect(() => setHost(document.body), []);
-
+  // A fresh canvas per mount, on body: outside the transition container, so the transition's idle snapshots never
+  // read back a full-screen WebGL frame, and never one whose context an earlier mount already released.
   useEffect(() => {
-    if (!host) return;
+    const canvas = document.createElement("canvas");
+    canvas.className = styles.stage;
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
     let dispose: (() => void) | undefined;
     let gone = false;
     import("./stage")
       .then(({ mountHomeStage }) => {
-        if (!gone) dispose = mountHomeStage(canvas.current!, root.current!, items, links);
+        if (!gone) dispose = mountHomeStage(canvas, root.current!, items, links);
       })
       .catch(() => {});
     return () => {
       gone = true;
       dispose?.();
+      canvas.remove();
     };
-  }, [host, items, links]);
+  }, [items, links]);
 
   // the graph card's link is set by the stage, so it is a plain anchor; send it through the page transition
   const onClick = (e: MouseEvent) => {
@@ -64,11 +63,8 @@ export function HomeStage({ items, links, children }: HomeStageProps) {
   };
 
   return (
-    <>
-      {host && createPortal(<canvas ref={canvas} className={styles.stage} aria-hidden="true" />, host)}
-      <main ref={root} className={styles.root} onClick={onClick}>
-        {children}
-      </main>
-    </>
+    <main ref={root} className={styles.root} onClick={onClick}>
+      {children}
+    </main>
   );
 }
