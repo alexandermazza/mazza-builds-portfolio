@@ -47,6 +47,25 @@ async function desktop(live) {
   check(/AI tokens in \d{4} alone/.test(text) === live.tokens > 0, "build log token line does not match the usage data");
   if (!live.tokens && !live.github) check(!/40\.2|6,282/.test(text), "mockup figures shown with no live data");
 
+  // before the map: under SwiftShader its frames take a second each, long enough to miss the "Copied" state
+  const conn = page.locator('section[aria-labelledby="l-conn"]');
+  for (const [name, href] of LINKS) {
+    const link = conn.locator("a").filter({ has: page.locator("b", { hasText: new RegExp(`^${name}$`) }) });
+    check((await link.count()) === 1, `Connections link "${name}" not found`);
+    check(href.test(await link.getAttribute("href")), `Connections link "${name}" has the wrong href`);
+  }
+  const rows = await conn.locator("li").evaluateAll((lis) => lis.map((li) => !!li.querySelector("svg")));
+  check(rows.length === 4 && rows.every(Boolean), "every Connections row needs its platform logo");
+
+  const copy = conn.getByRole("button");
+  check((await copy.textContent()) === "Copy", "Copy button not found");
+  await copy.click();
+  await conn
+    .getByRole("button", { name: "Copied", exact: true })
+    .waitFor({ timeout: 1500 })
+    .catch(async () => check(false, `Copy read "${await copy.textContent()}", not "Copied"`));
+  check((await page.evaluate(() => navigator.clipboard.readText())) === "hello@mazzabuilds.com", "Copy did not copy the email");
+
   const map = page.locator("#map-wrap");
   await map.scrollIntoViewIfNeeded();
   await map
@@ -66,26 +85,10 @@ async function desktop(live) {
   check(/^\d[\d.]*px,\d[\d.]*px$/.test(a), `heart is not placed (${a})`);
   check(a === b, `heart moved with the cursor (${a} then ${b}): the camera must stay fixed`);
 
-  const conn = page.locator('section[aria-labelledby="l-conn"]');
-  for (const [name, href] of LINKS) {
-    const link = conn.locator("a").filter({ has: page.locator("b", { hasText: new RegExp(`^${name}$`) }) });
-    check((await link.count()) === 1, `Connections link "${name}" not found`);
-    check(href.test(await link.getAttribute("href")), `Connections link "${name}" has the wrong href`);
-  }
-  const rows = await conn.locator("li").evaluateAll((lis) => lis.map((li) => !!li.querySelector("svg")));
-  check(rows.length === 4 && rows.every(Boolean), "every Connections row needs its platform logo");
-
-  const copy = conn.getByRole("button");
-  check((await copy.textContent()) === "Copy", "Copy button not found");
-  await copy.click();
-  await conn
-    .getByRole("button", { name: "Copied", exact: true })
-    .waitFor({ timeout: 1500 })
-    .catch(async () => check(false, `Copy read "${await copy.textContent()}", not "Copied"`));
-  check((await page.evaluate(() => navigator.clipboard.readText())) === "hello@mazzabuilds.com", "Copy did not copy the email");
-
   await assertNoOverflow(page);
   expectNoErrors(errors, `${ROUTE} (desktop)`);
+  // a map left on screen keeps the shared SwiftShader GPU busy and starves the next run
+  await page.context().close();
 }
 
 async function phone() {
@@ -96,10 +99,21 @@ async function phone() {
   await page.waitForTimeout(300);
   await assertNoOverflow(page);
   expectNoErrors(errors, `${ROUTE} (phone)`);
+  await page.context().close();
+}
+
+// without WebGL the map steps aside quietly and the rest of the sheet still reads
+async function noWebgl() {
+  const { page, errors } = await openPage(ROUTE, { webgl: false });
+  await page.locator("#map-wrap").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.getElementById("map-wrap")?.hidden, null, { timeout: 20000 }).catch(() => check(false, "map not hidden without WebGL"));
+  check(await page.getByRole("heading", { name: "Build log" }).isVisible(), "Build log not visible without WebGL");
+  expectNoErrors(errors, `${ROUTE} (no WebGL)`);
 }
 
 export default async function about({ base }) {
   const live = await liveData(base);
   await desktop(live);
   await phone();
+  await noWebgl();
 }
