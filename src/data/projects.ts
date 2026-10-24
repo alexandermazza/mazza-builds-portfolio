@@ -1,6 +1,3 @@
-export type ProjectStatus = "LIVE" | "IN PROGRESS" | "ARCHIVED";
-export type DeviceType = "phone" | "laptop";
-
 /** 9 to 5 (built at the day job) or 5 to 9 (built after hours). */
 export type Half = "day" | "night";
 /** Bento cells: xl 2x2, wide 2x1, tall 1x2, sm 1x1 on a 4-column grid. */
@@ -40,22 +37,6 @@ export interface Project {
   result: string;
   tags: string[];
   links: { label: string; url: string }[];
-
-  // Old design fields, removed with the old pages (plan Task 8)
-  issueNumber: number;
-  description: string;
-  status: ProjectStatus;
-  screenshot: string;
-  videos?: string[];
-  images: string[];
-  deviceType: DeviceType;
-  screenTexture: string;
-  screenBgColor?: string;
-  screenTextureScale?: number;
-  /** Small square logo shown on the projects-page card. Same mark as the device screen. Omit to show nothing. */
-  logo?: string;
-  /** Background behind the card logo (for transparent marks). Defaults to white. */
-  logoBgColor?: string;
 }
 
 // Day then night, each in the order the projects page shows them
@@ -88,17 +69,6 @@ export const projects: Project[] = [
       "Live on Fly.io behind Google sign-in restricted to Freshpaint. Sales, account management, marketing, and field each get a view shaped for their decision off one data spine, the CRO briefing regenerates four times every weekday, and an account plan that used to take hours of transcript reading now takes about a minute.",
     tags: ["TypeScript", "Claude API", "HubSpot", "Gong"],
     links: [],
-    issueNumber: 2,
-    description:
-      "Internal go-to-market intelligence service that reads HubSpot, Gong, and the open web, runs it through Claude, and turns it into sales dashboards, executive briefings, and per-account strategy docs.",
-    status: "LIVE",
-    screenshot: "/projects/distill/logo.png",
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/distill/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/distill/logo.png",
   },
   {
     slug: "web-tracker-scanner",
@@ -131,19 +101,6 @@ export const projects: Project[] = [
       { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
       { label: "Source", url: "https://github.com/alexandermazza/AI-Web-Tracker-Scanner" },
     ],
-    issueNumber: 3,
-    description:
-      "HIPAA compliance platform that crawls healthcare sites, detects 200+ tracking pixels, and flags PHI privacy risks with AI-powered classification.",
-    status: "LIVE",
-    screenshot: "/projects/web-tracker-scanner/screen.png",
-    images: [
-      "/projects/web-tracker-scanner/scannerhome.jpg",
-      "/projects/web-tracker-scanner/scannerscan.jpg",
-      "/projects/web-tracker-scanner/scannerstats.jpg",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/web-tracker-scanner/screen.png",
-    logo: "/projects/web-tracker-scanner/logo.png",
   },
   {
     slug: "pipeline-attribution",
@@ -174,19 +131,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/Pipeline-Attribution-Agent" },
     ],
-    issueNumber: 4,
-    description:
-      "AI agent that automatically tags new sales deals with where they came from, replacing a fragile set of rules that frequently broke or guessed wrong.",
-    status: "IN PROGRESS",
-    screenshot: "/projects/pipeline-attribution/logo.png",
-    images: [
-      "/projects/pipeline-attribution/dashboard.jpg",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/pipeline-attribution/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/pipeline-attribution/logo.png",
   },
   {
     slug: "event-hub",
@@ -215,17 +159,6 @@ export const projects: Project[] = [
       "Live and used by the team on one always-on Fly.io machine. The quarterly 'what did events do for pipeline' reconciliation is now a page: pick a quarter and every event is there with its KPIs already deduped and attributed, each number drilling down to its source deals in HubSpot.",
     tags: ["Next.js", "TypeScript", "SQLite", "HubSpot"],
     links: [],
-    issueNumber: 16,
-    description:
-      "Internal Freshpaint reporting app that pulls the entire event program out of HubSpot and answers, per quarter, what each event actually did for pipeline.",
-    status: "LIVE",
-    screenshot: "/projects/event-hub/logo.png",
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/event-hub/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/event-hub/logo.png",
   },
   {
     slug: "vendor-fingerprint",
@@ -256,17 +189,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/booking-vendor-scraper" },
     ],
-    issueNumber: 9,
-    description:
-      "7-stage detection pipeline that identifies which scheduling software healthcare companies use - static fingerprinting, headless browsing, and AI verification.",
-    status: "LIVE",
-    screenshot: "/projects/vendor-fingerprint/screen.png",
-    images: [
-      "/projects/vendor-fingerprint/image.png",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/vendor-fingerprint/screen.png",
-    logo: "/projects/vendor-fingerprint/vendorfingerprint.png",
   },
   {
     slug: "trailmix",
@@ -299,19 +221,6 @@ export const projects: Project[] = [
       { label: "Live", url: "https://trailmix.fly.dev" },
       { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
     ],
-    issueNumber: 6,
-    description:
-      "Converts Granola meeting notes into actionable tasks routed to monday.com or Slack with AI-powered extraction and confidence scoring.",
-    status: "LIVE",
-    screenshot: "/projects/trailmix/screen.png",
-    images: [
-      "/projects/trailmix/trailmixhome.jpg",
-      "/projects/trailmix/trailmixslack.jpg",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/trailmix/screen.png",
-    logo: "/projects/trailmix/trailmix-logo-white.png",
-    logoBgColor: "#000000",
   },
   {
     slug: "persona-automator",
@@ -338,17 +247,6 @@ export const projects: Project[] = [
       "Live on fly.io, running unattended on its weekday cron. Persona and seniority now populate themselves as deals move, instead of being a field nobody gets around to filling in.",
     tags: ["Python", "HubSpot", "LLM", "OpenRouter"],
     links: [],
-    issueNumber: 5,
-    description:
-      "Headless service that reads Sales-pipeline contacts out of HubSpot and auto-classifies each one's persona and seniority with an LLM, on a recurring cron.",
-    status: "LIVE",
-    screenshot: "/projects/persona-automator/logo.png",
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/persona-automator/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/persona-automator/logo.png",
   },
   {
     slug: "semrush-enricher",
@@ -379,17 +277,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/semrush-enricher" },
     ],
-    issueNumber: 13,
-    description:
-      "Web tool that enriches HubSpot domain exports with Semrush traffic data - upload a CSV, paste your API key, get enriched metrics back.",
-    status: "LIVE",
-    screenshot: "/projects/semrush-enricher/screen.png",
-    images: [
-      "/projects/semrush-enricher/semrush.jpg",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/semrush-enricher/screen.png",
-    logo: "/projects/semrush-enricher/semrush.png",
   },
   {
     slug: "event-attributor",
@@ -417,17 +304,6 @@ export const projects: Project[] = [
       "Marketing now sees, per event, which channels drove registrations versus which ones got people through the door. Reruns are fast, evidence is auditable, and adding a new event is a one-line config change.",
     tags: ["Python", "HubSpot", "Attribution"],
     links: [],
-    issueNumber: 15,
-    description:
-      "Tells the marketing team which outreach actually drove people to register and show up at in-person events.",
-    status: "LIVE",
-    screenshot: "/projects/event-attributor/logo.png",
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/event-attributor/logo.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/event-attributor/logo.png",
   },
   {
     slug: "secondround",
@@ -464,18 +340,6 @@ export const projects: Project[] = [
     links: [
       { label: "Live", url: "https://secondround.app" },
     ],
-    issueNumber: 1,
-    description:
-      "AI resume tailoring built for the AI screener. Add your career once, paste a job description, and get a fresh resume rewritten from your real experience - fit-scored, critiqued, and exported ATS-clean.",
-    status: "LIVE",
-    screenshot: "/projects/secondround/mark.png",
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/secondround/mark.png",
-    screenBgColor: "#0E7A5F",
-    screenTextureScale: 0.5,
-    logo: "/projects/secondround/mark.png",
-    logoBgColor: "#0E7A5F",
   },
   {
     slug: "daily-roman",
@@ -509,20 +373,6 @@ export const projects: Project[] = [
     links: [
       { label: "App Store", url: "https://apps.apple.com/mx/app/daily-roman-ancient-history/id6759132785?l=en-GB" },
     ],
-    issueNumber: 7,
-    description:
-      "AI-powered iOS app that delivers a new ancient Roman history fact every day with interactive quizzes and spaced repetition.",
-    status: "LIVE",
-    screenshot: "/projects/daily-roman/screen.png",
-    images: [
-      "/projects/daily-roman/image-01.png",
-      "/projects/daily-roman/image-02.png",
-      "/projects/daily-roman/image-03.png",
-      "/projects/daily-roman/image-04.png",
-    ],
-    deviceType: "phone",
-    screenTexture: "/projects/daily-roman/screen.png",
-    logo: "/projects/daily-roman/appicon.png",
   },
   {
     slug: "kalshi-trader",
@@ -553,16 +403,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/Kahshi-Trader" },
     ],
-    issueNumber: 11,
-    description:
-      "Quantitative weather forecasting system for Kalshi event contracts - multi-source ensemble modelling, probability distribution analysis, and automated execution under risk limits.",
-    status: "LIVE",
-    screenshot: "/projects/kalshi-trader/screen.png",
-    images: [
-      "/projects/kalshi-trader/image.png",
-    ],
-    deviceType: "phone",
-    screenTexture: "/projects/kalshi-trader/screen.png",
   },
   {
     slug: "shopify-app",
@@ -593,20 +433,6 @@ export const projects: Project[] = [
     links: [
       { label: "Live", url: "https://shop-ai.co/" },
     ],
-    issueNumber: 8,
-    description:
-      "Shopify theme extension that adds AI-powered product Q&A and review summarization to product pages.",
-    status: "LIVE",
-    screenshot: "/projects/shopify-app/screen.png",
-    videos: [
-      "/projects/shopify-app/askmeanything.mp4",
-      "/projects/shopify-app/reviewsummary.mp4",
-      "/projects/shopify-app/addtoshop.mp4",
-    ],
-    images: [],
-    deviceType: "laptop",
-    screenTexture: "/projects/shopify-app/screen.png",
-    logo: "/projects/shopify-app/shopailogo.png",
   },
   {
     slug: "shakedown",
@@ -637,16 +463,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/shakedown" },
     ],
-    issueNumber: 10,
-    description:
-      "Claude Code skill that maps every user interaction in your app, finds test gaps, and dispatches parallel agents to close them.",
-    status: "LIVE",
-    screenshot: "/projects/shakedown/screen.png",
-    images: [
-      "/projects/shakedown/image.png",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/shakedown/shakedown.png",
   },
   {
     slug: "kalshi-mcp",
@@ -677,16 +493,6 @@ export const projects: Project[] = [
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/kalshi-trading-mcp" },
     ],
-    issueNumber: 12,
-    description:
-      "Pip-installable MCP server for Kalshi with 20+ tools - ensemble weather forecasting, quantitative market analysis, safety controls, and two-step confirmation.",
-    status: "LIVE",
-    screenshot: "/projects/kalshi-mcp/screen.png",
-    images: [
-      "/projects/kalshi-mcp/image.png",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/kalshi-mcp/kalshi-trading-mcp.png",
   },
   {
     slug: "f1-globe",
@@ -716,19 +522,6 @@ export const projects: Project[] = [
       { label: "Live", url: "https://f1-globe-calendar.vercel.app/" },
       { label: "Source", url: "https://github.com/alexandermazza/f1-globe-calendar" },
     ],
-    issueNumber: 14,
-    description:
-      "Interactive 3D globe visualizing every race location on the Formula 1 2026 calendar, inspired by the GitHub Globe.",
-    status: "LIVE",
-    screenshot: "/projects/f1-globe/F1-Logo-PNG-Image.png",
-    images: [
-      "/projects/f1-globe/newimage.png",
-    ],
-    deviceType: "laptop",
-    screenTexture: "/projects/f1-globe/F1-Logo-PNG-Image.png",
-    screenBgColor: "#FFFFFF",
-    screenTextureScale: 0.6,
-    logo: "/projects/f1-globe/F1-Logo-PNG-Image.png",
   },
 ];
 

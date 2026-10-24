@@ -9,7 +9,7 @@ import type { NextConfig } from "next";
  * regardless.
  *
  * Deliberately NOT setting a Content-Security-Policy here: this site runs GSAP,
- * three.js, Google Analytics and an inline failsafe script, so a CSP written
+ * three.js and Google Analytics, so a CSP written
  * without careful testing would block its own scripts and leave visitors on a
  * blank page - the exact failure mode we just removed. Worth adding later, but
  * only with the resilience check green against it.

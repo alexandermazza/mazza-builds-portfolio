@@ -1,47 +1,6 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
-@theme inline {
-  /* Surfaces */
-  --color-black: var(--black);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-
-  /* Borders */
-  --color-border: var(--border);
-  --color-border-visible: var(--border-visible);
-
-  /* Text */
-  --color-text-disabled: var(--text-disabled);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-primary: var(--text-primary);
-  --color-text-display: var(--text-display);
-
-  /* Accent & Status */
-  --color-accent: var(--accent);
-  --color-accent-subtle: var(--accent-subtle);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
-  --color-interactive: var(--interactive);
-
-  /* Fonts: the old utility names point at the new text face until the old pages go */
-  --font-sans: var(--text);
-  --font-mono: var(--text);
-  --font-script: var(--text);
-
-  /* Spacing */
-  --spacing-2xs: var(--space-2xs);
-  --spacing-xs: var(--space-xs);
-  --spacing-sm: var(--space-sm);
-  --spacing-md: var(--space-md);
-  --spacing-lg: var(--space-lg);
-  --spacing-xl: var(--space-xl);
-  --spacing-2xl: var(--space-2xl);
-  --spacing-3xl: var(--space-3xl);
-  --spacing-4xl: var(--space-4xl);
-}
-
 @layer base {
   body {
     margin: 0;
@@ -65,29 +24,6 @@
   flex: 1 0 auto;
 }
 
-@keyframes bounce-subtle {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(6px);
-  }
-}
-
-@keyframes ticker {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes pulse-text {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -97,27 +33,4 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* ── Failsafe: reveal content when client JS never boots ──────────────────
-   The hero sits behind a fixed opaque boot overlay and ~150 elements ship at
-   inline opacity:0, revealed only by GSAP after hydration. If the bundle is
-   blocked by a proxy, the browser is older than Next's baseline, or storage
-   access throws, none of that runs and the visitor is stranded on a black
-   screen with no way to tell the site apart from a dead server.
-
-   These rules undo the hidden state. They are applied by the inline watchdog
-   in layout.tsx (html.js-stalled) and mirrored in its <noscript> block.
-   Scoped to inline opacity only, so runtime-hidden UI (menu panel, page
-   transition overlay) is untouched. */
-.js-stalled [data-boot-overlay] {
-  display: none !important;
-}
-
-.js-stalled [style*="opacity:0"] {
-  opacity: 1 !important;
-}
-
-.js-stalled body {
-  overflow: visible !important;
 }

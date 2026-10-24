@@ -19,54 +19,6 @@
   --gl: max(16px, env(safe-area-inset-left, 0px));
   --gr: max(16px, env(safe-area-inset-right, 0px));
   color-scheme: dark;
-
-  /* Old names, kept as aliases until the old pages are removed (plan Task 8) */
-  --black: var(--bg);
-  --surface: #111111;
-  --surface-raised: #1a1a1a;
-  --border: var(--line);
-  --border-visible: rgba(255, 255, 255, 0.24);
-  --text-disabled: var(--ink-3);
-  --text-secondary: var(--ink-2);
-  --text-primary: var(--ink);
-  --text-display: var(--ink);
-  --accent: var(--amber);
-  --accent-subtle: rgba(255, 194, 77, 0.15);
-  --success: #4a9e5c;
-  --warning: #d4a843;
-  --error: var(--err);
-  --info: var(--ink-2);
-  --interactive: #5b9bf6;
-
-  --space-2xs: 2px;
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-  --space-4xl: 96px;
-
-  --display-xl: 72px;
-  --display-lg: 48px;
-  --display-md: 36px;
-  --heading: 24px;
-  --subheading: 18px;
-  --body: 16px;
-  --body-sm: 14px;
-  --caption: 12px;
-  --label: 11px;
-
-  --ease-out: var(--ease);
-  --duration-micro: 150ms;
-  --duration-transition: 300ms;
-
-  --radius-technical: 4px;
-  --radius-compact: 8px;
-  --radius-card: 12px;
-  --radius-card-lg: 16px;
-  --radius-pill: 999px;
 }
 
 @media (min-width: 720px) {
@@ -74,17 +26,4 @@
     --gl: max(32px, env(safe-area-inset-left, 0px));
     --gr: max(32px, env(safe-area-inset-right, 0px));
   }
-}
-
-/* Old about page navy variant, until the new about page replaces it */
-.blueprint {
-  --black: #0a1628;
-  --surface: #0d1b2a;
-  --surface-raised: #132238;
-  --border: #1b3a5c;
-  --border-visible: #4a7fb5;
-  --text-disabled: #5a87ad;
-  --text-secondary: #a8c3d9;
-  --text-primary: #dbe8f2;
-  --text-display: #f0f6fb;
 }
