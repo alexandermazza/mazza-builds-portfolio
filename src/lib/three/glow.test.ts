@@ -21,6 +21,14 @@ test("chains render, bloom, output and clip passes with the projects defaults", 
   assert.doesNotMatch(clip.material.fragmentShader, /smoothstep/);
 });
 
+test("bloom adds light with the three r0.160 gain the mockups were tuned with", () => {
+  const composer = createGlowComposer(renderer, new Scene(), new PerspectiveCamera());
+  const bloom = composer.passes[1] as unknown as { compositeMaterial: { fragmentShader: string } };
+  const shader = bloom.compositeMaterial.fragmentShader;
+  assert.doesNotMatch(shader, /3\.0 \* bloomStrength/);
+  assert.match(shader, /bloomStrength \* bloomStrength \* \( lerpBloomFactor\( bloomFactors\[ 0 \] \) \+/);
+});
+
 test("edgeFade fades the clip pass toward the edges and options override the bloom", () => {
   const composer = createGlowComposer(renderer, new Scene(), new PerspectiveCamera(), {
     strength: 0.45,
