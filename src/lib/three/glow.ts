@@ -24,14 +24,20 @@ export function createGlowComposer(
   const composer = new EffectComposer(renderer);
   const bloom = new UnrealBloomPass(new Vector2(256, 256), strength, radius, threshold);
   // only the tight glow layers: the widest ones leave a faint grey box on a coloured page
-  bloom.compositeMaterial.uniforms.bloomFactors.value = [1.0, 0.75, 0.4, 0.0, 0.0];
-  // the mockups were tuned on three r0.160, whose bloom added strength x its unclamped alpha (strength x the
-  // summed mip factors); r0.180+ adds 3 x strength, about twice as bright here, and the grey box comes back
-  const factors = [0, 1, 2, 3, 4].map((i) => `lerpBloomFactor( bloomFactors[ ${i} ] )`).join(" + ");
-  bloom.compositeMaterial.fragmentShader = bloom.compositeMaterial.fragmentShader.replace(
-    "3.0 * bloomStrength *",
-    `bloomStrength * bloomStrength * ( ${factors} ) *`,
-  );
+  const factors = [1.0, 0.75, 0.4, 0.0, 0.0];
+  bloom.compositeMaterial.uniforms.bloomFactors.value = factors;
+  // The mockups were tuned on three 0.160, which blurred with kernels 3 to 11 at sigma = radius, divided by the
+  // weights it sampled, and added the composite weighted by its own alpha (strength * the lerped factors).
+  // Later releases widen the blur and add 3 * strength, which doubles the glow and leaves a grey haze past the clip.
+  bloom.separableBlurMaterials.forEach((m, i) => {
+    const r = [3, 5, 7, 9, 11][i];
+    const w = Array.from({ length: r }, (_, x) => Math.exp((-0.5 * x * x) / (r * r)));
+    const sum = w.reduce((s, v, x) => s + (x ? 2 * v : v), 0);
+    m.defines.KERNEL_RADIUS = r;
+    m.uniforms.gaussianCoefficients.value = w.map((v) => v / sum);
+  });
+  const lerped = factors.reduce((s, f) => s + f + (1.2 - 2 * f) * radius, 0);
+  for (const tint of bloom.bloomTintColors) tint.multiplyScalar((strength * lerped) / 3);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
