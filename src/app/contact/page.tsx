@@ -1,7 +1,7 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { ScrollTextLines } from "@/components/ui";
-import { ContactForm } from "@/components/ui/ContactForm";
-import { ScrollLetterAnimation } from "@/components/effects";
+import { ContactNote } from "@/components/contact/ContactNote";
+import styles from "@/components/contact/ContactNote.module.css";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,27 +9,22 @@ export const metadata: Metadata = {
     "Get in touch - have a project in mind, want to collaborate, or just say hello",
 };
 
+const beat = (d: number) => ({ "--d": d }) as CSSProperties;
+
 export default function ContactPage() {
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
-      {/* Heading */}
-      <section className="mb-[var(--space-3xl)]">
-        <ScrollLetterAnimation
-          as="h1"
-          className="font-sans text-[clamp(36px,8vw,72px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
-        >
-          CONTACT
-        </ScrollLetterAnimation>
-      </section>
-
-      {/* Intro */}
-      <section className="mb-[var(--space-3xl)]">
-        <ScrollTextLines className="max-w-[480px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
+    <main className={styles.main}>
+      <ContactNote>
+        <p className={`${styles.eyebrow} ${styles.rise}`} style={beat(0)}>
+          Get in touch
+        </p>
+        <h1 className={`${styles.title} ${styles.rise}`} style={beat(1)}>
+          Contact
+        </h1>
+        <p className={`${styles.intro} ${styles.rise}`} style={beat(2)}>
           Have a project in mind, want to collaborate, or just want to say hello? Drop a message below or reach out directly.
-        </ScrollTextLines>
-      </section>
-
-      <ContactForm />
+        </p>
+      </ContactNote>
     </main>
   );
 }
