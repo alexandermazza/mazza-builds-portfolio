@@ -1,0 +1,511 @@
+<title>Mazza Projects Bento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,600..900&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one page, two shifts. The 9 to 5 / 5 to 9 switch flips the sky (day blue with a monoline amber sun,
+   night black with a moon and stars) and swaps which projects show, as a bento grid where every tile is one
+   colour with the project's mark stencilled on it in a single tone. A story page per project. Names roll. */
+:root {
+  --night: #000000;
+  --day: #0b1d33;
+  --bg: var(--night);
+  --ink: #f1f2f3;
+  --ink-2: #a9b0b9;
+  --line: rgba(255, 255, 255, 0.14);
+  --tile: #0c0d10;
+  --amber: #ffc24d;
+  --display: "Big Shoulders", "Arial Narrow", Impact, sans-serif;
+  --text: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+@media (min-width: 720px) { :root { --gl: max(32px, env(safe-area-inset-left, 0px)); --gr: max(32px, env(safe-area-inset-right, 0px)); } }
+body.day { --bg: var(--day); --tile: #10284a; --line: rgba(255, 255, 255, 0.18); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; transition: background-color 900ms ease; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.005em; text-wrap: balance; }
+.wrap { padding-left: var(--gl); padding-right: var(--gr); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* the letter roll from the live site: every letter slides up to an identical copy, 30 ms apart */
+.w { display: inline-block; white-space: nowrap; }
+.f { display: inline-block; height: 1em; overflow: hidden; vertical-align: top; }
+.f i { display: block; font-style: normal; line-height: 1; height: 1em; transition: transform 320ms var(--ease) calc(var(--i) * 30ms); }
+.hot:hover .f i, .hot:focus-visible .f i { transform: translateY(-100%); }
+
+/* sky */
+.stars { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 1; transition: opacity 900ms ease; }
+body.day .stars { opacity: 0; }
+.stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ink); animation: twinkle 4s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: 0.15; } }
+/* the sun and moon: one particle cloud that re-forms between the two; drawn on black and screen-blended,
+   so the day blue shows through everywhere the light isn't */
+.sky3d { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; mix-blend-mode: screen; }
+
+.bar { position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px; }
+.mark { font-family: var(--display); font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: 0.02em; }
+
+main { position: relative; }  /* no z-index: the sky canvas must blend with the page colour behind it */
+.head { position: relative; display: grid; gap: 28px; padding-block: 40px 56px; }
+.head > :not(canvas) { position: relative; z-index: 1; }
+.head h1 { font-size: clamp(88px, 16vw, 236px); line-height: 0.8; }
+/* the switch: a white pill slides (and stretches on the way) under whichever shift is on */
+.flip { position: relative; display: inline-flex; width: max-content; max-width: 100%; border: 1px solid var(--line); border-radius: 999px; padding: 5px; background: rgba(0, 0, 0, 0.3); }
+.thumb { position: absolute; top: 5px; bottom: 5px; left: 5px; width: 0; border-radius: 999px; background: var(--ink); }
+.flip button { position: relative; display: inline-flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 26px 0 20px; border: 0; border-radius: 999px; background: none; color: var(--ink-2); cursor: pointer; font-family: var(--display); font-weight: 800; font-size: clamp(24px, 3vw, 34px); text-transform: uppercase; letter-spacing: 0.01em; transition: color 260ms ease 140ms; }
+.flip button svg { width: 26px; height: 26px; flex: none; overflow: visible; }
+.flip button svg * { transform-box: view-box; transform-origin: 12px 12px; }
+.flip button:hover { color: var(--ink); }
+.flip button[aria-pressed="true"] { color: var(--bg); }
+@media (max-width: 640px) { .flip button { min-height: 50px; gap: 8px; padding: 0 18px 0 14px; font-size: 22px; } .flip button svg { width: 22px; height: 22px; } }
+.intro { margin: 0; max-width: 46ch; font-size: clamp(19px, 1.7vw, 23px); line-height: 1.4; color: var(--ink-2); text-wrap: pretty; }
+.intro b { color: var(--ink); font-weight: 600; }
+
+#list { position: relative; padding-block: 8px 120px; }
+/* tiles rise in one after another, their marks pop in just behind them; switching shifts drops the old set first */
+.t { animation: rise 680ms var(--ease) backwards; animation-delay: calc(var(--k) * 55ms); }
+.t .art { animation: pop 820ms var(--ease) backwards; animation-delay: calc(var(--k) * 55ms + 150ms); }
+.t.out { animation: sink 280ms cubic-bezier(0.55, 0, 0.75, 0.2) forwards; animation-delay: calc(var(--k) * 26ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(32px) scale(0.96); } }
+@keyframes pop { from { opacity: 0; transform: scale(0.8) rotate(-8deg); } }
+@keyframes sink { to { opacity: 0; transform: translateY(18px) scale(0.97); } }
+
+/* the mark: a one-tone stencil of the project's logo (or a drawn icon), painted in the tile's ink */
+.mk { display: block; width: 100%; height: 100%; transform: scale(var(--s, 1)); background: var(--mk); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; }
+.ico { display: block; width: 100%; height: 100%; color: var(--mk); overflow: visible; }
+
+/* bento: four columns, sizes chosen so each shift fills four full rows; every tile is one solid colour */
+.bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: clamp(190px, 17vw, 260px); grid-auto-flow: dense; gap: 12px; }
+.t { position: relative; display: grid; overflow: hidden; border-radius: 10px; background: var(--fill); color: var(--txt); padding: clamp(16px, 1.6vw, 24px); }
+.t .art { position: relative; min-height: 0; min-width: 0; transition: transform 700ms var(--ease); }
+.t:hover .art, .t:focus-visible .art { transform: scale(1.06) rotate(-2deg); }
+.t .cap { display: grid; gap: 8px; align-content: end; min-width: 0; }
+.t .kind { margin: 0; font-size: 14px; font-weight: 600; opacity: 0.78; }
+.t h3 { font-size: clamp(30px, 2.6vw, 46px); line-height: 1; }
+.t .line { margin: 0; font-size: 15px; line-height: 1.4; opacity: 0.86; max-width: 36ch; text-wrap: pretty; }
+.t.xl { grid-column: span 2; grid-row: span 2; grid-template-rows: minmax(0, 1fr) auto; gap: 20px; }
+.t.xl .art { margin: 6% 18% 0; }
+.t.xl h3 { font-size: clamp(48px, 5vw, 88px); }
+.t.xl .line { font-size: 17px; }
+.t.tall { grid-row: span 2; grid-template-rows: minmax(0, 1fr) auto; gap: 16px; }
+.t.tall .art { margin: 10% 8% 0; }
+.t.wide { grid-column: span 2; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+.t.wide .art { grid-column: 2; grid-row: 1; margin: 4% 4% 4% 10%; }
+.t.wide .cap { grid-column: 1; grid-row: 1; }
+.t.single { grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
+.t.single .art { justify-self: end; width: 58%; }
+.t.single .line, .t.tall .line { display: none; }
+@media (max-width: 760px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 172px; gap: 10px; }
+  .t .line, .t:not(.xl) .kind { display: none; }
+  .t h3 { font-size: 28px; }
+  .t.xl h3 { font-size: 44px; }
+}
+
+/* story page */
+.story { padding-block: 24px 120px; display: grid; gap: 48px; }
+.back { justify-self: start; font-family: var(--display); font-weight: 800; font-size: 24px; text-transform: uppercase; color: var(--ink-2); }
+.back:hover { color: var(--ink); }
+.s-head { display: grid; gap: 20px; max-width: 1200px; }
+.eyebrow { margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.eyebrow svg { width: 22px; height: 22px; color: var(--ink); }
+.s-head h1 { font-size: clamp(76px, 13vw, 210px); line-height: 0.86; }
+.pitch { margin: 0; max-width: 30ch; font-size: clamp(24px, 2.6vw, 38px); font-weight: 500; line-height: 1.22; letter-spacing: -0.01em; text-wrap: balance; }
+.s-media { position: relative; overflow: hidden; aspect-ratio: 16 / 9; max-height: 78svh; width: 100%; border: 1px solid var(--line); border-radius: 6px; background: var(--tile); }
+.s-media > img, .s-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.s-media.art-field { border: 0; background: var(--fill); }
+.s-media.art-field .art { position: absolute; inset: 18% 30%; }
+.s-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; align-items: start; }
+.stat { position: sticky; top: 32px; display: grid; gap: 6px; margin: 0; }
+.stat b { font-family: var(--display); font-weight: 900; font-size: clamp(64px, 7vw, 120px); line-height: 0.9; color: var(--amber); font-variant-numeric: tabular-nums; }
+.stat span { max-width: 22ch; color: var(--ink-2); font-size: 17px; line-height: 1.4; }
+/* the three parts hang off one line, a node per part */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 44px; position: relative; }
+.flow::before { content: ""; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 1px; background: var(--line); }
+.flow li { position: relative; padding-left: 44px; display: grid; gap: 12px; }
+.flow li::before { content: ""; position: absolute; left: 0; top: 8px; width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--bg); transition: background-color 900ms ease; }
+.flow h2 { font-size: clamp(34px, 3.2vw, 50px); line-height: 0.95; }
+.flow p { margin: 0; max-width: 60ch; font-size: clamp(18px, 1.45vw, 21px); line-height: 1.5; text-wrap: pretty; }
+.visit { margin: 0; display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 18px; font-weight: 600; }
+.visit a { border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+.visit a:hover { border-color: var(--ink); }
+.next { display: grid; gap: 10px; padding-top: 36px; border-top: 1px solid var(--line); }
+.next small { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.next strong { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: clamp(56px, 9vw, 150px); line-height: 0.95; }
+.next strong .arr { display: inline-block; margin-left: 0.15em; color: var(--amber); transition: transform 320ms var(--ease); }
+.next:hover .arr { transform: translateX(0.12em); }
+@media (max-width: 820px) { .s-body { grid-template-columns: minmax(0, 1fr); gap: 40px; } .stat { position: static; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; } }
+</style>
+
+<div class="stars" id="stars" aria-hidden="true"></div>
+
+<header class="bar wrap">
+  <span class="mark">Mazza Builds</span>
+</header>
+
+<main id="list-view">
+  <section class="head wrap">
+    <canvas class="sky3d" id="sky" aria-hidden="true"></canvas>
+    <h1>Projects</h1>
+    <div class="flip" role="group" aria-label="Show work projects or side projects">
+      <span class="thumb" id="thumb" aria-hidden="true"></span>
+      <button type="button" id="half-day" data-half="day" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle class="core" cx="12" cy="12" r="4.5"/><path class="rays" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>9 to 5</button>
+      <button type="button" id="half-night" data-half="night" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path class="crescent" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>5 to 9</button>
+    </div>
+    <p class="intro" id="intro"></p>
+  </section>
+  <section id="list" class="wrap" aria-live="polite"></section>
+</main>
+
+<main id="story-view" hidden></main>
+
+<script>
+// drawn icons for the projects without a logo of their own, as bold line art in the same single tone
+const ICONS = {
+  'web-tracker-scanner': '<rect x="8" y="14" width="64" height="50" rx="5"/><path d="M8 26h64M18 38h26M18 48h18"/><circle cx="64" cy="62" r="19"/><path d="M78 76l12 12"/><g fill="currentColor" stroke="none"><circle cx="58" cy="57" r="4"/><circle cx="70" cy="62" r="4"/><circle cx="61" cy="70" r="4"/></g>',
+  'kalshi-trader': '<path d="M30 50a13 13 0 0 1 1-26 18 18 0 0 1 34-3 13.5 13.5 0 0 1 4 29Z"/><path d="M14 88l20-16 13 8 28-24"/><path d="M62 56h13v13"/>',
+  'kalshi-mcp': '<path d="M38 8v18M62 8v18"/><rect x="26" y="26" width="48" height="28" rx="9"/><path d="M50 54v10c0 14 24 8 24 22"/><circle cx="74" cy="91" r="5" fill="currentColor" stroke="none"/>',
+  shakedown: '<ellipse cx="50" cy="60" rx="20" ry="26"/><circle cx="50" cy="28" r="10"/><path d="M50 36v50M30 52H14M30 66H12M33 80l-13 10M70 52h16M70 66h18M67 80l13 10M44 20l-8-10M56 20l8-10"/>',
+};
+// logos that exist as real vector shapes, drawn solid in the tile's single tone (SecondRound: SecondRound/components/chrome/markPaths.ts)
+const VECTORS = {
+  secondround: { vb: '355 316 471 388', d: [
+    'M 476.918 329.100 C 413.614 335.223, 373.631 372.232, 369.527 428.500 C 369.206 432.900, 368.704 439.538, 368.411 443.250 L 367.879 450 402.290 450 L 436.701 450 437.329 441.150 C 439.991 403.643, 459.623 385.742, 498 385.826 C 533.795 385.904, 553 402.377, 553 433 C 553 461.277, 541.247 474.828, 474.500 523.506 C 410.683 570.047, 391.885 590.949, 376.481 632.500 C 370.060 649.819, 363.442 691.842, 366.633 695.033 C 367.260 695.660, 395.432 695.920, 444.908 695.756 L 522.203 695.500 511.351 682.362 C 505.383 675.136, 494.875 662.227, 488 653.676 L 475.500 638.128 461.250 638.064 C 453.413 638.029, 447 637.683, 447 637.296 C 447 636.909, 448.988 632.521, 451.418 627.546 C 460.349 609.258, 478.604 592.766, 528.657 557.763 C 573.267 526.568, 591.437 510.661, 606.379 489.722 C 635.894 448.360, 630.607 389.656, 594.500 357.822 C 568.976 335.319, 524.628 324.486, 476.918 329.100',
+    'M 810.500 417.649 C 788.321 422.268, 768.803 431.038, 737.782 450.323 C 681.393 485.379, 621.771 546.004, 573.073 617.801 C 569.603 622.916, 566.207 626.966, 565.526 626.801 C 564.149 626.466, 559.113 620.637, 541.079 598.500 C 534.358 590.250, 528.439 583.349, 527.926 583.165 C 526.325 582.592, 483.945 617.101, 484.710 618.356 C 485.094 618.985, 490.844 626.025, 497.489 634 C 504.134 641.975, 517.205 657.908, 526.536 669.408 C 535.866 680.907, 544.693 691.595, 546.151 693.158 L 548.802 696 567.279 696 C 580.869 696, 586.015 695.669, 586.738 694.750 C 587.278 694.063, 589.660 689.900, 592.032 685.500 C 619.992 633.631, 662.590 570.304, 698.314 527.500 C 721.577 499.626, 756.945 463.506, 767.606 456.733 C 769.748 455.373, 772.400 453.241, 773.500 451.997 C 778.338 446.525, 813.371 420, 815.761 420 C 816.325 420, 817.045 419.325, 817.362 418.500 C 817.945 416.979, 815.295 416.650, 810.500 417.649',
+  ] },
+};
+const P = [
+  // 9 to 5
+  { slug: 'distill', half: 'day', name: 'Distill', kind: 'Internal app at Freshpaint', fill: '#6b4eff', mk: '#ffffff', txt: '#ffffff', img: 'distill-poster.jpg', video: 'distill.mp4', bento: 'xl',
+    line: "All of the sales team's numbers in one place, written in plain English.",
+    what: 'Distill pulls together everything the company knows about its customers, from the sales system to recorded sales calls to the open web, and turns it into dashboards and short written briefings. The CEO, sales, marketing and account managers each get a view built for the calls they make.',
+    why: 'Before, every question meant a spreadsheet and hours of reading call transcripts, and two people could pull two different answers to the same question. Distill gives everyone the same numbers, defined the same way, and writes the summary for them.',
+    impact: 'An account plan that took hours of reading now takes about a minute, and the leadership briefing rewrites itself four times every weekday.',
+    stat: ['1 min', 'to build an account plan that used to take hours'] },
+  { slug: 'web-tracker-scanner', half: 'day', name: 'AI Web Tracker Scanner', kind: 'Web app at Freshpaint', fill: '#2ec4a6', mk: '#052f27', txt: '#052f27', icon: true, img: 'web-tracker-scanner-scannerhome.jpg', bento: 'wide', link: ['Open the scanner', 'https://ai-web-tracker-scanner.fly.dev'],
+    line: 'Finds the hidden trackers on healthcare websites that can leak patient data.',
+    what: 'It visits a hospital or clinic website the way a patient would and records every tracker that fires in the background. Each one is checked against a list of more than 200 and flagged if it can collect private health information.',
+    why: 'These trackers are invisible to the people who run the site, and the privacy rules around patient data are strict. Checking by hand misses most of them. The scanner catches them and explains the risk in plain terms.',
+    impact: "It scans one site or hundreds at once, and every finding lands in the sales team's records, so a privacy conversation starts with real evidence.",
+    stat: ['200+', 'trackers it knows how to spot'] },
+  { slug: 'pipeline-attribution', half: 'day', name: 'Pipeline Attribution Agent', kind: 'AI agent at Freshpaint, in testing', fill: '#e04fd0', mk: '#3b0636', txt: '#2e052a', img: 'pipeline-attribution-dashboard.jpg', bento: 'tall',
+    line: 'Works out where each new sales deal came from.',
+    what: 'Every new deal needs a label for what brought it in: an ad, a cold email, a partner, an event. The agent reads everything known about the deal and the people on it, picks the source, and writes down why.',
+    why: 'It replaces a stack of about 15 brittle rules that grabbed the first match and broke whenever something got renamed. The agent weighs all the evidence like an analyst would, and every correction from the team makes it sharper.',
+    impact: "It's right 76% of the time on a test set of 139 deals and goes live once it clears 80%. Then leadership gets a source report they can trust.",
+    stat: ['76%', 'accurate so far. It goes live at 80%'] },
+  { slug: 'event-hub', half: 'day', name: 'Event Hub', kind: 'Internal app at Freshpaint', fill: '#f2645f', mk: '#3b0f0d', txt: '#2d0b0a', img: 'event-hub-video-poster.jpg', bento: 'wide',
+    line: 'Shows what every company event did for sales, one quarter at a time.',
+    what: 'Every hour it pulls the whole event program, from conferences to dinners, and shows what each one did for the sales pipeline. Each event gets a card with a photo of its city and a pin on a 3D globe.',
+    why: 'The numbers the events team is judged on were scattered across five kinds of records and had to be rebuilt by hand every quarter. Now they sit on one page, already deduplicated.',
+    impact: 'The quarterly scramble of exports and spreadsheets is gone. Pick a quarter and every event is there, each number traceable to the deals behind it.',
+    stat: ['Hourly', 'refresh, so the numbers are always current'] },
+  { slug: 'vendor-fingerprint', half: 'day', name: 'Vendor Fingerprint', kind: 'Research tool', fill: '#b71c2c', mk: '#ffffff', txt: '#ffffff', img: 'vendor-fingerprint-image.jpg', bento: 'wide',
+    line: 'Figures out which booking software a healthcare company uses, just from its website.',
+    what: 'Give it a list of healthcare companies and it visits each website, finds the path to book an appointment, and names the scheduling software behind it, from MyChart to Zocdoc.',
+    why: 'This was slow detective work the sales team did by hand, one site at a time. Now it runs on a whole list at once, and when the clues are unclear an AI double-checks them.',
+    impact: 'Every answer comes with its evidence and a confidence score, and teaching it a new vendor takes one line instead of new code.',
+    stat: ['37+', 'booking vendors it recognizes'] },
+  { slug: 'trailmix', half: 'day', name: 'Trailmix', kind: 'Web app', fill: '#e9a23b', mk: '#2e1a03', txt: '#2e1a03', img: 'trailmix-trailmixslack.jpg', link: ['Visit trailmix.fly.dev', 'https://trailmix.fly.dev'],
+    line: 'Turns meeting notes into to-do items in Slack.',
+    what: 'Trailmix watches your meeting notes, pulls out the action items, and sends each one to Slack with approve and reject buttons. Approved items can drop straight into monday.com, already assigned.',
+    why: 'The to-dos people agree to in meetings usually die in the notes. Trailmix puts them where work actually happens, seconds after the meeting ends.',
+    impact: 'Follow-ups stop slipping. It checks for new notes every 30 seconds and filters out duplicates, so the team only sees what matters.',
+    stat: ['30 sec', 'from meeting notes to Slack'] },
+  { slug: 'persona-automator', half: 'day', name: 'Persona Automator', kind: 'Background service at Freshpaint', fill: '#4e9c84', mk: '#0a2a21', txt: '#07201a',
+    line: 'Fills in who each sales contact is and how senior they are, on its own.',
+    what: 'Every four hours on weekdays it reads the newest contacts attached to sales deals, works out each person’s role and seniority, and fills in those two fields.',
+    why: 'Those fields are what make it possible to sort and target contacts, but filling them in by hand across thousands of people never happened. Now nobody has to.',
+    impact: 'Lists and reports start from facts instead of guesses, and the fields stay current as deals move, with nobody touching them.' },
+  { slug: 'semrush-enricher', half: 'day', name: 'Semrush Enricher', kind: 'Web tool', fill: '#ff6a2b', mk: '#2a0d00', txt: '#210a00', img: 'semrush-enricher-semrush.jpg',
+    line: 'Adds website traffic numbers to a whole list of companies at once.',
+    what: 'Upload a spreadsheet of up to 1,000 company websites and get it back with each site’s traffic numbers filled in.',
+    why: 'Before, that meant looking up every company one at a time. Now it is one upload, and it never stores anyone’s account key.',
+    impact: 'A list of 1,000 companies comes back complete from a single upload instead of 1,000 separate lookups, so sales can start with the busiest sites.',
+    stat: ['1,000', 'companies in one upload'] },
+  { slug: 'event-attributor', half: 'day', name: 'In-Person Event Attributor', kind: 'Analysis tool', fill: '#f4d35e', mk: '#3a2a00', txt: '#2b1f00',
+    line: 'Shows marketing which outreach got people to sign up for events, and which got them to show up.',
+    what: 'For every attendee at an in-person event, it looks back over the months before and finds the last real touch before they signed up, and again before they walked in: a rep’s follow-up, a partner, an email.',
+    why: 'Events are expensive, and without this the next event budget is a guess. Now each event has a clear breakdown of what actually pulled people in.',
+    impact: 'Marketing sees, event by event, which channels fill the sign-up list and which ones get people through the door. Adding a new event takes one line.' },
+  // 5 to 9
+  { slug: 'secondround', half: 'night', name: 'SecondRound', kind: 'Web app, live', fill: '#0e7a5f', mk: '#ffffff', txt: '#ffffff', bento: 'xl', link: ['Visit secondround.app', 'https://secondround.app'],
+    line: "Rewrites your resume for each job, using only what you've really done.",
+    what: 'Add your career once, paste in a job posting, and SecondRound rewrites your resume for that job, scores how well you fit, and has a skeptical recruiter flag what to cut.',
+    why: "Most resumes are now read by an AI screener before a person ever sees them. SecondRound writes for that reader, and it refuses to invent experience you don't have.",
+    impact: "It's live at secondround.app. Building a tailored resume is free, and Pro unlocks the PDF export." },
+  { slug: 'daily-roman', half: 'night', name: 'Daily Roman', kind: 'iPhone app', fill: '#d4a12a', mk: '#3b2605', txt: '#2e1d03', ms: 0.58, img: 'daily-roman-image-04.jpg', bento: 'tall',  // ms: drawn smaller, its source bust is only 206 px wide link: ['Get it on the App Store', 'https://apps.apple.com/mx/app/daily-roman-ancient-history/id6759132785?l=en-GB'],
+    line: 'A new story from ancient Rome every day.',
+    what: 'Each day brings one bite-size piece of Roman history, plus a quick quiz that brings old stories back right before you would forget them.',
+    why: 'Most learning apps are language drills or random trivia. Daily Roman makes history a daily habit, with a map of the empire, a coin to flip and ranks from Tiro to Imperator.',
+    impact: "It's on the App Store, with home screen widgets that keep the day's story in view without nagging notifications.",
+    stat: ['8', 'eras of Roman history, from the founding to the fall'] },
+  { slug: 'kalshi-trader', half: 'night', name: 'Kalshi Weather Trader', kind: 'Trading bot', fill: '#4aa8ff', mk: '#062a4d', txt: '#04213d', icon: true, img: 'kalshi-trader-image.jpg', bento: 'tall',
+    line: "A bot that bets on tomorrow's weather.",
+    what: "It reads four different weather forecasts, works out the odds of tomorrow's high temperature landing in each range, and compares them with what the market believes.",
+    why: 'When the forecasts and the market disagree, it places a trade. It rechecks every 30 minutes and sends each move to my phone with its reasoning.',
+    impact: 'It runs on its own and keeps score every day, so how much it bets depends on how right its forecasts have actually been.',
+    stat: ['4', 'forecast models it weighs before every trade'] },
+  { slug: 'shopify-app', half: 'night', name: 'ShopAI', kind: 'Shopify app', fill: '#ff4f8b', mk: '#3d0718', txt: '#2e0512', img: 'shopify-app-screen.jpg', bento: 'wide', link: ['Visit shop-ai.co', 'https://shop-ai.co/'],
+    line: 'Lets shoppers ask a product page questions and get real answers.',
+    what: "Shoppers type a question right on the product page and get an answer in the store's own voice. Long review sections get boiled down into a quick summary.",
+    why: "People leave product pages when the description doesn't answer their question and the reviews are too long to read. ShopAI answers them before they go.",
+    impact: 'Store owners install it straight from their Shopify store, with no code changes to their theme.' },
+  { slug: 'shakedown', half: 'night', name: 'Shakedown', kind: 'Add-on for Claude Code', fill: '#d97757', mk: '#2e120a', txt: '#24100a', icon: true, img: 'shakedown-image.jpg', bento: 'wide',
+    line: 'Finds the untested parts of an app and writes the missing tests.',
+    what: 'Point it at an app and it maps everything a person can do in it, finds what is not tested, and sends a small team of AI agents to write the tests. A second mode clicks through the running app like a tester and reports what is broken.',
+    why: 'Every new app ships with gaps nobody has time to check. Shakedown does the tedious audit in one sitting.',
+    impact: 'On one app it took the test count from 224 to 474 in a single session. One run on another app found 15 bugs and 3 dead pages.',
+    stat: ['474', 'tests on one app, up from 224 in a single session'] },
+  { slug: 'kalshi-mcp', half: 'night', name: 'Kalshi Trading MCP', kind: 'Toolkit for AI assistants', fill: '#19d39e', mk: '#04261c', txt: '#031e16', icon: true, img: 'kalshi-mcp-image.jpg', bento: 'wide',
+    line: 'Lets an AI assistant like Claude research and place trades on Kalshi.',
+    what: 'It gives an assistant like Claude more than 20 tools for a prediction market: checking the account, reading weather forecasts, sizing up markets and placing orders.',
+    why: 'Most tools like this can only check your balance. This one can do the research, with real safety brakes: spending caps, daily limits and a confirm step before any order goes through.',
+    impact: 'Anyone can install it with one command and plug it into Claude, and it works on a practice account before any real money.',
+    stat: ['20+', 'tools, each behind safety brakes'] },
+  { slug: 'f1-globe', half: 'night', name: 'F1 Globe Calendar', kind: '3D website', fill: '#e10600', mk: '#ffffff', txt: '#ffffff', img: 'f1-globe-newimage.jpg', bento: 'wide', link: ['Spin the globe', 'https://f1-globe-calendar.vercel.app/'],
+    line: 'Every Formula 1 race this season, pinned on a spinning globe.',
+    what: 'Every Grand Prix on the calendar is pinned where it really happens, on a 3D globe you can spin.',
+    why: "A list of dates doesn't show how far the sport travels. Spinning the globe traces the season's route around the world in race order.",
+    impact: "It's live for anyone to play with and gets updated with each new season." },
+];
+const HALF = {
+  day: { label: '9 to 5', intro: 'Built at my day job, for the people who sell, market and run the company. <b>9 projects.</b>' },
+  night: { label: '5 to 9', intro: "Built after hours, because I couldn't stop thinking about them. Some are live for anyone, some are just for me. <b>7 projects.</b>" },
+};
+const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>';
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// the letter roll: each letter is two stacked copies in a one-line window; words stay together so lines break between them
+function flap(text) {
+  let n = 0;
+  const words = text.toUpperCase().split(' ').map(w => `<span class="w">${[...w].map(c => `<span class="f" style="--i:${n++}"><i>${esc(c)}</i><i>${esc(c)}</i></span>`).join('')}</span>`);
+  return `<span class="sr-only">${esc(text)}</span><span aria-hidden="true">${words.join(' ')}</span>`;
+}
+const colours = (p) => `--fill:${p.fill};--mk:${p.mk};--txt:${p.txt}`;
+const art = (p) => `<span class="art" aria-hidden="true">${VECTORS[p.slug]
+  ? `<svg class="ico" viewBox="${VECTORS[p.slug].vb}" fill="currentColor">${VECTORS[p.slug].d.map(d => `<path d="${d}"/>`).join('')}</svg>`
+  : p.icon
+  ? `<svg class="ico" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">${ICONS[p.slug]}</svg>`
+  : `<span class="mk" style="--m:url(media/marks/${p.slug}.png);--s:${p.ms || 1}"></span>`}</span>`;
+function storyMedia(p) {
+  if (p.video) return `<div class="s-media"><video src="media/${p.video}" poster="media/${p.img}" muted loop playsinline autoplay preload="metadata" aria-label="${esc(p.name)} in use"></video></div>`;
+  if (p.img) return `<div class="s-media"><img src="media/${p.img}" alt="${esc(p.name)} screenshot"></div>`;
+  return `<div class="s-media art-field" style="${colours(p)}">${art(p)}</div>`;
+}
+
+let state = { half: 'day' };
+try { Object.assign(state, JSON.parse(localStorage.getItem('mb-projects-bento') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('mb-projects-bento', JSON.stringify(state)); } catch (e) {} };
+const $ = (id) => document.getElementById(id), list = $('list');
+
+const tile = (p, k) => `<a class="t hot ${p.bento || 'single'}" href="#${p.slug}" style="${colours(p)};--k:${k}">${art(p)}<span class="cap"><p class="kind">${esc(p.kind)}</p><h3>${flap(p.name)}</h3><p class="line">${esc(p.line)}</p></span></a>`;
+function renderList(animate) {
+  document.body.classList.toggle('day', state.half === 'day');
+  document.querySelectorAll('[data-half]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.half === state.half)));
+  document.dispatchEvent(new CustomEvent('shift', { detail: { half: state.half, animate } }));
+  $('intro').innerHTML = HALF[state.half].intro;
+  const draw = () => { list.innerHTML = `<div class="bento">${P.filter(p => p.half === state.half).map(tile).join('')}</div>`; };
+  const old = [...list.querySelectorAll('.t')];
+  if (!animate || reduce || !old.length) return draw();
+  old.forEach((t, k) => { t.style.setProperty('--k', k); t.classList.add('out'); });
+  setTimeout(draw, old.length * 26 + 280);
+}
+document.querySelectorAll('[data-half]').forEach(b => b.addEventListener('click', () => {
+  if (state.half === b.dataset.half) return;
+  const from = document.querySelector(`[data-half="${state.half}"]`);
+  state.half = b.dataset.half; save(); slideThumb(from, b); popIcon(b); renderList(true);
+}));
+
+// the pill: stretches across both halves on its way over, then settles on the new one
+const thumb = $('thumb');
+const spot = (btn) => ({ left: `${btn.offsetLeft}px`, width: `${btn.offsetWidth}px` });
+function placeThumb() { const s = spot(document.querySelector(`[data-half="${state.half}"]`)); thumb.style.left = s.left; thumb.style.width = s.width; }
+function slideThumb(from, to) {
+  const a = spot(from), b = spot(to), l = Math.min(from.offsetLeft, to.offsetLeft), r = Math.max(from.offsetLeft + from.offsetWidth, to.offsetLeft + to.offsetWidth);
+  thumb.style.left = b.left; thumb.style.width = b.width;
+  if (!reduce) thumb.animate([a, { left: `${l}px`, width: `${r - l}px`, offset: 0.45 }, b], { duration: 560, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' });
+}
+// the icon of the shift being switched on: the sun's rays spin out, the moon rocks into place
+function popIcon(btn) {
+  if (reduce) return;
+  const ease = { duration: 700, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' };
+  const rays = btn.querySelector('.rays'), core = btn.querySelector('.core'), moon = btn.querySelector('.crescent');
+  if (rays) rays.animate([{ transform: 'rotate(-90deg) scale(0.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], ease);
+  if (core) core.animate([{ transform: 'scale(0.4)' }, { transform: 'none' }], ease);
+  if (moon) moon.animate([{ transform: 'rotate(-50deg) scale(0.6)', opacity: 0 }, { transform: 'rotate(12deg)', opacity: 1, offset: 0.6 }, { transform: 'none' }], ease);
+}
+placeThumb(); addEventListener('resize', placeThumb); document.fonts?.ready.then(placeThumb);
+
+// story pages: one per project, in the colours of its shift; "next" walks the day, then into the night
+let listY = 0;
+function renderStory(p) {
+  const half = P.filter(x => x.half === p.half), i = half.indexOf(p), last = i === half.length - 1;
+  const nx = last ? P.find(x => x.half !== p.half) : half[i + 1];
+  const nextLabel = last ? (p.half === 'day' ? 'Clocking out. After hours' : 'Back to the morning') : 'Next project';
+  document.body.classList.toggle('day', p.half === 'day');
+  $('story-view').innerHTML = `<article class="story wrap">
+    <a class="back hot" href="#all">${flap('← All projects')}</a>
+    <header class="s-head">
+      <p class="eyebrow">${p.half === 'day' ? SUN : MOON}${HALF[p.half].label} · ${esc(p.kind)}</p>
+      <h1>${esc(p.name)}</h1>
+      <p class="pitch">${esc(p.line)}</p>
+    </header>
+    ${storyMedia(p)}
+    <div class="s-body">
+      ${p.stat ? `<p class="stat"><b>${esc(p.stat[0])}</b><span>${esc(p.stat[1])}</span></p>` : '<span></span>'}
+      <div style="display:grid;gap:44px">
+        <ol class="flow">
+          <li><h2>What it does</h2><p>${esc(p.what)}</p></li>
+          <li><h2>Why it's cool</h2><p>${esc(p.why)}</p></li>
+          <li><h2>The impact</h2><p>${esc(p.impact)}</p></li>
+        </ol>
+        ${p.link ? `<p class="visit"><a href="${p.link[1]}" target="_blank" rel="noopener">${esc(p.link[0])} ↗</a></p>` : ''}
+      </div>
+    </div>
+    <a class="next hot" href="#${nx.slug}"><small>${nextLabel}</small><strong>${flap(nx.name)}<span class="arr" aria-hidden="true">→</span></strong></a>
+  </article>`;
+  document.title = `${p.name} · Mazza Projects Bento`;
+}
+function route() {
+  const p = P.find(x => x.slug === location.hash.slice(1)), inStory = !$('story-view').hidden;
+  if (p) {
+    if (!inStory) listY = scrollY;
+    renderStory(p); $('list-view').hidden = true; $('story-view').hidden = false; scrollTo(0, 0);
+  } else if (inStory) {
+    $('story-view').hidden = true; $('list-view').hidden = false; document.title = 'Mazza Projects Bento'; renderList(false); scrollTo(0, listY);
+  }
+}
+addEventListener('hashchange', route);
+
+// stars for the night sky, placed once
+const stars = $('stars');
+for (let i = 0; i < 70; i++) { const s = document.createElement('i'); s.style.left = `${Math.random() * 100}%`; s.style.top = `${Math.random() * 100}%`; s.style.opacity = String(0.25 + Math.random() * 0.6); s.style.animationDelay = `${-Math.random() * 4}s`; s.style.animationDuration = `${3 + Math.random() * 4}s`; if (Math.random() < 0.15) { s.style.width = s.style.height = '3px'; } stars.appendChild(s); }
+
+console.assert(P.filter(p => p.half === 'day').length === 9 && P.filter(p => p.half === 'night').length === 7, 'project split changed');
+renderList(false);
+route();
+</script>
+
+<script type="importmap">{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+/* the sun and the moon as one cloud of light: every particle has a spot in each shape, and on a shift change it
+   drifts out like dust on its own beat and settles into the other one */
+const canvas = document.getElementById('sky'), head = canvas.parentElement;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, small = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); }
+catch (e) { canvas.remove(); throw e; }  // no WebGL: the page still works, just without the sky
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); renderer.setClearColor(0x000000, 1);
+
+const N = small ? 14000 : 30000, TAU = Math.PI * 2;
+const bell = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+// sun: a ring, twelve rays of two lengths, and a little dust inside (unit radius; rays reach 1.86)
+function sunPoint() {
+  const u = Math.random();
+  if (u < 0.46) { const a = Math.random() * TAU, r = 1 + bell() * 0.035; return [r * Math.cos(a), r * Math.sin(a), bell() * 0.06]; }
+  if (u < 0.96) { const k = Math.floor(Math.random() * 12), a = k / 12 * TAU + Math.PI / 12, d = 1.3 + Math.random() * (k % 2 ? 0.34 : 0.56), w = bell() * 0.028;
+    return [d * Math.cos(a) - w * Math.sin(a), d * Math.sin(a) + w * Math.cos(a), bell() * 0.04]; }
+  const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 0.88; return [r * Math.cos(a), r * Math.sin(a), bell() * 0.16];
+}
+// moon: the full disc with an offset disc bitten out, so the crescent opens to the upper right like the icon
+const BITE = [0.46, 0.32], BR = 0.86, bitten = (x, y) => Math.hypot(x - BITE[0], y - BITE[1]) < BR;
+function moonPoint() {
+  for (;;) {
+    const u = Math.random();
+    if (u < 0.4) { const a = Math.random() * TAU, r = 1 + bell() * 0.03, x = r * Math.cos(a), y = r * Math.sin(a); if (!bitten(x, y)) return [x, y, bell() * 0.06]; }
+    else if (u < 0.62) { const a = Math.random() * TAU, r = BR + bell() * 0.03, x = BITE[0] + r * Math.cos(a), y = BITE[1] + r * Math.sin(a); if (Math.hypot(x, y) < 1) return [x, y, bell() * 0.06]; }
+    else { const a = Math.random() * TAU, r = Math.sqrt(Math.random()), x = r * Math.cos(a), y = r * Math.sin(a); if (!bitten(x, y)) return [x, y, bell() * 0.12]; }
+  }
+}
+// pair the two shapes by angle (with a little shuffle) so particles sweep round rather than criss-cross the middle
+const byAngle = (pts) => pts.map(p => ({ p, a: Math.atan2(p[1], p[0]) + bell() * 0.5 })).sort((x, y) => x.a - y.a).map(o => o.p);
+const sun = byAngle(Array.from({ length: N }, sunPoint)), moon = byAngle(Array.from({ length: N }, moonPoint));
+console.assert(sun.length === N && moon.length === N, 'sun and moon must have one spot per particle');
+const geo = new THREE.BufferGeometry(), A = new Float32Array(N * 3), B = new Float32Array(N * 3), R4 = new Float32Array(N * 4);
+for (let i = 0; i < N; i++) { A.set(sun[i], i * 3); B.set(moon[i], i * 3); R4.set([Math.random(), Math.random(), Math.random(), Math.random()], i * 4); }
+geo.setAttribute('position', new THREE.BufferAttribute(A, 3)); geo.setAttribute('aB', new THREE.BufferAttribute(B, 3)); geo.setAttribute('aR', new THREE.BufferAttribute(R4, 4));
+const U = { uMorph: { value: 0 }, uTime: { value: 0 }, uSize: { value: 2 }, uPx: { value: renderer.getPixelRatio() },
+  uSun: { value: new THREE.Color('#ffc24d') }, uMoon: { value: new THREE.Color('#bfcbe0') } };
+const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `attribute vec3 aB; attribute vec4 aR; uniform float uMorph, uTime, uSize, uPx; varying float vMix, vFly;
+    vec2 rot(vec2 v, float a){ float c = cos(a), s = sin(a); return vec2(c * v.x - s * v.y, s * v.x + c * v.y); }
+    void main(){
+      vec3 a = position; a.xy = rot(a.xy, uTime * 0.05);  // the sun's rays turn slowly
+      float t = clamp(uMorph * 1.5 - aR.x * 0.5, 0.0, 1.0); t = t * t * (3.0 - 2.0 * t);  // each particle leaves on its own beat
+      float fly = sin(3.14159 * t);
+      vec3 p = mix(a, aB, t);
+      p += (aR.yzw - 0.5) * fly * 1.5;               // drifts out like dust mid-flight
+      p.xy += rot(p.xy, 1.5708) * fly * 0.4;         // and swirls round the middle
+      p += 0.014 * vec3(sin(uTime * 0.9 + aR.y * 40.0), cos(uTime * 0.7 + aR.z * 40.0), sin(uTime * 0.6 + aR.w * 40.0));
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      gl_PointSize = uSize * uPx * (0.55 + aR.w * 0.9) * (1.0 + fly * 0.7) * (6.0 / -mv.z);
+      gl_Position = projectionMatrix * mv; vMix = t; vFly = fly; }`,
+  fragmentShader: `uniform vec3 uSun, uMoon; varying float vMix, vFly;
+    void main(){ vec2 q = gl_PointCoord - 0.5; float rr = dot(q, q); if (rr > 0.25) discard;
+      vec3 c = mix(uSun, uMoon, vMix) * (0.5 + vFly * 0.5);
+      gl_FragColor = vec4(c * smoothstep(0.25, 0.0, rr) * 0.42, 1.0); }` });
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50), grp = new THREE.Group();
+camera.position.set(0, 0, 6); grp.add(new THREE.Points(geo, mat)); scene.add(grp);
+const composer = new EffectComposer(renderer), bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.6, 0.18, 0.32);
+// only the tight glow layers: the widest ones leave a faint grey box that shows against the day blue
+bloom.compositeMaterial.uniforms.bloomFactors.value = [1.0, 0.75, 0.4, 0.0, 0.0];
+composer.addPass(new RenderPass(scene, camera)); composer.addPass(bloom); composer.addPass(new OutputPass());
+// clip the faintest light to pure black: screen-blended on the day blue, even a 2% tail shows as a grey box
+composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec3 c = texture2D(tDiffuse, vUv).rgb; gl_FragColor = vec4(max(c - 0.04, 0.0) / 0.96, 1.0); }' }));
+
+// size and place it top right of the page head, clear of the heading on phones
+function layout() {
+  const w = head.clientWidth, h = head.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+  const ppu = h / (2 * Math.tan(THREE.MathUtils.degToRad(17.5)) * 6), narrow = w < 640;  // pixels per world unit at z = 0
+  // phones: centred in the open space right of the switch, since the heading fills the top line
+  const gr = parseFloat(getComputedStyle(head).paddingRight) || 16, flip = head.querySelector('.flip'), flipEnd = flip.offsetLeft + flip.offsetWidth, room = w - gr - flipEnd;
+  const R = narrow ? Math.max(20, Math.min(40, room / 2 - 8)) : Math.min(h * 0.34, w * 0.15);
+  const cx = narrow ? flipEnd + room / 2 : w - gr - R - 24, cy = narrow ? flip.offsetTop + flip.offsetHeight / 2 : R + 56;
+  grp.position.set((cx - w / 2) / ppu, (h / 2 - cy) / ppu, 0); grp.scale.setScalar(R / 1.86 / ppu);
+  U.uSize.value = Math.max(1.1, R / 92); U.uPx.value = renderer.getPixelRatio();
+}
+new ResizeObserver(layout).observe(head);
+
+// shift changes come from the page; going there takes 1.8 s, or no time at all with reduced motion
+let m = document.body.classList.contains('day') ? 0 : 1, from = m, target = m, t0 = 0;
+document.addEventListener('shift', (e) => {
+  const to = e.detail.half === 'night' ? 1 : 0; if (to === target) return;
+  from = m; target = to; t0 = performance.now(); if (!e.detail.animate || reduce) m = from = target;
+});
+let onScreen = true; new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(head);
+const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2), start = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (document.hidden || !onScreen || canvas.offsetParent === null) return;  // paused off screen and on story pages
+  if (m !== target) { const k = Math.min(1, (now - t0) / 1800); m = from + (target - from) * ease(k); if (k === 1) m = target; }
+  const t = reduce ? 0 : (now - start) / 1000;
+  U.uMorph.value = m; U.uTime.value = t;
+  grp.rotation.set(0.14 * Math.sin(t * 0.2), 0.22 * Math.sin(t * 0.25), 0);  // a slow sway, so it reads as a shape in space
+  composer.render();
+}
+layout(); requestAnimationFrame(frame);
+</script>
