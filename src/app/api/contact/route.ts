@@ -1,30 +1,26 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { validateContact, type ContactField } from "@/lib/contact-rules";
+
+// the API keeps its own wording; the page shows the RULES text before it ever posts
+const ERRORS: Record<ContactField, string> = {
+  name: "Name is required",
+  email: "Valid email is required",
+  message: "Message is required",
+};
 
 export async function POST(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const body = await request.json();
-    const { name, email, message } = body;
-
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
+    // a null body throws here and lands in the catch, as before
+    const result = validateContact(await request.json());
+    if (!result.ok) {
       return NextResponse.json(
-        { success: false, error: "Name is required" },
+        { success: false, error: ERRORS[result.field] },
         { status: 400 }
       );
     }
-    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { success: false, error: "Valid email is required" },
-        { status: 400 }
-      );
-    }
-    if (!message || typeof message !== "string" || message.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Message is required" },
-        { status: 400 }
-      );
-    }
+    const { name, email, message } = result.value;
 
     const { error } = await resend.emails.send({
       from: "Mazza Builds Contact <contact@mazzabuilds.com>",
