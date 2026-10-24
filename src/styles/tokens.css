@@ -1,89 +1,29 @@
 /*
- * Mazza Builds — Design Tokens
- * Based on the Nothing design system with one departure:
- * --accent: #FF6B35 (orange) replaces Nothing's #D71921 (red)
- *
- * Fonts: Doto (display), Space Grotesk (body/UI), Space Mono (data/labels)
+ * Mazza Builds design tokens (design refresh, 2026-10).
+ * Fonts: Big Shoulders (display, --font-display) and Schibsted Grotesk (text, --font-text),
+ * loaded with next/font in layout.tsx. One accent: amber.
+ * Pages that change the page colour (the projects day shift, the about blueprint) override --bg.
  */
-
-/* ───────────────────────────────────────────
-   Dark mode (default)
-   ─────────────────────────────────────────── */
 :root {
-  /* Surfaces */
-  --black: #000000;
-  --surface: #111111;
-  --surface-raised: #1A1A1A;
-
-  /* Borders */
-  --border: #222222;
-  --border-visible: #333333;
-
-  /* Text hierarchy */
-  --text-disabled: #666666;
-  --text-secondary: #999999;
-  --text-primary: #E8E8E8;
-  --text-display: #FFFFFF;
-
-  /* Accent — Mazza Builds orange (ONE element per section max) */
-  --accent: #FF6B35;
-  --accent-subtle: rgba(255, 107, 53, 0.15);
-
-  /* Status */
-  --success: #4A9E5C;
-  --warning: #D4A843;
-  --error: #D71921;
-  --info: #999999;
-  --interactive: #5B9BF6;
-
-  /* Spacing (8px base) */
-  --space-2xs: 2px;
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-  --space-4xl: 96px;
-
-  /* Typography scale */
-  --display-xl: 72px;
-  --display-lg: 48px;
-  --display-md: 36px;
-  --heading: 24px;
-  --subheading: 18px;
-  --body: 16px;
-  --body-sm: 14px;
-  --caption: 12px;
-  --label: 11px;
-
-  /* Motion */
-  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --duration-micro: 150ms;
-  --duration-transition: 300ms;
-
-  /* Radii */
-  --radius-technical: 4px;
-  --radius-compact: 8px;
-  --radius-card: 12px;
-  --radius-card-lg: 16px;
-  --radius-pill: 999px;
+  --bg: #000000;
+  --day: #0b1d33;
+  --ink: #f1f2f3;
+  --ink-2: #a9b0b9;
+  --ink-3: #6b727c;
+  --line: rgba(255, 255, 255, 0.14);
+  --amber: #ffc24d;
+  --err: #ff8a7a;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --display: var(--font-display), "Arial Narrow", Impact, sans-serif;
+  --text: var(--font-text), "Helvetica Neue", Arial, sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
 }
 
-/* ───────────────────────────────────────────
-   Blueprint mode (about page)
-   Deep navy with light-blue technical elements
-   ─────────────────────────────────────────── */
-.blueprint {
-  --black: #0a1628;
-  --surface: #0d1b2a;
-  --surface-raised: #132238;
-  --border: #1b3a5c;
-  --border-visible: #4a7fb5;
-  --text-disabled: #5a87ad;
-  --text-secondary: #a8c3d9;
-  --text-primary: #dbe8f2;
-  --text-display: #f0f6fb;
+@media (min-width: 720px) {
+  :root {
+    --gl: max(32px, env(safe-area-inset-left, 0px));
+    --gr: max(32px, env(safe-area-inset-right, 0px));
+  }
 }
-

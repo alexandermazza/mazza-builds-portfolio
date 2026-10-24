@@ -1,0 +1,34 @@
+/* the letter roll: every letter slides up to an identical copy, 30 ms apart */
+.w {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.f {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.f i {
+  display: block;
+  font-style: normal;
+  line-height: 1;
+  height: 1em;
+  transition: transform 320ms var(--ease) calc(var(--i) * 30ms);
+}
+
+.hot:hover .f i,
+.hot:focus-visible .f i {
+  transform: translateY(-100%);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

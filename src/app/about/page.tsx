@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ScrollTextLines } from "@/components/ui";
-import { GitHubCard } from "@/components/ui/GitHubCard";
-import { UsageCard } from "@/components/ui/UsageCard";
-import {
-  ScrollLetterAnimation,
-  SpecBlock,
-  ConnectionLine,
-  AnimatedRule,
-  SystemDiagram,
-  ProcessFlow,
-  ExperienceTimeline,
-  ScrollGridAnimation,
-  ChicagoMap,
-} from "@/components/effects";
+import { loadUsageData } from "@/lib/usage-data";
+import { loadGitHubData } from "@/lib/github-data";
+import { toYearSeries, formatCompact } from "@/lib/activity";
+import { Heatmap } from "@/components/site/Heatmap";
+import { PlatformIcon } from "@/components/site/PlatformIcon";
+import { StreetMap } from "@/components/about/StreetMap";
+import { SystemDiagram } from "@/components/about/SystemDiagram";
+import { ProcessLoop } from "@/components/about/ProcessLoop";
+import { BuildLog } from "@/components/about/BuildLog";
+import { Connections } from "@/components/about/Connections";
+import styles from "@/components/about/About.module.css";
 
 export const metadata: Metadata = {
   title: "About",
@@ -21,188 +18,136 @@ export const metadata: Metadata = {
     "Solo indie developer based in the Midwest. I build things from concept to production.",
 };
 
-// See note in src/app/page.tsx — data comes from runtime-only sources.
+// Render per request: the usage DB and GITHUB_TOKEN only exist at runtime.
 export const dynamic = "force-dynamic";
 
-const connections = [
-  { label: "GitHub", href: "https://github.com/alexandermazza" },
-  { label: "Twitter", href: "https://twitter.com/mazza_builds" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/alexander-mazza/" },
-  { label: "Email", href: "mailto:hello@mazzabuilds.com" },
-];
+const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
+const activeDays = (values: number[]) => values.filter((v) => v > 0).length;
 
-const experience = [
-  {
-    title: "GTM AI Operations Manager",
-    company: "Freshpaint",
-    dateRange: "FEB 2025 - PRESENT",
-    description: "AI and automation for go-to-market operations.",
-  },
-  {
-    title: "Revenue Operations Manager",
-    company: "Freshpaint",
-    dateRange: "AUG 2024 - FEB 2025",
-    description: "Managed revenue operations and streamlined GTM processes.",
-  },
-  {
-    title: "Operations Manager, Sales and Marketing",
-    company: "Rattle",
-    dateRange: "MAY 2023 - AUG 2024",
-    description: "Owned revenue management and cross-functional sales and marketing operations.",
-  },
-  {
-    title: "Marketing Operations Manager",
-    company: "metadata.io",
-    dateRange: "OCT 2021 - MAY 2023",
-    description: "System admin for go-to-market team. Automation builder.",
-  },
-];
+export default async function AboutPage() {
+  const today = new Date();
+  const year = today.getUTCFullYear();
+  const month = today.toLocaleString("en-US", { month: "long", timeZone: "UTC" });
+  const tokens = toYearSeries(loadUsageData().data.map((d) => ({ date: d.date, value: d.total_tokens })), year, today);
+  const github = await loadGitHubData(year);
+  const commits = github && toYearSeries(github.data.map((d) => ({ date: d.date, value: d.count })), year, today);
+  const tokenTotal = sum(tokens);
 
-export default function AboutPage() {
   return (
-    <main
-      className="blueprint relative min-h-screen px-[var(--space-lg)] py-[var(--space-4xl)]"
-      style={{
-        backgroundColor: "var(--surface)",
-        backgroundImage:
-          "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-        backgroundSize: "var(--space-lg) var(--space-lg)",
-      }}
-    >
-      <div className="relative mx-auto max-w-[960px]">
-        {/* Heading */}
-        <section className="mb-[var(--space-lg)]">
-          <ScrollLetterAnimation
-            as="h1"
-            className="font-sans text-[clamp(36px,8vw,72px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
-          >
-            ABOUT
-          </ScrollLetterAnimation>
-        </section>
+    <main className={styles.page}>
+      {/* the map is drawn by script; without it there is nothing to show in its place */}
+      <noscript>
+        <style>{"#map-wrap{display:none}"}</style>
+      </noscript>
 
-        {/* Header rule with revision */}
-        <section className="mb-[var(--space-3xl)]">
-          <AnimatedRule />
-        </section>
+      <section className={`${styles.head} ${styles.wrap}`}>
+        <div className={styles.inner}>
+          <h1>About</h1>
+          <p className={styles.rev}>
+            <span>Spec sheet</span>
+            <span>Revised October 2026</span>
+          </p>
+        </div>
+      </section>
 
-        {/* Bio / Identity Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <SpecBlock label="SPEC: IDENTITY">
-            <div className="flex flex-col gap-[var(--space-2xl)] md:flex-row md:items-start md:justify-between">
-              <div className="flex-1">
-                <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)] [&>span]:mb-[var(--space-sm)] [&>span:last-child]:mb-0">
-                  I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d
-                  rather write the software than evaluate it. AI-powered apps,
-                  automation systems, and tools end-to-end - iOS, web, trading
-                  bots, the works.
-                </ScrollTextLines>
-                <div className="mt-[var(--space-2xl)]">
-                  <ScrollTextLines className="max-w-[640px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)] [&>span]:mb-[var(--space-sm)] [&>span:last-child]:mb-0">
-                    Day job: AI operations at a healthcare SaaS company. Side
-                    projects: whatever I can&apos;t stop thinking about.
-                  </ScrollTextLines>
-                </div>
-              </div>
-              <div className="flex-shrink-0 md:ml-[var(--space-2xl)]">
-                <Image
-                  src="/about/sketch.jpg"
-                  alt="Sketch of Alex Mazza"
-                  width={280}
-                  height={332}
-                  className="rounded-[var(--radius-card)] border border-[var(--border-visible)] opacity-80"
-                />
-              </div>
+      <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-identity">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-identity">Spec: Identity</p>
+          <div className={styles.idGrid}>
+            <div className={styles.bio}>
+              <p>
+                I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d rather write the software than evaluate
+                it. AI-powered apps, automation systems, and tools end-to-end - iOS, web, trading bots, the works.
+              </p>
+              <p>
+                Day job: Senior GTM Engineer, AI, at a healthcare SaaS company. Side projects: whatever I can&apos;t
+                stop thinking about.
+              </p>
             </div>
-          </SpecBlock>
-        </section>
+            <figure className={styles.portrait}>
+              <Image src="/about/sketch.jpg" alt="Pencil sketch portrait of Alex Mazza" width={360} height={427} />
+            </figure>
+          </div>
+        </div>
+      </section>
 
-        {/* Location Spec */}
-        <section className="mb-[var(--space-2xl)]">
-          <SpecBlock label="SPEC: LOCATION">
-            <p className="mb-[var(--space-md)] font-mono text-[13px] tracking-[0.06em] text-[var(--text-secondary)]">
-              41.8781° N, 87.6298° W
-            </p>
-            <ScrollTextLines className="mb-[var(--space-2xl)] max-w-[400px] font-sans text-[var(--body)] leading-[1.6] text-[var(--text-secondary)]">
-              Based in Chicago - a city built on a grid, which felt
-              appropriate.
-            </ScrollTextLines>
-          </SpecBlock>
-        </section>
-      </div>
+      <section className={`${styles.spec} ${styles.flush} ${styles.wrap}`} aria-labelledby="l-location">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-location">Spec: Location</p>
+          <div className={styles.loc}>
+            <div className={styles.locText}>
+              <h2>Chicago</h2>
+              <p>Based in Chicago - a city built on a grid, which felt appropriate.</p>
+            </div>
+            <p className={styles.coords}>41.8925° N, 87.6335° W</p>
+          </div>
+        </div>
+      </section>
+      <StreetMap />
 
-      {/* Full-bleed ChicagoMap — outside max-w container, cancels main's px padding */}
-      <ChicagoMap className="-mx-[var(--space-lg)] mb-[var(--space-4xl)] h-[400px] md:h-[550px]" />
-
-      <div className="relative mx-auto max-w-[960px]">
-        {/* Systems Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-            SPEC: SYSTEMS
+      <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-systems">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-systems">Spec: Systems</p>
+          <h2>The system I run at work</h2>
+          <p className={styles.sub}>
+            Where the go-to-market data lives, the tools I built that do something with it, and the teams who use them
+            every day. Point at any part to trace it.
           </p>
           <SystemDiagram />
-        </section>
+        </div>
+      </section>
 
-        {/* Activity Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <SpecBlock label="SPEC: ACTIVITY">
-            <ScrollGridAnimation
-              className="grid grid-cols-1 gap-[var(--space-md)] md:grid-cols-2"
-              stagger={0.15}
-            >
-              {/* compact: full-size grid outgrows the half-width column
-                  mid-year; compact fits all 52 weeks (same as homepage) */}
-              <UsageCard compact />
-              <GitHubCard compact />
-            </ScrollGridAnimation>
-          </SpecBlock>
-        </section>
-
-        {/* Process Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-            SPEC: PROCESS
-          </p>
-          <ProcessFlow />
-        </section>
-
-        {/* History Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <p className="mb-[var(--space-2xl)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-            SPEC: HISTORY
-          </p>
-          <ExperienceTimeline entries={experience} />
-        </section>
-
-        {/* Connections Spec */}
-        <section className="mb-[var(--space-4xl)]">
-          <div className="mb-[var(--space-2xl)] flex items-center justify-between">
-            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-              SPEC: CONNECTIONS
-            </p>
-            <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-              {connections.length} ENDPOINTS ACTIVE
-            </span>
-          </div>
-          <div className="grid gap-[var(--space-lg)]">
-            {connections.map((conn, i) => (
-              <ConnectionLine
-                key={conn.label}
-                label={conn.label}
-                href={conn.href}
-                delay={i * 0.1}
-              />
-            ))}
+      {(tokenTotal > 0 || commits) && (
+        <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-activity">
+          <div className={styles.inner}>
+            <p className={styles.label} id="l-activity">Spec: Activity, {year} so far</p>
+            <div className={styles.strip}>
+              {tokenTotal > 0 && (
+                <div className={styles.stat}>
+                  <p className={styles.num}>{formatCompact(tokenTotal)}</p>
+                  <p className={styles.lbl}>AI tokens, on {activeDays(tokens)} days</p>
+                  <Heatmap values={tokens} tone="white" compact label={`Daily AI token use from January to ${month} ${year}`} />
+                </div>
+              )}
+              {commits && (
+                <div className={styles.stat}>
+                  <p className={styles.num}>
+                    <PlatformIcon name="github" />
+                    {formatCompact(sum(commits))}
+                  </p>
+                  <p className={styles.lbl}>GitHub contributions, on {activeDays(commits)} days</p>
+                  <Heatmap values={commits} tone="green" compact label={`Daily GitHub contributions from January to ${month} ${year}`} />
+                </div>
+              )}
+            </div>
           </div>
         </section>
+      )}
 
-        {/* Footer */}
-        <section className="flex flex-col items-center gap-[var(--space-md)]">
-          <div className="h-px w-full bg-[var(--border-visible)]" />
-          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-            END OF SPEC
-          </span>
-        </section>
-      </div>
+      <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-process">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-process">Spec: Process</p>
+          <h2>A loop, not a line</h2>
+          <ProcessLoop />
+        </div>
+      </section>
+
+      <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-history">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-history">Spec: History</p>
+          <h2>Build log</h2>
+          <p className={styles.sub}>Every job shipped a new version of me. Newest release first.</p>
+          <BuildLog tokens={tokenTotal} year={year} />
+        </div>
+      </section>
+
+      <section className={`${styles.spec} ${styles.wrap}`} aria-labelledby="l-conn">
+        <div className={styles.inner}>
+          <p className={styles.label} id="l-conn">Spec: Connections</p>
+          <Connections />
+        </div>
+      </section>
+      <p className={styles.end}>End of spec</p>
     </main>
   );
 }

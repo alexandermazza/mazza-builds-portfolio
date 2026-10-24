@@ -1,12 +1,10 @@
 /**
- * Resilience check for the homepage reveal.
+ * Resilience check for the homepage.
  *
- * The hero is hidden behind a full-screen opaque boot overlay and every
- * section ships at opacity:0. Only client-side GSAP makes any of it visible.
- * That means a single client-side failure turns the whole site into a
- * permanent black screen - which is what a recruiter reported.
- *
- * This script asserts the site stays readable in three environments:
+ * The old homepage hid everything behind a boot overlay until client JS ran,
+ * and a single client-side failure left a recruiter on a black screen. This
+ * script keeps that from coming back: the hero must stay readable in three
+ * environments:
  *   1. a normal browser                  (the happy path)
  *   2. a browser where storage is blocked (sessionStorage access throws)
  *   3. a browser with JavaScript disabled
@@ -37,14 +35,11 @@ async function check(label, { poison = false, js = true } = {}) {
   if (poison) await page.addInitScript(POISON_STORAGE);
 
   await page.goto(TARGET, { waitUntil: "load", timeout: 90000 });
-  // Well past the ~11s boot animation, its safety deadline, and the 6s
-  // no-JS watchdog - so a failure here means stuck, not merely slow.
-  await page.waitForTimeout(22000);
+  // well past the hero's entrance, so a failure here means stuck, not merely slow
+  await page.waitForTimeout(8000);
 
   const state = await page.evaluate(() => {
-    const h1 = [...document.querySelectorAll("h1")].find((el) =>
-      el.textContent.replace(/\s+/g, " ").includes("MAZZA BUILDS")
-    );
+    const h1 = [...document.querySelectorAll("h1")].find((el) => /mazza\s*builds/i.test(el.textContent));
     if (!h1) return { found: false };
     const firstSpan = h1.querySelector("span");
     const spanOpacity = firstSpan

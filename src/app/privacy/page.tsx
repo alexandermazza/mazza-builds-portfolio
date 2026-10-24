@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ScrollLetterAnimation } from "@/components/effects";
+import styles from "@/components/site/PlainPage.module.css";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -7,13 +7,9 @@ export const metadata: Metadata = {
     "What this site collects, what it does not, and how to get anything removed",
 };
 
-const LAST_UPDATED = "15 September 2026";
+const LAST_UPDATED = "24 October 2026";
 
-/**
- * Body copy is intentionally plain markup rather than the scroll-reveal
- * components used elsewhere. A page whose job is to state plainly what the site
- * does should render for everyone, with no dependency on animation running.
- */
+// plain markup on purpose: a page that states what the site does should render for everyone, animation or not
 function Section({
   label,
   title,
@@ -24,34 +20,19 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-[var(--space-3xl)]">
-      <p className="mb-[var(--space-sm)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-        {label}
-      </p>
-      <h2 className="mb-[var(--space-md)] font-sans text-[var(--heading)] leading-[1.2] tracking-[-0.02em] text-[var(--text-display)]">
-        {title}
-      </h2>
-      <div className="max-w-[640px] space-y-[var(--space-md)] font-sans text-[var(--body-sm)] leading-[1.6] text-[var(--text-secondary)]">
-        {children}
-      </div>
+    <section className={styles.section}>
+      <p className={styles.label}>{label}</p>
+      <h2>{title}</h2>
+      <div className={styles.body}>{children}</div>
     </section>
   );
 }
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-[960px] px-[var(--space-md)] md:px-[var(--space-lg)] py-[var(--space-2xl)] md:py-[var(--space-4xl)]">
-      <section className="mb-[var(--space-2xl)]">
-        <ScrollLetterAnimation
-          as="h1"
-          className="font-sans text-[clamp(36px,8vw,72px)] leading-[0.9] tracking-[-0.03em] text-[var(--text-display)]"
-        >
-          PRIVACY
-        </ScrollLetterAnimation>
-        <p className="mt-[var(--space-md)] font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-          LAST UPDATED {LAST_UPDATED}
-        </p>
-      </section>
+    <main className={styles.page}>
+      <h1 className={styles.title}>Privacy</h1>
+      <p className={styles.updated}>Last updated {LAST_UPDATED}</p>
 
       <Section label="SPEC: SUMMARY" title="The short version">
         <p>
@@ -89,23 +70,17 @@ export default function PrivacyPage() {
 
       <Section label="SPEC: BROWSER STORAGE" title="Storage on your device">
         <p>
-          The site stores a single flag in your browser&apos;s session storage
-          to remember that you have already seen the intro animation, so it does
-          not replay on every page. It holds no personal information, is not
-          readable by anyone else, and disappears when you close the tab. If
-          your browser blocks site storage entirely, the site still works.
+          Apart from what Google Analytics keeps, described above, the site
+          stores nothing in your browser: no local storage and no session
+          storage. If your browser blocks site storage entirely, the site works
+          exactly the same.
         </p>
       </Section>
 
       <Section label="SPEC: CONTROL" title="Getting things removed">
         <p>
           Email{" "}
-          <a
-            href="mailto:hello@mazzabuilds.com"
-            className="text-[var(--text-primary)] underline underline-offset-4 transition-colors hover:text-[var(--accent)]"
-          >
-            hello@mazzabuilds.com
-          </a>{" "}
+          <a href="mailto:hello@mazzabuilds.com">hello@mazzabuilds.com</a>{" "}
           and ask. If you have messaged me and want that correspondence deleted,
           say so and it will be. You do not need to explain why.
         </p>
