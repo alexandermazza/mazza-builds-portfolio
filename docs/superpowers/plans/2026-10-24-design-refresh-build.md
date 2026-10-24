@@ -24,6 +24,21 @@
 - After each task: compare the page against its mockup in Chrome at desktop width and in a 390px frame before committing.
 - Commits: `feat(scope): ...` style as in `git log`, one per task, ending with the session attribution lines.
 
+## Execution (parallel, decided 2026-10-24)
+
+Tasks 1 and 2 run first, in order, on `worktree-design-refresh`. Then four agents run at once, each in its own git worktree on its own branch cut from `worktree-design-refresh`:
+- `refresh-projects`: Tasks 3 and 4
+- `refresh-contact`: Task 5
+- `refresh-about`: Task 6
+- `refresh-home`: Task 7
+
+Each serves its production build on its own port: projects 3101, contact 3102, about 3103, home 3104. One agent then merges the four branches and does Task 8, a fresh reviewer runs Task 9 Step 1, and a fix agent applies the confirmed findings.
+
+Rules for the parallel tasks:
+- Edit only the files your task lists. If a shared file (`tokens.css`, `globals.css`, `layout.tsx`, `package.json`, `src/data/projects.ts`, `src/lib/three/glow.ts`, `src/lib/activity.ts`, `src/components/site/*`) truly needs a change, make the smallest edit and list it in your report.
+- Check groups live in separate files (`scripts/checks/<group>.mjs`), so parallel tasks never edit the same check file.
+- Mockup media is git-ignored. Read it from the `design-refresh` worktree's `.design-preview/` by absolute path.
+
 ## Review Focus
 
 - **The contact checks must never send real email.** Every e2e run intercepts `POST /api/contact`; an unexpected request to it fails the run. (Task 5)
@@ -37,11 +52,16 @@
 ### Task 1: Site chrome, tokens, fonts and the check harness
 
 **Files:**
-- Create: `scripts/check-site.mjs`, `src/components/site/SiteHeader.tsx`, `src/components/site/SiteHeader.module.css`, `src/components/site/SiteFooter.tsx`, `src/components/site/SiteFooter.module.css`, `src/components/site/PlatformIcon.tsx`
+- Create: `scripts/check-site.mjs`, `scripts/checks/chrome.mjs`, `src/components/site/SiteHeader.tsx`, `src/components/site/SiteHeader.module.css`, `src/components/site/SiteFooter.tsx`, `src/components/site/SiteFooter.module.css`, `src/components/site/PlatformIcon.tsx`, `src/lib/three/glow.ts` (interface under Task 3; built here so Tasks 3 and 5 share it)
 - Modify: `src/styles/tokens.css` (new tokens, plus the old names as aliases until Task 8), `src/app/globals.css`, `src/app/layout.tsx` (fonts; render `SiteHeader` and `SiteFooter`; stop rendering `ExpandingMenu` and `Footer`), `package.json` (scripts `"test": "node --test \"src/**/*.test.ts\""` and `"check:site": "node scripts/check-site.mjs"`), `tsconfig.json`
 
 **Interfaces:**
-- Produces: `node scripts/check-site.mjs [baseUrl=http://localhost:3000] [group...]`, with groups `chrome`, `projects`, `project`, `contact`, `about`, `home`, `nav-loop`. Each group is an async function receiving `{ browser, base }`. It throws on failure and its failure message names the route. The script exits 1 if any group fails. Shared helpers in the same file: `openPage(browser, url, { phone?, js?, webgl?, reducedMotion? })` returns `{ page, errors }`, and `assertNoOverflow(page)`.
+- Produces: `node scripts/check-site.mjs [baseUrl=http://localhost:3000] [group...]`. It loads every `scripts/checks/*.mjs`, where the file name is the group name and the default export is `async ({ launch, base, helpers }) => void`. It runs the named groups, or all of them, and exits 1 if any group throws. A group's failure message names the route.
+- Produces: helpers exported from `scripts/check-site.mjs`:
+  - `openPage(url, { phone?, js?, webgl?, reducedMotion? })` returns `{ page, errors }`. `webgl: false` launches Chromium with `--disable-3d-apis`. `errors` collects page errors and console errors.
+  - `assertNoOverflow(page)`
+  - `expectNoErrors(errors, route)`
+  - The group files import these helpers.
 - Produces: `<PlatformIcon name="github" | "linkedin" | "x" | "email" className? />`, using the four SVGs from `about.html`'s Connections.
 - Produces: `SiteHeader` with nav links `/projects`, `/about`, `/contact` and the mark linking `/`, all through `TransitionLink` from `@/transitions`.
 
@@ -56,6 +76,7 @@
 **Files:**
 - Modify: `src/data/projects.ts`
 - Create: `src/data/projects.test.ts`, `public/projects/<slug>/stencil.png` for the 12 slugs in `.design-preview/projects-v2/media/marks/`
+- Create (shared by Tasks 6 and 7, built here so they never collide): `src/lib/activity.ts`, `src/lib/activity.test.ts`, `src/components/site/Heatmap.tsx`. Their interfaces and tests are written under Task 6. Write those tests here, in this task's Step 1.
 - Copy into `public/projects/<slug>/` only the mockup media that has no original there (for example `distill/poster.jpg`); otherwise point at the existing original.
 
 **Interfaces:**
@@ -63,7 +84,7 @@
   - `export type Half = "day" | "night"`
   - `export type Bento = "xl" | "wide" | "tall" | "sm"`
   - `Project` gains `half`, `kind`, `line`, `what`, `why`, `impact`, `stat?: [string, string]`, `fill`, `markColor`, `textColor`, `bento`, `markScale?: number` (Daily Roman 0.58), `mark: { type: "stencil"; src: string } | { type: "vector"; viewBox: string; paths: string[] } | { type: "icon"; name: "web-tracker-scanner" | "kalshi-trader" | "kalshi-mcp" | "shakedown" }`, `image?`, `video?` and `poster?`. It keeps `slug`, `name`, `tags`, `context`, `build`, `result` and `links`. All values come from `P` in `projects.html`; the SecondRound vector comes from `VECTORS`.
-  - Remove `description`, `issueNumber`, `status`, `screenshot`, `deviceType`, `screenTexture`, `screenBgColor`, `screenTextureScale`, `logo`, `logoBgColor`, `images` and `videos`, after `grep -rn` shows only components deleted in Task 8 read them. Update `generateMetadata`, `sitemap.ts` and `opengraph-image.tsx` to use `line` wherever they read `description`.
+  - Keep every existing field for now, so the old pages keep compiling while the new ones replace them. Task 8 removes the old fields.
   - `export function projectsByHalf(half: Half): Project[]` returns mockup order.
   - `export function nextProject(slug: string): Project` follows day order then night order, and the last night project wraps to the first day project.
   - `getProjectBySlug` is unchanged.
@@ -78,7 +99,7 @@
   - `nextProject walks all 16, crosses from event-attributor to secondround, and wraps from f1-globe to distill`
 - [ ] **Step 2: Run it and watch it fail.** `npm test`. Expected: FAIL, `projectsByHalf is not a function`.
 - [ ] **Step 3: Update the data and copy the stencils.**
-- [ ] **Step 4: Run it and watch it pass.** `npm test` passes all 7. `npx tsc --noEmit` shows errors only in files Tasks 3 to 8 replace. List them in the commit body.
+- [ ] **Step 4: Run it and watch it pass.** `npm test` passes the project tests and the activity tests, and `npm run build` is clean.
 - [ ] **Step 5: Commit.** `feat(projects): plain-language story data, halves and stencils`
 
 ### Task 3: Projects page (bento, shift switch, particle sun and moon)
@@ -86,7 +107,7 @@
 **Files:**
 - Modify: `src/app/projects/page.tsx` (reads `searchParams.shift`; `night` if it equals "night", else `day`)
 - Create in `src/components/projects/`: `ProjectsBoard.tsx` (client: switch state, grid, stagger), `ProjectsBoard.module.css`, `BentoTile.tsx`, `ProjectMark.tsx` (stencil, vector or icon; the icon SVGs come from `ICONS` in `projects.html`), `ShiftSky.tsx`, `sky.ts`
-- Create: `src/lib/three/glow.ts`, `src/components/site/RollText.tsx` (the letter roll from `projects.html` `.w/.f/.i`, also used on project pages)
+- Create: `src/components/site/RollText.tsx` (the letter roll from `projects.html` `.w/.f/.i`, also used on project pages). `src/lib/three/glow.ts` already exists from Task 1.
 
 **Interfaces:**
 - Consumes: `projectsByHalf`, `Half`, and the `Project` fields from Task 2.
@@ -132,7 +153,7 @@
 **Files:**
 - Create: `src/lib/contact-rules.ts`, `src/lib/contact-rules.test.ts`, `src/components/contact/ContactNote.tsx`, `src/components/contact/ContactNote.module.css`, `src/components/contact/PlaneSky.tsx`, `src/components/contact/plane.ts`
 - Modify: `src/app/contact/page.tsx`, `src/app/api/contact/route.ts` (validation through `validateContact`; response shape and status codes unchanged)
-- Delete: `src/components/ui/ContactForm.tsx` (and its barrel export)
+- Leave `src/components/ui/ContactForm.tsx` in place; Task 8 deletes it.
 
 **Interfaces:**
 - Produces: `export type ContactField = "name" | "email" | "message"` and `export function validateContact(input: Record<ContactField, unknown>): { ok: true; value: Record<ContactField, string> } | { ok: false; field: ContactField; message: string }`. It checks in the order name, email, message. It trims name and message. Email must match `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. The messages are the mockup's `RULES` strings exactly.
@@ -162,7 +183,7 @@
 **Files:**
 - Modify: `src/app/about/page.tsx` (keeps `export const dynamic = "force-dynamic"`; loads usage and GitHub data)
 - Create in `src/components/about/`: `About.module.css` (blueprint scope and section styles), `StreetMap.tsx`, `map.ts`, `SystemDiagram.tsx`, `ProcessLoop.tsx`, `BuildLog.tsx`, `Connections.tsx`
-- Create: `src/components/site/Heatmap.tsx`, `src/lib/activity.ts`, `src/lib/activity.test.ts`, `public/about/city.json` (from `.design-preview/about-v1/city.json`)
+- Create: `public/about/city.json` (from `.design-preview/about-v1/city.json`). `src/lib/activity.ts`, its test and `src/components/site/Heatmap.tsx` already exist from Task 2.
 
 **Interfaces:**
 - Produces in `src/lib/activity.ts`:
@@ -172,7 +193,7 @@
 - Produces: `mountStreetMap(wrap: HTMLElement, data: unknown): () => void`, ported from `about.html`. The camera is fixed: no lean toward the cursor. `StreetMap` fetches `/about/city.json` only when the map comes within one viewport (IntersectionObserver with `rootMargin: "100% 0px"`).
 - Diagram data, loop steps, icons, build log entries and connections are copied from `about.html`. The bio gets the day-job change.
 
-- [ ] **Step 1: Write `activity.test.ts`.**
+- [ ] **Step 1: The activity tests are written in Task 2.** They are:
   - `toYearSeries fills Jan 1 to today with zeros for missing days`
   - `accepts both date formats`
   - `ignores other years`
@@ -188,7 +209,7 @@
   - With no live data (the local default), the page renders and omits the missing figure.
   - At phone width, no overflow.
 - [ ] **Step 3: Run both and watch them fail.**
-- [ ] **Step 4: Implement `activity.ts`, Heatmap, the about components and the page.**
+- [ ] **Step 4: Implement the about components and the page.**
 - [ ] **Step 5: Run both and watch them pass,** then check in Chrome against `about.html`. Then run `scripts/seed-usage.sh` (read it first) against the local DB to see the activity strip with numbers.
 - [ ] **Step 6: Commit.** `feat(about): blueprint spec sheet with street map, wiring diagram and build log`
 
@@ -227,7 +248,8 @@
 ### Task 8: Remove the old design and update the docs
 
 **Files:**
-- Delete: every file in `src/components/effects/`, `src/components/3d/`, `src/components/DepthGallery/`, and every file in `src/components/ui/` that `grep -rn` shows no remaining import of. Also delete `public/models/`, `public/chicago-map*.svg`, `scripts/build-map-layers.js`, and any `public/projects/*` file nothing references.
+- Delete: every file in `src/components/effects/`, `src/components/3d/` and `src/components/DepthGallery/`, `src/components/ui/ContactForm.tsx`, and every other file in `src/components/ui/` that `grep -rn` shows no remaining import of.
+- Remove the old `Project` fields: `description`, `issueNumber`, `status`, `screenshot`, `deviceType`, `screenTexture`, `screenBgColor`, `screenTextureScale`, `logo`, `logoBgColor`, `images` and `videos`. Update `sitemap.ts` and `opengraph-image.tsx` to use `line` wherever they read `description`. Also delete `public/models/`, `public/chicago-map*.svg`, `scripts/build-map-layers.js`, and any `public/projects/*` file nothing references.
 - Modify: `src/components/ui/index.ts` (or delete it if it ends up empty), `src/styles/tokens.css` (drop the old-name aliases once `grep -rn "var(--text-display\|var(--space-\|var(--accent"` in `src/` returns nothing), `scripts/check-resilience.mjs` (match the h1 with `/mazza\s*builds/i` and wait 8s instead of 22s), `package.json` (`npm uninstall` any of `@react-three/fiber`, `@react-three/drei`, `gltf-pipeline` and `motion` that no remaining file imports), and `CLAUDE.md`. In `CLAUDE.md`, replace the Design Language, Font Stack, Anti-Patterns, Design Tokens, Motion Constants, Component APIs, Planned Motion Animations and File Structure sections with the new tokens and fonts, the scene-module pattern, CSS Modules, and the `npm test` / `check:site` commands. Keep everything else.
 - Restyle check: `privacy`, `not-found` and `error` pages render with the new tokens and no old classes.
 
