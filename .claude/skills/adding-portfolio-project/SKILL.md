@@ -1,146 +1,147 @@
 ---
 name: adding-portfolio-project
-description: Use when adding a new project to this portfolio (the Mazza Builds site). Trigger when the user has dropped a logo plus an optional screen recording or screenshots into public/projects/ and wants it wired into the homepage showcase, the projects page work/play list, and its own detail page.
+description: Use when adding a new project to this portfolio (the Mazza Builds site). Trigger when the user has dropped a logo plus an optional screen recording or screenshots into public/projects/ and wants it on the projects page (9 to 5 or 5 to 9), the homepage network, and its own story page.
 ---
 
 # Adding a Portfolio Project
 
 ## Overview
 
-A new project is one append to `src/data/projects.ts` plus one slug in `src/app/projects/page.tsx`. The data drives everything: the homepage 3D showcase, the work/play projects page, and the `/projects/<slug>` detail page all read the `projects` array. There is no per-page work to do.
+A new project is one entry in `src/data/projects.ts` plus its files in `public/projects/<slug>/`, and two list updates in `src/data/projects.test.ts`. The data drives everything:
+- the projects page bento grid, either 9 to 5 (`half: "day"`) or 5 to 9 (`half: "night"`), in array order
+- the `/projects/<slug>` story page and its Under the hood section
+- the next-project chain
+- the homepage's "How it all connects" network, linked through `tags`
 
-## Step 0 — Preflight: do the assets exist?
+The homepage's Selected work shows four hand-picked projects with custom particle shapes in `src/components/home/stage/work.ts`. A new project does not appear there unless the user asks, and that is a design task, not a data change.
+
+## Step 0: Preflight, do the assets exist?
 
 The user drops assets into `public/projects/<folder>/` first. Before asking anything, `ls` that folder and confirm:
 
-- **Required:** at least one image to put on the device screen (a logo or a real UI screenshot).
-- **Optional:** a screen recording (any format) for the detail page, and/or extra screenshots.
+- **Required:** a logo to stencil onto the tile. If there is no logo, the fallback is a drawn monoline icon, which needs a design decision (see Step 4).
+- **Optional:** a screen recording or a screenshot for the story page.
 
-If the folder or a usable image is missing, stop and tell the user what to add. Don't invent assets. (If the folder is absent entirely, it's usually a typo in the slug or assets dropped in the wrong directory - check before asking.)
+If the folder or a usable image is missing, stop and tell the user what to add. Don't invent assets. Folder and file names often have spaces, so quote paths and normalize names in Step 2.
 
-Folder names and dropped filenames often have **spaces** (e.g. `FP Events Logo.png`, `Screen Recording … .mov`). Quote paths and normalize filenames in Step 2.
+## Step 1: Ask the user four things
 
-## Step 1 — Ask the user three things
+1. **Which half:** 9 to 5 (built at the day job) or 5 to 9 (side project)? And where in that half, by default last.
+2. **Name.** The slug is the kebab-case folder name under `public/projects/`.
+3. **What to reference:** a GitHub repo (`owner/name`) and/or a live URL. The README is the source for the copy.
+4. **Tile colour:** the project's main brand colour, if it has one. Otherwise propose one that differs from the other tiles in that half.
 
-1. **Where** - Work or Play? And placement: bottom of the list (default, newest last) or promoted near the top (see Step 4).
-2. **Name** — display name (e.g. "Event Hub"). The **slug** is the kebab-case folder name under `public/projects/`.
-3. **What to reference** — a GitHub repo (`owner/name`) and/or live URL. The repo README is the source for the description.
-
-## Step 2 — Normalize the assets
+## Step 2: Normalize the assets
 
 In `public/projects/<slug>/`:
 
-- Rename the logo/screenshot to `logo.png` (or `screen.png` for a real UI shot).
-- Rename extra screenshots to `image-01.png`, `image-02.png`, …
-- Rename + **compress** any video to `video.mp4`. Source recordings are often 50-100MB `.mov`; siblings are 2-10MB. The detail page autoplays muted, so drop audio:
-
-```bash
-ffmpeg -y -i "<source>.mov" -vf "scale=1280:-2,fps=30" \
-  -c:v libx264 -crf 28 -preset medium -an -movflags +faststart \
-  -pix_fmt yuv420p video.mp4
-```
-
-Then delete the original recording. Verify the result is single-digit MB (`du -h video.mp4`). Treat ~10MB as the ceiling before committing; if it's heavier, raise `-crf` to 30-32 or trim the clip.
-
-## Step 3 — Write the copy from the reference
-
-Read the repo README (private repos: `gh repo view <owner>/<name>`; languages: `gh api repos/<owner>/<name>/languages`). Write three fields in the **same voice and length** as existing entries:
-
-- `context` — the problem, 2-3 sentences.
-- `build` — what it is and the engineering decisions worth calling out, ~4-6 sentences.
-- `result` — where it landed (live / in progress) and the payoff.
-- `description` — one sentence; this shows on the cards.
-- `tags` — 3-4, drawn from the actual stack. Use the house names the codebase already uses: the Anthropic SDK is tagged `Claude API`, not `@anthropic-ai/sdk`. Match the casing of existing tags.
-- `status` — `LIVE` once it's deployed and used, even if it's an internal-only / auth-gated tool (matches event-hub, event-attributor). `IN PROGRESS` only if it isn't shipped yet.
-
-No em dashes anywhere (project rule). Don't fabricate; if the README doesn't say it, leave it out.
-
-## Step 4 — Append the entry to `src/data/projects.ts`
-
-Add as the **last** array element. `issueNumber` = current max + 1. (Issue numbers are not strictly chronological: array position = issue number, and the top of the array is manually pinned for promotion - SecondRound (1, flagship, surfaced separately by `SpotlightSection`), then Distill, AI Web Tracker Scanner, Pipeline Attribution Agent, and Persona Automator. Leave those where they are and append everything else after them.)
-
-**Promoting a project to the top.** One array position drives both surfaces: the homepage showcase renders the whole array in order, and the projects page filters the same array into Work/Play columns in order. So "near the top of the homepage and top of the Work column" = insert directly after SecondRound (keep SecondRound at 1; it's the flagship). Give the new entry `issueNumber: 2` and bump every following entry by one so numbers stay sequential 1..N:
+- **Stencil:** make `stencil.png`, a one-tone mark where the alpha channel carries the shape and any shading. The tile paints it in `markColor` through a CSS mask, so its colours don't matter.
+  - For a logo on a transparent background, keep its alpha.
+  - For a logo on white, take alpha from darkness:
 
 ```bash
 python3 - <<'PY'
-import re
-p = 'src/data/projects.ts'
-s = open(p).read()
-s = re.sub(r'issueNumber: (\d+),', lambda m: f'issueNumber: {int(m.group(1)) + 1 if int(m.group(1)) >= 2 else 1},', s)
-open(p, 'w').write(s)
+from PIL import Image, ImageOps
+src, out = "public/projects/<slug>/logo.png", "public/projects/<slug>/stencil.png"
+im = Image.open(src).convert("RGBA")
+if im.getextrema()[3][0] < 250:          # has real transparency: keep it
+    alpha = im.getchannel("A")
+else:                                     # logo on white: darker means more ink
+    alpha = ImageOps.invert(im.convert("L"))
+mark = Image.new("RGBA", im.size, (255, 255, 255, 0)); mark.putalpha(alpha)
+mark.crop(mark.getbbox()).save(out)
 PY
 ```
 
-then paste the new entry (with `issueNumber: 2`) before the old #2 and add it to the pinned list above. Match this shape:
+  Open the result and check it reads as the logo. Low-resolution sources look pixelated at tile size, so set `markScale` (Daily Roman uses 0.58).
+- **Video:** rename and compress any recording to `clip.mp4`. Story pages autoplay it muted, so drop the audio. Grab a `poster.jpg` from its first frame:
+
+```bash
+ffmpeg -y -i "<source>.mov" -vf "scale=1280:-2,fps=30" -c:v libx264 -crf 28 -preset medium -an -movflags +faststart -pix_fmt yuv420p clip.mp4
+ffmpeg -y -i clip.mp4 -frames:v 1 -q:v 3 poster.jpg
+```
+
+  Delete the original and keep `clip.mp4` under about 10MB. If it's heavier, raise `-crf` to 30 or 32, or trim the clip.
+- **Screenshot:** a single screenshot becomes `image.jpg` (about 1600px wide).
+
+## Step 3: Write the copy
+
+Read the README (private repos: `gh repo view <owner>/<name>`). There are two registers.
+
+**The story, for friends and family.** No jargon, no stack names. Match the voice and length of the existing entries:
+- `kind`: what it is and where, e.g. "Internal app at Freshpaint" or "iPhone app".
+- `line`: one sentence on what it does. It shows on the tile and the homepage card.
+- `what`: what it does, 2 or 3 sentences.
+- `why`: why it's cool, i.e. the problem before and what changes.
+- `impact`: the result, with a number only if the source supports it.
+- `stat`: optional, `[figure, what it counts]`. Leave it out rather than force one.
+- `link`: optional, `[label, url]`, for public projects only.
+
+**Under the hood, for recruiters and developers:**
+- `context`: the problem.
+- `build`: what it is and the engineering decisions worth calling out.
+- `result`: where it landed.
+- `tags`: 3 or 4, from the real stack, using the house names (`Claude API`, not `@anthropic-ai/sdk`). Tags drive the homepage network, so reuse existing names wherever they fit. A tag only becomes a hub when two or more projects share it; synonyms are folded in `src/lib/constellation.ts`.
+- `links`: `[]` for private or gated tools, otherwise `Live` and/or `Source`. Confirm with the user.
+
+No em dashes anywhere. Don't fabricate: if the source doesn't say it, leave it out.
+
+## Step 4: Add the entry to `src/data/projects.ts`
+
+Place it in the half's run of the array where the user wants it: day entries come first, then night. Copy the shape of a neighbour:
 
 ```ts
 {
   slug: "event-hub",
-  issueNumber: 14,
+  half: "day",
   name: "Event Hub",
-  description: "...",        // one sentence, shown on cards
-  context: "...",
-  build: "...",
-  result: "...",
+  kind: "Internal app at Freshpaint",
+  line: "...", what: "...", why: "...", impact: "...",
+  stat: ["4x", "..."],                       // optional
+  fill: "#f2645f",                           // tile colour
+  markColor: "#3b0f0d",                      // the stencil's one tone
+  textColor: "#2d0b0a",                      // name and caption on the tile
+  bento: "wide",                             // "xl" | "wide" | "tall" | "sm"
+  mark: { type: "stencil", src: "/projects/event-hub/stencil.png" },
+  image: "/projects/event-hub/image.jpg",    // or video + poster
+  context: "...", build: "...", result: "...",
   tags: ["Next.js", "TypeScript", "SQLite", "HubSpot"],
-  status: "LIVE",            // "LIVE" | "IN PROGRESS" | "ARCHIVED"
-  screenshot: "/projects/event-hub/logo.png",
-  video: "/projects/event-hub/video.mp4",   // omit if no video
-  images: [],                                // ["/projects/<slug>/image-01.png", ...]
-  links: [],                                 // see convention below
-  deviceType: "laptop",                      // "laptop" | "phone"
-  screenTexture: "/projects/event-hub/logo.png",
-  screenBgColor: "#FFFFFF",                  // logo-on-white only
-  screenTextureScale: 0.6,                   // logo-on-white only
-  logo: "/projects/event-hub/logo.png",      // 32px card icon on the projects page; same mark as the device
-  // logoBgColor: "#000000",                 // only for transparent marks that need a dark ground
+  links: [],
 },
 ```
 
-`logo` should be a tight square mark (not a full-bleed UI screenshot). If the device shows a UI screenshot, point `logo` at the project's actual logo file instead.
+**Colours.** On a light `fill`, use a very dark shade of the same hue for `markColor` and a slightly darker one for `textColor`. On a dark or saturated `fill`, use white for both. Check that the caption is readable.
 
-`screenshot` is the card / gallery image; `screenTexture` is what's mapped onto the 3D device on the homepage. They're almost always the same file.
+**Tile size.** Cells are xl 4, wide 2, tall 2, sm 1. Each half's total must be a multiple of 4, or the grid ends with a gap. A new tile usually means rebalancing: for example, add two `sm` tiles, or turn a `wide` into an `xl`. Check the result at 1440px and 390px.
 
-### Picking the device + screen fields
+**Mark types.** `stencil` is the default. `vector` is for logos that exist as SVG paths (SecondRound). `icon` uses the drawn monoline icons in `ProjectMark.tsx`; adding a new icon means drawing one in that style, so ask first.
 
-| Asset on the device | deviceType | screenTexture | screenBgColor | screenTextureScale |
-|---|---|---|---|---|
-| Logo (transparent/centered) | `laptop` | the logo | `"#FFFFFF"` | `0.6` to start, tune down if it overflows |
-| Real full-bleed UI screenshot | `laptop` | the screenshot | omit | omit |
-| iOS app | `phone` | the screenshot | omit | omit |
+## Step 5: Update the tests
 
-The user's MacBook-with-white-screen request = the logo-on-white row.
+In `src/data/projects.test.ts`, add the slug to `DAY` or `NIGHT` in its position, and bump the total in the "has N entries" test. The test then checks:
+- every story string, and that there are no em dashes
+- that every media path exists
+- that both halves fill whole rows
+- that the next-project chain walks every project
 
-### Detail-page media
-
-- One screen recording → `video: "/projects/<slug>/video.mp4"` (plays full-width for laptops, half-width for phones). Like Daily Roman.
-- Multiple recordings → `videos: ["…", "…"]`. Like ShopAI.
-- Stills → `images: ["…", …]`.
-
-### Links convention
-
-Internal/private tools (private repo, auth-gated site) default to `links: []` — a link that 404s or walls out a recruiter is worse than none. Public projects link `Live` and/or `Source`. This is a judgment call, not absolute: `pipeline-attribution` links its private `Source` anyway. Default to `[]` for gated/internal tools and confirm with the user.
-
-## Step 5 — Wire the category
-
-If **Work**, add the slug to `WORK_SLUGS` in `src/app/projects/page.tsx`. Play needs nothing (it's the default). This is a second source of truth — forgetting it silently drops the project into Play.
-
-## Step 6 — Verify
+## Step 6: Verify
 
 ```bash
-npx tsc --noEmit            # there is no "typecheck" npm script
+npm test
+npm run build && npx next start -p 3100
+node scripts/check-site.mjs http://localhost:3100 projects project home
 ```
 
-Offer the user a visual check via `npm run build && npm run start` (Turbopack cache is flaky, so avoid `npm run dev` for verification). Don't drive a browser yourself — the user checks.
+Never use `npm run dev` for checks; the Turbopack cache is flaky on this machine. Then offer the user a look at `/projects` (both halves) and the new story page.
 
 ## Common mistakes
 
 | Mistake | Fix |
 |---|---|
-| Committing a 90MB `.mov` | Always compress to `video.mp4` first (Step 2). |
-| Project lands in Play | Add slug to `WORK_SLUGS` (Step 5). |
-| Logo looks tiny/huge on the laptop | Tune `screenTextureScale` (0.5-0.6 is the working range). |
-| Logo on a dark screen | Set `screenBgColor: "#FFFFFF"`. |
-| Paths break on filenames with spaces | Rename to `logo.png` / `video.mp4` (Step 2). |
+| A gap at the end of the grid | That half's cells aren't a multiple of 4; rebalance `bento` sizes (Step 4). |
+| The stencil is a solid rectangle | The logo sat on white and its alpha was kept; rebuild it with the invert branch (Step 2). |
+| A pixelated mark | Set `markScale` below 1, or find a larger logo. |
+| Jargon in `line` / `what` / `why` / `impact` | Move it to `build`; the story is for friends and family. |
+| The project floats alone in the homepage network | None of its tags is shared; reuse an existing tag name if one is true. |
+| Committing a 90MB `.mov` | Always compress to `clip.mp4` first (Step 2). |
 | Em dashes in copy | Project rule: never. Use hyphens or rephrase. |
-| Made-up metrics/claims | Only state what the README/source supports. |

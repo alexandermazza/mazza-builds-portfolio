@@ -55,6 +55,9 @@
 .status { margin: 0; font-size: 16px; color: var(--ink-2); }
 .status.err { color: var(--err); }
 .status a { text-decoration: underline; text-underline-offset: 3px; }
+.notice { margin: 20px 0 0; max-width: 40ch; font-size: 17px; line-height: 1.5; color: var(--ink); }
+.notice.err { color: var(--err); }
+.notice a { text-decoration: underline; text-underline-offset: 3px; }
 
 /* sent: the note folds away and a thank-you takes its place */
 .note { transition: opacity 500ms ease, transform 500ms var(--ease); }

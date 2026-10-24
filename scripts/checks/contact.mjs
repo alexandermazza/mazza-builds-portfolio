@@ -190,6 +190,32 @@ async function noJs() {
   for (const copy of ["Have a project in mind", "Hi Alex, my name is", "Or reach out directly"]) {
     check(text.includes(copy), `"${copy}" missing with JavaScript off`);
   }
+
+  // without JavaScript the note is a plain form: it must POST, never put what was typed in the address
+  const origin = new URL(c.page.url()).origin;
+  c.reply((route) => route.fulfill({ status: 303, headers: { location: `${origin}/contact?status=sent` } }));
+  await fill(c.page, JORDAN);
+  await Promise.all([c.page.waitForURL("**/contact?status=sent", { timeout: 8000 }), c.page.click("#send")])
+    .catch(() => check(false, `submitting with JavaScript off went to ${c.page.url()}`));
+  check(c.posts.length === 1 && c.posts[0].type.includes("application/x-www-form-urlencoded"), "the form did not POST to /api/contact with JavaScript off");
+  try {
+    deepStrictEqual(Object.fromEntries(new URLSearchParams(c.posts[0].body ?? "")), JORDAN);
+  } catch {
+    check(false, `the form posted ${c.posts[0].body}`);
+  }
+  check(!/jordan|quick/i.test(c.page.url()), `what was typed ended up in the address: ${c.page.url()}`);
+  check(((await c.page.textContent("main")) ?? "").includes("your message is on its way"), "the sent status did not show with JavaScript off");
+
+  // the real endpoint answers a plain form with a redirect; invalid input stops before any email is sent
+  const res = await c.page.request.post(`${origin}/api/contact`, { form: { name: "", email: "nope", message: "" }, maxRedirects: 0 });
+  check(res.status() === 303 && (res.headers().location ?? "").endsWith("/contact?status=invalid"),
+    `/api/contact answered an invalid form with ${res.status()} ${res.headers().location ?? ""}`);
+  await c.page.goto(`${origin}/contact?status=failed`);
+  check(((await c.page.textContent("main")) ?? "").includes("That didn't go through"), "the failed status did not show with JavaScript off");
+  const odd = await c.page.goto(`${origin}/contact?status=constructor`);
+  const oddText = (await c.page.textContent("main")) ?? "";
+  check(odd?.status() === 200 && oddText.includes("Hi Alex, my name is") && !/your message is on its way|Something was missing|didn.t go through/.test(oddText),
+    "an unknown ?status= broke the page or showed a notice");
   await c.finish(`${ROUTE} (no JavaScript)`);
 }
 

@@ -95,7 +95,7 @@ export function ContactNote({ children }: { children: ReactNode }) {
       <div>
         {children}
 
-        <form className={`${styles.note} ${styles.rise} ${away}`} style={rise(3)} id="note" noValidate hidden={stage === "done"} onSubmit={submit}>
+        <form className={`${styles.note} ${styles.rise} ${away}`} style={rise(3)} id="note" method="post" action="/api/contact" noValidate hidden={stage === "done"} onSubmit={submit}>
           <p className={styles.letter}>
             Hi Alex, my name is{" "}
             <Blank field="name" label="Your name" type="text" autoComplete="name" placeholder="your name"

@@ -47,7 +47,8 @@ test("each half fills whole bento rows", () => {
   const CELLS = { xl: 4, wide: 2, tall: 2, sm: 1 };
   for (const half of ["day", "night"] as const) {
     const sum = projectsByHalf(half).reduce((n, p) => n + CELLS[p.bento], 0);
-    assert.equal(sum, 16, `${half} fills ${sum} cells`);
+    // 4 columns on desktop, 2 on phones: any multiple of 4 leaves no gap at the end
+    assert.equal(sum % 4, 0, `${half} fills ${sum} cells, not whole rows`);
   }
 });
 
