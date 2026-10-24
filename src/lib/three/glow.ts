@@ -25,6 +25,13 @@ export function createGlowComposer(
   const bloom = new UnrealBloomPass(new Vector2(256, 256), strength, radius, threshold);
   // only the tight glow layers: the widest ones leave a faint grey box on a coloured page
   bloom.compositeMaterial.uniforms.bloomFactors.value = [1.0, 0.75, 0.4, 0.0, 0.0];
+  // the mockups were tuned on three r0.160, whose bloom added strength x its unclamped alpha (strength x the
+  // summed mip factors); r0.180+ adds 3 x strength, about twice as bright here, and the grey box comes back
+  const factors = [0, 1, 2, 3, 4].map((i) => `lerpBloomFactor( bloomFactors[ ${i} ] )`).join(" + ");
+  bloom.compositeMaterial.fragmentShader = bloom.compositeMaterial.fragmentShader.replace(
+    "3.0 * bloomStrength *",
+    `bloomStrength * bloomStrength * ( ${factors} ) *`,
+  );
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
