@@ -1,29 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Space_Grotesk, Space_Mono, Instrument_Serif } from "next/font/google";
+import { Big_Shoulders, Schibsted_Grotesk } from "next/font/google";
 import { TransitionProvider, TransitionContainer } from "@/transitions";
-import { Footer, HydrationBeacon } from "@/components/ui";
-import { ExpandingMenu } from "@/components/effects";
+import { HydrationBeacon } from "@/components/ui";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import "./globals.css";
 
 const GA_ID = "G-FN3N8MH4F6";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const display = Big_Shoulders({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  axes: ["opsz"],
 });
 
-const spaceMono = Space_Mono({
-  variable: "--font-space-mono",
+const text = Schibsted_Grotesk({
+  variable: "--font-text",
   subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
 });
 
@@ -45,12 +40,10 @@ export const metadata: Metadata = {
   },
 };
 
-const menuItems = [
-  { label: "Home", href: "/" },
-  { label: "Projects", href: "/projects" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
+// cover, so the safe-area gutters in tokens.css take effect on notched phones
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 export default function RootLayout({
   children,
@@ -60,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${spaceMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${display.variable} ${text.variable} h-full`}
     >
       <head>
         <Script
@@ -103,9 +96,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <HydrationBeacon />
         <TransitionProvider>
-          <TransitionContainer>{children}</TransitionContainer>
-          <Footer />
-          <ExpandingMenu items={menuItems} />
+          {/* the bar rides inside the container so page transitions carry it with the page */}
+          <TransitionContainer>
+            <SiteHeader />
+            {children}
+          </TransitionContainer>
+          <SiteFooter />
         </TransitionProvider>
       </body>
     </html>

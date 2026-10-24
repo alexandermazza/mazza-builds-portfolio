@@ -25,11 +25,10 @@
   --color-error: var(--error);
   --color-interactive: var(--interactive);
 
-  /* Fonts */
-  --font-sans: "Space Grotesk", "DM Sans", system-ui, sans-serif;
-  --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
-  --font-display: "Doto", "Space Mono", monospace;
-  --font-script: "Instrument Serif", "Playfair Display", Georgia, serif;
+  /* Fonts: the old utility names point at the new text face until the old pages go */
+  --font-sans: var(--text);
+  --font-mono: var(--text);
+  --font-script: var(--text);
 
   /* Spacing */
   --spacing-2xs: var(--space-2xs);
@@ -43,10 +42,27 @@
   --spacing-4xl: var(--space-4xl);
 }
 
-body {
-  background: var(--black);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+@layer base {
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--text);
+    /* the mockups have no reset: undo preflight's 1.5 so their ported CSS spaces the same */
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 4px;
+  }
+}
+
+/* the page grows so the footer sits at the bottom of short pages */
+[data-transition-container] {
+  flex: 1 0 auto;
 }
 
 @keyframes bounce-subtle {
