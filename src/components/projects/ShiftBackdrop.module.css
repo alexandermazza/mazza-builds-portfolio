@@ -1,0 +1,39 @@
+/* stars for the night sky; they fade out with the day */
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 900ms ease;
+}
+
+.day {
+  opacity: 0;
+}
+
+.stars i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.stars .big {
+  width: 3px;
+  height: 3px;
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars i {
+    animation: none;
+  }
+}
