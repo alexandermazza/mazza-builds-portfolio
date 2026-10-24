@@ -1,0 +1,107 @@
+/* the plain pages (privacy, not found, error): the site's type on the page colour, nothing animated */
+.page {
+  max-width: 960px;
+  padding: 48px var(--gr) 96px var(--gl);
+}
+
+.center {
+  min-height: 64svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 20px;
+  padding: 48px var(--gr) 96px var(--gl);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(76px, 13vw, 180px);
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.small {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.updated {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 24px;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.action:hover {
+  color: var(--ink);
+}
+
+.section {
+  margin-top: 64px;
+}
+
+.label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.section h2 {
+  margin: 0 0 16px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.body {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.body p {
+  margin: 0;
+}
+
+.body a {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.body a:hover {
+  color: var(--amber);
+}

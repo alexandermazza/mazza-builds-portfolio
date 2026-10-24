@@ -1,0 +1,42 @@
+/* minimal, on every page: email, privacy, copyright; transparent so the page colour carries through */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  padding: 28px var(--gr) max(32px, env(safe-area-inset-bottom, 0px)) var(--gl);
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.email,
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.email {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.email:hover,
+.link:hover {
+  color: var(--ink);
+}
+
+.copy {
+  margin: 0 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .copy {
+    flex-basis: 100%;
+    margin: 0;
+  }
+}

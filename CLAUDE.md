@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Mazza Builds — Portfolio
+# Mazza Builds - Portfolio
 
 ## Project Overview
 Personal portfolio for Alex Mazza, brand name "Mazza Builds." Solo indie developer.
@@ -9,154 +9,116 @@ Audience: recruiters, indie devs, general public.
 
 ## Stack
 - **Framework:** Next.js (App Router, `src/` directory)
-- **Styling:** Tailwind CSS v4 (CSS-based config via `@theme inline` in `globals.css`) + CSS custom properties
-- **Animation:** Framer Motion (`motion/react`) — all animation configs in `src/lib/motion.ts`
+- **Styling:** CSS Modules per component, on the tokens in `src/styles/tokens.css`. Tailwind CSS v4 is imported in `globals.css` only for its reset; components don't use utility classes.
+- **3D:** three.js (`three`, `three/addons/...`) in plain scene modules (see below). Page transitions use GSAP (`src/lib/gsap.ts`, `src/transitions/`).
 - **Language:** TypeScript throughout
 - **No:** shadcn, Radix, Inter, system-ui for display text
 
-## Design Language: Nothing OS + One Accent
+## Design Language
 
-This project uses the **Nothing design system** as its foundation.
-Skill files are installed at `~/.claude/skills/nothing-design/`.
+The approved design is `docs/superpowers/specs/2026-10-24-design-refresh-design.md`. The mockups in `docs/superpowers/specs/2026-10-24-design-refresh/` (`home.html`, `projects.html`, `about.html`, `contact.html`) are the visual source of truth for layout, copy, motion and the three.js scenes; where the spec and a mockup disagree, the spec wins. Port from the mockups rather than reinventing.
 
-### Key files in the skill
-- `SKILL.md` — Philosophy, craft rules, anti-patterns, workflow
-- `references/tokens.md` — Fonts, type scale, color system, spacing, motion
-- `references/components.md` — Cards, buttons, inputs, lists, tags, etc.
-- `references/platform-mapping.md` — HTML/CSS, SwiftUI, React/Tailwind output
+- Dark only. Page black `#000000`; the projects page's 9 to 5 shift is deep day blue `#0b1d33`; the about page is a navy blueprint (`#0b1a2d` with a 24px grid).
+- One accent: amber `#ffc24d`. Errors: `#ff8a7a`. Everything else is ink on the page colour.
+- 3D look: luminous particle and light scenes on black (dusty filaments, soft additive points, tight bloom with the faintest light clipped to black). Never solid objects.
+- Motion: ease `cubic-bezier(0.22, 1, 0.36, 1)`, staggered rises, and everything off for `prefers-reduced-motion`.
 
-### One deliberate departure from stock Nothing
-**Accent color: `#FF6B35` (orange)** replaces Nothing's `#D71921` (red).
-Used on **ONE element per section maximum** — a CTA, a hover state, an active tag.
-Everything else is strictly monochrome per the skill's rules.
+### Fonts (loaded via `next/font/google` in `layout.tsx`)
+| Role | Font | CSS | Usage |
+|------|------|-----|-------|
+| Display | Big Shoulders (variable) | `var(--display)` | Uppercase headings, nav, big figures; 600 to 900 |
+| Text | Schibsted Grotesk (400, 500, 600, italic 400) | `var(--text)` | Body, labels, UI |
 
-### Font Stack (loaded via `next/font/google` in `layout.tsx`)
-| Role | Font | Usage |
-|------|------|-------|
-| Display | Doto | Hero moments, 36px+ only (not yet loaded — add when needed) |
-| Body / UI | Space Grotesk | Headings, body text, 300/400/500/700 weights |
-| Data / Labels | Space Mono | Issue numbers, labels, tags, buttons — ALL CAPS, 0.06-0.08em tracking |
+### Anti-Patterns (never do these)
+- No tag pills, no hover underlines, no accordion rows, no tables as design: use diagrams, rings, logs and grids
+- No solid-object 3D (chrome, ceramic, voxels, cities): particles and light only
+- No pop-ups or toasts: inline validation and status text
+- No canvas that carries content: canvases are `aria-hidden="true"` decoration, and the text they illustrate is in the DOM
+- No em dashes in any copy
+- Nothing that needs manual updates or a recurring token cost: live numbers come from the usage and GitHub loaders
 
-### Nothing Design Anti-Patterns (never do these)
-- No gradients, no shadows, no blur — flat surfaces only
-- No skeleton loaders — use `[LOADING...]` text
-- No toast popups — use inline status text
-- No spring/bounce easing — subtle ease-out only
-- No border-radius > 16px on cards (buttons can be pill 999px or technical 4-8px)
-- No filled/multi-color icons — monoline 1.5px stroke only
-- No parallax or scroll-jacking
+## Design Tokens (`src/styles/tokens.css`, imported by `globals.css`)
 
-## Design Tokens
+| Token | Value | Use |
+|-------|-------|-----|
+| `--bg` | `#000000` | Page colour, also behind the top bar and footer |
+| `--day` | `#0b1d33` | The projects 9 to 5 blue |
+| `--ink` | `#f1f2f3` | Primary text |
+| `--ink-2` | `#a9b0b9` | Secondary text |
+| `--ink-3` | `#6b727c` | Tertiary text |
+| `--line` | `rgba(255, 255, 255, 0.14)` | Hairlines |
+| `--amber` | `#ffc24d` | The one accent |
+| `--err` | `#ff8a7a` | Errors |
+| `--ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | All motion |
+| `--display`, `--text` | font stacks | Display and text faces |
+| `--gl`, `--gr` | `max(16px, safe area)` under 720px, `max(32px, safe area)` from 720px | Side gutters |
 
-All CSS custom properties are in `src/styles/tokens.css`, imported into `globals.css`.
-Tailwind theme extensions are in `globals.css` via `@theme inline`.
+Pages that change the page colour override `--bg` instead of painting their own background: the projects board sets `--bg` (with `--tile` and `--line`) on `:root` for the current shift, plus a `<style>` for the first paint; `About.module.css` sets the blueprint navy on `html:has(.page)`. The top bar and footer are transparent or `var(--bg)`, so they follow.
 
-### Color Tokens
-| Token | Value |
-|-------|-------|
-| `--black` | `#000000` |
-| `--surface` | `#111111` |
-| `--surface-raised` | `#1A1A1A` |
-| `--border` | `#222222` |
-| `--border-visible` | `#333333` |
-| `--text-disabled` | `#666666` |
-| `--text-secondary` | `#999999` |
-| `--text-primary` | `#E8E8E8` |
-| `--text-display` | `#FFFFFF` |
-| `--accent` | `#FF6B35` |
-| `--success` | `#4A9E5C` |
-| `--warning` | `#D4A843` |
-| `--error` | `#D71921` |
+## Three.js Scene Modules
 
-Note: the about page also applies a `.blueprint` class that overrides these tokens with a navy variant. See `src/styles/tokens.css`.
+Each scene is a plain TypeScript module ported from its mockup, exporting a `mount...()` that returns a dispose (or a handle with `dispose()`):
 
-### Spacing Scale (8px base)
-`--space-2xs` (2px), `--space-xs` (4px), `--space-sm` (8px), `--space-md` (16px),
-`--space-lg` (24px), `--space-xl` (32px), `--space-2xl` (48px), `--space-3xl` (64px), `--space-4xl` (96px)
+| Module | Export | Loaded by |
+|--------|--------|-----------|
+| `src/components/home/stage/index.ts` (+ `gpgpu`, `logo`, `work`, `constellation`, `foot`) | `mountHomeStage` | `HomeStage.tsx` |
+| `src/components/projects/sky.ts` | `mountShiftSky` | `ShiftSky.tsx` |
+| `src/components/about/map.ts` | `mountStreetMap` | `StreetMap.tsx` (fetches `/about/city.json` within a viewport of the map) |
+| `src/components/contact/plane.ts` | `mountPlane` | `PlaneSky.tsx` |
 
-### Radii
-`--radius-technical` (4px), `--radius-compact` (8px), `--radius-card` (12px),
-`--radius-card-lg` (16px), `--radius-pill` (999px)
+The client component dynamically imports its module inside `useEffect`, so three.js never runs on the server and never blocks content. Every module:
+- catches renderer creation and hides its canvas on failure (asking for the `webgl2` context first, as the sky, map and home stage do, keeps three.js from logging a console error)
+- caps the pixel ratio at 1.5
+- pauses when off screen or when the tab is hidden
+- respects `prefers-reduced-motion` exactly as its mockup does
+- disposes fully: cancels the animation frame, disconnects observers, removes listeners, disposes geometries, materials, render targets and composer, then calls `renderer.dispose()` and `renderer.forceContextLoss()`
 
-## Motion Constants (`src/lib/motion.ts`)
+`src/lib/three/glow.ts` (`createGlowComposer`) is the shared particle glow: bloom, then the faintest light clipped to black. The mockups load three 0.160 and the site runs 0.183, so it restores the 0.160 blur kernels and bloom gain; its unit test fails if a three upgrade changes the composite it corrects.
 
-| Name | Config |
-|------|--------|
-| `SPRING_SNAPPY` | `{ type: "spring", stiffness: 400, damping: 30 }` |
-| `SPRING_FLUID` | `{ type: "spring", stiffness: 180, damping: 24 }` |
-| `SPRING_BOUNCY` | `{ type: "spring", stiffness: 550, damping: 22 }` |
-| `SCROLL_VELOCITY_MULTIPLIER` | `0.3` |
-| `TEXT_REVEAL_STAGGER` | `0.035` |
-| `LINE_REVEAL_STAGGER` | `0.08` |
-| `TICKER_SPEED` | `60` |
-| `EASE_OUT` | `[0.25, 0.1, 0.25, 1]` |
-| `DURATION.micro` | `0.15` |
-| `DURATION.transition` | `0.3` |
+## Shared Components
 
-## Component APIs (`src/components/ui/`)
+- `src/components/site/`: `SiteHeader` (mark plus Projects, About, Contact; a full-screen Menu dialog on phones), `SiteFooter` (email, privacy, copyright), `PlatformIcon name="github" | "linkedin" | "x" | "email"`, `RollText text` (the letter roll on hover), `Heatmap values tone="white" | "green" label compact?`, and `PlainPage.module.css` (privacy, not-found and error pages).
+- `TransitionLink` from `@/transitions` for every internal link, so page transitions run.
+- `src/data/projects.ts`: the 16 projects in day then night order, with `projectsByHalf`, `nextProject` and `getProjectBySlug`. Each project's story copy (`kind`, `line`, `what`, `why`, `impact`, `stat`) drives the bento, the story page and the home constellation; `context`, `build`, `result` and `tags` fill "Under the hood".
+- `src/lib/activity.ts` (`toYearSeries`, `formatCompact`) for the live usage and GitHub figures on Home and About.
 
-### `<Button variant="primary" | "ghost" />`
-- Primary: orange accent fill, pill radius, white text
-- Ghost: transparent, no border, secondary text, hover brightens
-- All buttons: Space Mono, 13px, ALL CAPS, 0.06em tracking, min-height 44px
+## Commands
 
-### `<ProjectCard issueNumber={1} name="..." description="..." tags={[...]} logo="/projects/x/logo.png" logoBgColor="#FFFFFF" />`
-- Nothing-styled card with `--surface` bg, `--border` border, `--radius-card`
-- Issue number: `ISSUE 01` in Space Mono, `--text-disabled`
-- Logo: 32px square, `--radius-compact`, `--border-visible` border, top-right (same mark as the homepage device screen; `logoBgColor` defaults to white)
-- Name: Space Grotesk at `--heading` size, `--text-display`
-- Description: `--body-sm`, `--text-secondary`
-- Tags rendered as `<TagChip>` components
-
-### `<StatusBadge status="LIVE" | "IN PROGRESS" | "ARCHIVED" />`
-- Technical radius (4px), bordered, Space Mono ALL CAPS 11px
-- LIVE: green border + text, IN PROGRESS: warning yellow, ARCHIVED: disabled gray
-
-### `<TagChip>Label</TagChip>`
-- Pill radius, `--border-visible` border, Space Mono ALL CAPS 11px, `--text-secondary`
-
-### All components accept `className` for overrides
-
-## Planned Motion Animations (not yet built)
-
-These will be implemented in future sessions using Framer Motion:
-
-| Animation | Placement |
-|-----------|-----------|
-| `react-magnetic-filings` | Hero section background |
-| `react-scroll-velocity-linked-offset` | Project section scroll feel |
-| `react-split-text-scatter` | Hero headline entrance |
-| `react-text-reveal` | Section headers on scroll enter |
-| `react-ticker-text-hover-effect` | Tech stack ticker |
-| `react-scroll-text-lines` | Body copy reveals |
-| `react-scroll-horizontal` | Projects scroll section |
-| `react-notifications-stack` | "Currently building" widget |
-| `react-cursor-floating-target` | Global cursor effect |
-| `react-radial-menu` | Mobile nav |
+- `npm test`: unit tests (`node --test` on `src/**/*.test.ts`; Node 23 strips types)
+- `npm run build && npx next start -p 3000`: verify against a production build. Avoid `next dev` here (Turbopack has a stray-lockfile cache problem on this machine).
+- `npm run check:site -- http://localhost:3000 [group...]`: end-to-end checks in headless Chromium, one group per `scripts/checks/<group>.mjs` (chrome, home, nav-loop, projects, project, about, contact). The contact group intercepts every `/api/contact` request, so it never sends email.
+- `npm run check:resilience -- http://localhost:3000/`: the homepage stays readable in a normal browser, with storage blocked, and with JavaScript off.
+- `npm run lint`
 
 ## File Structure
 ```
 src/
-├── app/
-│   ├── globals.css          # Tailwind v4 config + token imports + reduced-motion
-│   ├── layout.tsx           # Root layout, font loading (Space Grotesk + Space Mono)
-│   └── page.tsx             # Design system preview (temporary)
+├── app/                     # server pages own the copy and data; force-dynamic where they read the usage DB
+│   ├── globals.css          # Tailwind reset, token import, base styles, reduced motion
+│   ├── layout.tsx           # fonts, SiteHeader, SiteFooter, page transitions
+│   ├── page.tsx             # Home
+│   ├── projects/            # bento board (?shift=night) and [slug] story pages
+│   ├── about/  contact/  privacy/
+│   └── api/                 # contact (Resend), usage, github
 ├── components/
-│   └── ui/
-│       ├── Button.tsx
-│       ├── ProjectCard.tsx
-│       ├── StatusBadge.tsx
-│       ├── TagChip.tsx
-│       └── index.ts         # Barrel export
-├── lib/
-│   └── motion.ts            # Framer Motion constants
-└── styles/
-    └── tokens.css           # CSS custom properties (dark + blueprint)
+│   ├── home/                # HomeStage, Ticker, StatsSection, stage/ scene modules
+│   ├── projects/            # ProjectsBoard, BentoTile, ProjectMark, ShiftSky + sky.ts, StoryMedia
+│   ├── about/               # StreetMap + map.ts, SystemDiagram, ProcessLoop, BuildLog, Connections
+│   ├── contact/             # ContactNote, PlaneSky + plane.ts
+│   └── site/                # header, footer, icons, RollText, Heatmap
+├── data/projects.ts
+├── lib/                     # activity, constellation, contact-rules, three/glow, usage and GitHub loaders, gsap
+├── styles/tokens.css
+└── transitions/             # TransitionProvider, TransitionLink, GSAP page animations
+scripts/
+├── check-site.mjs + checks/ # end-to-end check groups
+└── check-resilience.mjs
 ```
 
 ## Conventions
-- `prefers-reduced-motion` is respected globally in `globals.css`
-- Dark mode only; the `.blueprint` class provides a navy variant scoped to the about page
-- All components are client components (`"use client"`)
-- Barrel export from `@/components/ui`
+- `prefers-reduced-motion` is respected globally in `globals.css`, and each scene module follows its mockup
+- Dark mode only; pages change the page colour through `--bg`
+- Pages are server components; each interactive piece is a small client component (`"use client"`)
+- All copy renders with JavaScript off and with WebGL unavailable
+- Modules under unit test are pure: relative imports with the `.ts` extension, `import type` for types, no `@/` alias and no `server-only`
 - TypeScript strict mode enabled

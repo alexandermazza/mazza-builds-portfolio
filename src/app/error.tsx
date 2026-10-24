@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui";
+import styles from "@/components/site/PlainPage.module.css";
 
 export default function ErrorPage({
   error,
@@ -10,16 +10,13 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-[var(--space-lg)]">
-      <p className="font-mono text-[13px] uppercase tracking-[0.06em] text-[var(--text-secondary)]">
-        [SYSTEM ERROR]
-      </p>
-      {error.digest && (
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
-          REF: {error.digest}
-        </p>
-      )}
-      <Button onClick={reset}>Try again</Button>
-    </div>
+    <main className={styles.center}>
+      <h1 className={styles.title}>Error</h1>
+      <p className={styles.note}>Something broke on this page.</p>
+      {error.digest && <p className={styles.small}>Ref: {error.digest}</p>}
+      <button type="button" className={styles.action} onClick={reset}>
+        Try again
+      </button>
+    </main>
   );
 }

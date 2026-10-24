@@ -1,0 +1,19 @@
+/* Ported from .heat in home.html; .compact is the about strip's version on the blueprint navy */
+.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 14px; width: 100%; max-width: 560px; }
+.heat i { display: block; aspect-ratio: 1; border-radius: 1px; background: #15181c; }
+.heat .pad { visibility: hidden; }
+.white i[data-l="1"] { background: #2a3038; }
+.white i[data-l="2"] { background: #4b5561; }
+.white i[data-l="3"] { background: #8a949f; }
+.white i[data-l="4"] { background: var(--ink); }
+.green i { background: #161b22; }
+.green i[data-l="1"] { background: #0e4429; }
+.green i[data-l="2"] { background: #006d32; }
+.green i[data-l="3"] { background: #26a641; }
+.green i[data-l="4"] { background: #39d353; }
+
+.compact { gap: 2px; margin-top: 12px; max-width: none; }
+.compact i { background: #15283f; }
+.compact.white i[data-l="1"] { background: #2b4058; }
+.compact.white i[data-l="2"] { background: #52677f; }
+.compact.white i[data-l="3"] { background: #9aabbd; }

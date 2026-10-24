@@ -1,0 +1,149 @@
+/* .bar and .mark as in the mockups; transparent so the page colour, stars or blueprint grid show through */
+.bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px var(--gr) 16px var(--gl);
+}
+
+.over {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  padding-block: 14px;
+}
+
+.mark {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.link {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.link:hover,
+.link[aria-current="page"] {
+  color: var(--ink);
+}
+
+/* a 44px tap target that takes no more height than the mark, so the bar stays the mockup's height */
+.button {
+  min-height: 44px;
+  margin-block: -9px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+
+.button:hover {
+  border-color: var(--ink);
+}
+
+.menuButton {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .nav {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-block;
+  }
+}
+
+/* phone menu: a full-screen list in large display type */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top, 0px) var(--gr) max(24px, env(safe-area-inset-bottom, 0px)) var(--gl);
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.menuTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 16px;
+}
+
+.menuList {
+  list-style: none;
+  margin: clamp(24px, 8svh, 72px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.menuList li {
+  animation: rise 600ms var(--ease) both;
+  animation-delay: calc(var(--i) * 60ms + 40ms);
+}
+
+.menuList a {
+  display: block;
+  padding-block: 4px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(48px, 14vw, 72px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.menuList a[aria-current="page"] {
+  color: var(--amber);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menuList li {
+    animation: none;
+  }
+}
