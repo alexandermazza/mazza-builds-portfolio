@@ -12,6 +12,7 @@ import {
 } from "react";
 import { RULES, validateContact, type ContactField } from "@/lib/contact-rules";
 import { PlatformIcon } from "@/components/site/PlatformIcon";
+import { ArrowIcon } from "@/components/site/ArrowIcon";
 import { PlaneSky } from "./PlaneSky";
 import styles from "./ContactNote.module.css";
 
@@ -255,9 +256,7 @@ function Links() {
           <a href={link.href} target="_blank" rel="noopener">
             <PlatformIcon name={link.icon} className={styles.plat} />
             <b>{link.label}</b>
-            <span className={styles.arr} aria-hidden="true">
-              ↗
-            </span>
+            <ArrowIcon className={styles.arr} />
           </a>
         </li>
       ))}
