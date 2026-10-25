@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { projects, getProjectBySlug, nextProject } from "@/data/projects";
 import { TransitionLink } from "@/transitions";
 import { RollText, rollHot } from "@/components/site/RollText";
+import { ArrowIcon } from "@/components/site/ArrowIcon";
 import { ShiftBackdrop } from "@/components/projects/ShiftBackdrop";
 import { StoryMedia } from "@/components/projects/StoryMedia";
 import { HALF, MoonIcon, SunIcon } from "@/components/projects/shift";
@@ -78,7 +79,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {p.link && (
               <p className={styles.visit}>
                 <a href={p.link[1]} target="_blank" rel="noopener">
-                  {p.link[0]} ↗
+                  {p.link[0]} <ArrowIcon />
                 </a>
               </p>
             )}
@@ -109,7 +110,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     <p className={styles.visit}>
                       {p.links.map((l) => (
                         <a key={l.url} href={l.url} target="_blank" rel="noopener">
-                          {l.label} ↗
+                          {l.label} <ArrowIcon />
                         </a>
                       ))}
                     </p>

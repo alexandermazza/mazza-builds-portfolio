@@ -22,6 +22,7 @@ async function story(page, p) {
   check(got.details !== null, route, "details not found");
   check(!got.details.open, route, "details is open");
   check(got.details.text.includes(p.build), route, "build not found in details");
+  check(!got.text.includes("↗"), route, 'a link uses the "↗" character, which phones draw as an emoji');
   const want = `/projects/${nextProject(p.slug).slug}`;
   check(got.next.length === 1 && got.next[0] === want, route, `next links are ${JSON.stringify(got.next)}, want ${want}`);
 }

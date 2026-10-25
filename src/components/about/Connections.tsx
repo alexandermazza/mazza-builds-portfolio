@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PlatformIcon } from "@/components/site/PlatformIcon";
+import { ArrowIcon } from "@/components/site/ArrowIcon";
 import styles from "./About.module.css";
 
 const EMAIL = "hello@mazzabuilds.com";
@@ -41,9 +42,7 @@ export function Connections() {
             <PlatformIcon name={link.name} className={styles.plat} />
             <b>{link.label}</b>
             <span className={styles.handle}>{link.handle}</span>
-            <span className={styles.arr} aria-hidden="true">
-              ↗
-            </span>
+            <ArrowIcon className={styles.arr} />
           </a>
         </li>
       ))}

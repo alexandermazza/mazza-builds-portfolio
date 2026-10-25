@@ -79,7 +79,7 @@ The client component dynamically imports its module inside `useEffect`, so three
 
 ## Shared Components
 
-- `src/components/site/`: `SiteHeader` (mark plus Projects, About, Contact; a full-screen Menu dialog on phones), `SiteFooter` (email, privacy, copyright), `PlatformIcon name="github" | "linkedin" | "x" | "email"`, `RollText text` (the letter roll on hover), `Heatmap values tone="white" | "green" label compact?`, and `PlainPage.module.css` (privacy, not-found and error pages).
+- `src/components/site/`: `SiteHeader` (mark plus Projects, About, Contact; a full-screen Menu dialog on phones), `SiteFooter` (email, privacy, copyright), `PlatformIcon name="github" | "linkedin" | "x" | "email"`, `ArrowIcon` (the outbound-link arrow; never the "↗" character, which phones draw as an emoji), `RollText text` (the letter roll on hover), `Heatmap values tone="white" | "green" label compact?`, and `PlainPage.module.css` (privacy, not-found and error pages).
 - `TransitionLink` from `@/transitions` for every internal link, so page transitions run.
 - `src/data/projects.ts`: the 16 projects in day then night order, with `projectsByHalf`, `nextProject` and `getProjectBySlug`. Each project's story copy (`kind`, `line`, `what`, `why`, `impact`, `stat`) drives the bento, the story page and the home constellation; `context`, `build`, `result` and `tags` fill "Under the hood".
 - `src/lib/activity.ts` (`toYearSeries`, `formatCompact`) for the live usage and GitHub figures on Home and About.

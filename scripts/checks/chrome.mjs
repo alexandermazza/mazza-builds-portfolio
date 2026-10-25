@@ -82,6 +82,8 @@ async function phone(route) {
 
 async function desktop(route) {
   const { page, errors } = await openPage(route);
+  const text = (await page.locator("body").textContent()) ?? "";
+  check(!text.includes("↗"), route, 'a link uses the "↗" character, which phones draw as an emoji');
   const bar = page.getByRole("banner").first();
   const mark = bar.locator('a[href="/"]');
   check(
