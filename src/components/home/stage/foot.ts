@@ -24,7 +24,7 @@ export function footPiece(ctx: Ctx): Piece {
   return {
     scene, camera, bloom: [0.45, 0.3, 1.0],
     resize() {
-      camera.aspect = innerWidth / innerHeight;
+      camera.aspect = ctx.size.w / ctx.size.h;
       camera.fov = ctx.narrow() ? 56 : 40;
       camera.clearViewOffset();
       camera.updateProjectionMatrix();

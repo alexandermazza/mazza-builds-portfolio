@@ -202,7 +202,7 @@ export function assembly(ctx: Ctx): PieceCfg {
         cfg.deep[0].set(60, 50, 230);
         return;
       }
-      const w = innerWidth, h = innerHeight;
+      const { w, h } = ctx.size;
       const top = document.querySelector<HTMLElement>("header")?.offsetHeight ?? 0;
       const bottom = ctx.root.querySelector<HTMLElement>("#hero h1")?.offsetTop ?? h;
       const pad = 24, tan = Math.tan(MathUtils.degToRad(camera.fov / 2)), room = Math.max(40, (bottom - top) / 2 - pad);
