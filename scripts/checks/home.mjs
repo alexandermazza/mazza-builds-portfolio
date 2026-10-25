@@ -135,6 +135,16 @@ async function transit() {
   expectNoErrors(pe, "/ (transit map, phone)");
 }
 
+// a screen tall enough for the whole section must finish the drawing while the heading is still in view under the bar
+async function tallTransit() {
+  const { page, errors } = await openPage("/", { viewport: { width: 1440, height: 1300 } });
+  await page.locator("#graph h2").evaluate((h) => scrollBy(0, h.getBoundingClientRect().top - 110));
+  await page.waitForFunction(() => !document.querySelector("#graph [data-wait]"), null, { timeout: 3000 }).catch(() => {});
+  const waiting = await page.locator("#graph [data-wait]").count();
+  check(waiting === 0, `with its heading 110px down a 1300px screen, ${waiting} stops are still undrawn`);
+  expectNoErrors(errors, "/ (transit map, tall screen)");
+}
+
 // on phones the text sits under its shape: scroll a heading to a point on screen and read which shape is up
 // the stage updates on the scroll event, which waits for a frame; under swiftshader a frame can take a while, so poll
 async function shapeAt(page, name, at, want) {
@@ -194,6 +204,7 @@ export default async function home() {
   await run("phone", phone);
   await run("phone shapes", phoneShapes);
   await run("transit map", transit);
+  await run("transit map, tall screen", tallTransit);
   await run("without WebGL", noWebgl);
   await run("without JavaScript", noJs);
 }
