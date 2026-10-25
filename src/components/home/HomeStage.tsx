@@ -1,21 +1,11 @@
 "use client";
 
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
-import { useTransitionContext } from "@/transitions";
-import type { buildConstellation } from "@/lib/constellation";
-import type { StageItem } from "./stage";
+import { useEffect, useRef, type ReactNode } from "react";
 import styles from "./Home.module.css";
 
-interface HomeStageProps {
-  items: StageItem[];
-  links: ReturnType<typeof buildConstellation>;
-  children: ReactNode;
-}
-
 /** The fixed particle stage behind the homepage, plus the scroll reveals. The page's copy is the children. */
-export function HomeStage({ items, links, children }: HomeStageProps) {
+export function HomeStage({ children }: { children: ReactNode }) {
   const root = useRef<HTMLElement>(null);
-  const { navigate } = useTransitionContext();
 
   useEffect(() => {
     const el = root.current!;
@@ -44,7 +34,7 @@ export function HomeStage({ items, links, children }: HomeStageProps) {
     let gone = false;
     import("./stage")
       .then(({ mountHomeStage }) => {
-        if (!gone) dispose = mountHomeStage(canvas, root.current!, items, links);
+        if (!gone) dispose = mountHomeStage(canvas, root.current!);
       })
       .catch(() => {});
     return () => {
@@ -52,18 +42,10 @@ export function HomeStage({ items, links, children }: HomeStageProps) {
       dispose?.();
       canvas.remove();
     };
-  }, [items, links]);
-
-  // the graph card's link is set by the stage, so it is a plain anchor; send it through the page transition
-  const onClick = (e: MouseEvent) => {
-    const a = (e.target as Element).closest<HTMLAnchorElement>("#graph-card a");
-    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    navigate(a.getAttribute("href")!);
-  };
+  }, []);
 
   return (
-    <main ref={root} className={styles.root} onClick={onClick}>
+    <main ref={root} className={styles.root}>
       {children}
     </main>
   );

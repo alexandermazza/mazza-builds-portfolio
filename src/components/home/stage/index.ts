@@ -3,28 +3,22 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import type { Half } from "@/data/projects";
-import type { buildConstellation } from "@/lib/constellation";
 import { clamp01, type Ctx, type Piece, type Pointer, type StageState } from "./gpgpu";
 import { assembly } from "./logo";
 import { particlePiece, workPiece } from "./work";
-import { constellation } from "./constellation";
 import { footPiece } from "./foot";
 
-export type StageItem = { slug: string; name: string; kind: string; line: string; half: Half; tags: string[] };
+// where the page is; the graph slot has no scene of its own
 type Slot = "hero" | "work" | "graph" | "footer";
+type SceneKey = Exclude<Slot, "graph">;
 
 /**
  * The homepage's one fixed stage, ported from home.html: the MB logo for the hero, the hammer and project
- * shapes through Selected work, the constellation, then the contour footer. Scrolling picks the scene.
+ * shapes through Selected work, then the contour footer. It steps aside (fades out and stops drawing) while the
+ * transit map is on screen. Scrolling picks the scene.
  * Returns a dispose that frees the WebGL context, so leaving the page never leaves one behind.
  */
-export function mountHomeStage(
-  canvas: HTMLCanvasElement,
-  root: HTMLElement,
-  items: StageItem[],
-  links: ReturnType<typeof buildConstellation>,
-): () => void {
+export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): () => void {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const narrow = () => innerWidth < 820;
   const small = matchMedia("(pointer: coarse)").matches || innerWidth < 820;
@@ -56,23 +50,22 @@ export function mountHomeStage(
   // pointer for the hero's distortion field: a hovering mouse pushes the logo apart, a tap on touch bursts it
   const P: Pointer = { raw: new Vector2(9, 9), s: new Vector2(9, 9), inside: false, amt: 0, tap: -99 };
   const ctx: Ctx = { renderer, root, reduce, small, narrow, pointer: P };
-  const MAKE: Record<Slot, () => Piece> = {
+  const MAKE: Record<SceneKey, () => Piece> = {
     hero: () => particlePiece(ctx, assembly(ctx)),
     work: () => workPiece(ctx),
-    graph: () => particlePiece(ctx, constellation(ctx, items, links)),
     footer: () => footPiece(ctx),
   };
-  const cache: Partial<Record<Slot, Piece>> = {}, born: Partial<Record<Slot, number>> = {};
-  const make = (k: Slot) => {
+  const cache: Partial<Record<SceneKey, Piece>> = {}, born: Partial<Record<SceneKey, number>> = {};
+  const make = (k: SceneKey) => {
     if (!cache[k]) { cache[k] = MAKE[k](); born[k] = performance.now(); }
     return cache[k]!;
   };
-  let slot: Slot = "hero", active: Piece | null = null, activeKey: Slot = "hero";
+  let slot: Slot = "hero", active: Piece | null = null, activeKey: SceneKey = "hero";
   let pending = 0, raf = 0, warmTimer = 0, dead = false;
   const state: StageState = { heroP: 0, proj: 0 };
 
   const $ = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
-  const heroWrap = $("hero-wrap"), intro = $("intro"), graph = $("graph"), foot = $("foot"), layer = $("graph-labels");
+  const heroWrap = $("hero-wrap"), intro = $("intro"), graph = $("graph"), foot = $("foot");
   const shapes = [...root.querySelectorAll<HTMLElement>("[data-proj]")];
 
   const toNdc = (e: PointerEvent, v: Vector2) => v.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
@@ -89,8 +82,10 @@ export function mountHomeStage(
     p.resize();
   }
   function sync(instant: boolean) {
-    const key = slot, next = make(key);
     clearTimeout(pending);
+    // the transit map draws itself, so the stage just fades away under it
+    if (slot === "graph") { canvas.setAttribute("data-fade", ""); return; }
+    const key = slot, next = make(key);
     if (next === active) { canvas.removeAttribute("data-fade"); return; }
     const go = () => {
       active = next;
@@ -125,9 +120,6 @@ export function mountHomeStage(
     state.proj = best;
     root.dataset.shape = String(best);
     root.toggleAttribute("data-day", s === "work" && (best === 1 || best === 2));
-    layer.toggleAttribute("data-on", s === "graph");
-    // the labels are buttons: while their layer is invisible they must not be tab stops either
-    layer.inert = s !== "graph";
     if (s !== slot) { slot = s; safe(() => sync(false)); }
   }
   const onResize = () => { if (active) applyRenderer(active); onScroll(); };
@@ -135,7 +127,7 @@ export function mountHomeStage(
   let last = performance.now();
   function frame(ms: number) {
     raf = requestAnimationFrame(frame);
-    if (document.hidden || !active) return;
+    if (document.hidden || !active || slot === "graph") return;
     const dt = Math.max(0, Math.min(0.04, (ms - last) / 1000));
     last = ms;
     const t = Math.max(0, (ms - born[activeKey]!) / 1000);
@@ -156,8 +148,6 @@ export function mountHomeStage(
     removeEventListener("resize", onResize);
     root.removeAttribute("data-day");
     delete root.dataset.shape;
-    layer.removeAttribute("data-on");
-    layer.inert = false;
     canvas.removeAttribute("data-fade");
     Object.values(cache).forEach((p) => p.dispose());
     bloom.dispose();
@@ -180,7 +170,7 @@ export function mountHomeStage(
   if (dead) return dispose;
   raf = requestAnimationFrame(frame);
   // set up the other scenes in the background, one at a time, so scrolling into them doesn't wait on it
-  const warm: Slot[] = ["work", "graph", "footer"];
+  const warm: SceneKey[] = ["work", "footer"];
   const prewarm = () => {
     const k = warm.shift();
     if (!k || dead) return;
