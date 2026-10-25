@@ -3,7 +3,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { clamp01, type Ctx, type Piece, type Pointer, type StageState } from "./gpgpu";
+import { clamp01, follow, type Ctx, type Piece, type Pointer, type StageState } from "./gpgpu";
 import { assembly } from "./logo";
 import { particlePiece, workPiece } from "./work";
 import { footPiece } from "./foot";
@@ -50,7 +50,8 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
 
   // pointer for the hero's distortion field: a hovering mouse pushes the logo apart, a tap on touch bursts it
   const P: Pointer = { raw: new Vector2(9, 9), s: new Vector2(9, 9), inside: false, amt: 0, tap: -99 };
-  const ctx: Ctx = { renderer, root, reduce, small, narrow, pointer: P };
+  const size = { w: canvas.clientWidth || innerWidth, h: canvas.clientHeight || innerHeight };
+  const ctx: Ctx = { renderer, root, reduce, small, narrow, pointer: P, size };
   const MAKE: Record<SceneKey, () => Piece> = {
     hero: () => particlePiece(ctx, assembly(ctx)),
     work: () => workPiece(ctx),
@@ -64,21 +65,22 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
   let slot: Slot = "hero", active: Piece | null = null, activeKey: SceneKey = "hero";
   let pending = 0, raf = 0, warmTimer = 0, dead = false;
   const state: StageState = { heroP: 0, proj: 0 };
+  let heroTarget = 0;
 
   const $ = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
-  const heroWrap = $("hero-wrap"), intro = $("intro"), graph = $("graph"), foot = $("foot");
+  const heroWrap = $("hero-wrap"), hero = $("hero"), intro = $("intro"), graph = $("graph"), foot = $("foot");
   const shapes = [...root.querySelectorAll<HTMLElement>("[data-proj]")];
 
-  const toNdc = (e: PointerEvent, v: Vector2) => v.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  const toNdc = (e: PointerEvent, v: Vector2) => v.set(e.clientX / size.w * 2 - 1, -(e.clientY / size.h) * 2 + 1);
   const onMove = (e: PointerEvent) => { if (e.pointerType === "mouse") { toNdc(e, P.raw); P.inside = true; } };
   const onOut = (e: MouseEvent) => { if (!e.relatedTarget) P.inside = false; };
   // a scroll swipe cancels the pointer, so only a real tap reaches pointerup
   const onUp = (e: PointerEvent) => { if (e.pointerType !== "mouse") { toNdc(e, P.raw); P.s.copy(P.raw); P.tap = performance.now() / 1000; } };
 
   function applyRenderer(p: Piece) {
-    renderer.setSize(innerWidth, innerHeight, false);
-    composer.setSize(innerWidth, innerHeight);
-    bloom.setSize(innerWidth / 2, innerHeight / 2);
+    renderer.setSize(size.w, size.h, false);
+    composer.setSize(size.w, size.h);
+    bloom.setSize(size.w / 2, size.h / 2);
     [bloom.strength, bloom.radius, bloom.threshold] = p.bloom;
     p.resize();
   }
@@ -100,8 +102,9 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
     else { canvas.setAttribute("data-fade", ""); pending = window.setTimeout(go, 360); }
   }
   function onScroll() {
-    const vh = innerHeight, hr = heroWrap.getBoundingClientRect();
-    state.heroP = clamp01(-hr.top / Math.max(1, hr.height - vh));
+    const vh = innerHeight;
+    // the zoom runs over the hero's own height, which a phone's address bar can't change mid-scroll; the frame eases toward it
+    heroTarget = clamp01(-heroWrap.getBoundingClientRect().top / Math.max(1, hero.offsetHeight));
     // on phones the hammer sits above the intro text, so bring it in as soon as the intro starts to show
     const s: Slot = foot.getBoundingClientRect().top < vh * 0.55 ? "footer"
       : graph.getBoundingClientRect().top < vh * 0.5 ? "graph"
@@ -123,7 +126,14 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
     root.toggleAttribute("data-day", s === "work" && (best === 1 || best === 2));
     if (s !== slot) { slot = s; safe(() => sync(false)); }
   }
-  const onResize = () => { if (active) applyRenderer(active); onScroll(); };
+  // a phone's address bar resizes the window but not the canvas (full screen height), so only the canvas reallocates
+  const ro = new ResizeObserver(() => {
+    if (canvas.clientWidth === size.w && canvas.clientHeight === size.h) return;
+    size.w = canvas.clientWidth;
+    size.h = canvas.clientHeight;
+    if (active) applyRenderer(active);
+  });
+  const onResize = () => onScroll();
 
   let last = performance.now();
   function frame(ms: number) {
@@ -131,6 +141,8 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
     if (document.hidden || !active || slot === "graph") return;
     const dt = Math.max(0, Math.min(0.04, (ms - last) / 1000));
     last = ms;
+    // the camera glides after the scroll instead of jumping with each scroll event, so uneven events and frames read as one move
+    state.heroP = follow(state.heroP, heroTarget, dt, 6);
     const t = Math.max(0, (ms - born[activeKey]!) / 1000);
     active.update(t, dt, state);
     composer.render();
@@ -147,6 +159,7 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
     removeEventListener("pointerup", onUp);
     removeEventListener("scroll", onScroll);
     removeEventListener("resize", onResize);
+    ro.disconnect();
     root.removeAttribute("data-day");
     delete root.dataset.shape;
     canvas.removeAttribute("data-fade");
@@ -167,7 +180,9 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
   addEventListener("pointerup", onUp, { passive: true });
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onResize);
-  safe(() => { onScroll(); sync(true); });
+  ro.observe(canvas);
+  // the first read starts the camera where the page already is, rather than easing in from the top
+  safe(() => { onScroll(); state.heroP = heroTarget; sync(true); });
   if (dead) return dispose;
   raf = requestAnimationFrame(frame);
   // set up the other scenes in the background, one at a time, so scrolling into them doesn't wait on it

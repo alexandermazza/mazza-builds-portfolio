@@ -87,7 +87,7 @@ export function particlePiece(ctx: Ctx, cfg: PieceCfg): Piece {
   return {
     scene, camera, bloom: cfg.bloom,
     resize() {
-      camera.aspect = innerWidth / innerHeight;
+      camera.aspect = ctx.size.w / ctx.size.h;
       camera.fov = ctx.narrow() ? 54 : 38;
       if (cfg.frame) cfg.frame(camera, grp);
       else frameOffset(ctx, camera, off[0], off[1]);
@@ -302,7 +302,7 @@ export function workPiece(ctx: Ctx): Piece {
   return {
     scene, camera, bloom: [0.55, 0.35, 0.9],
     resize() {
-      camera.aspect = innerWidth / innerHeight;
+      camera.aspect = ctx.size.w / ctx.size.h;
       camera.fov = ctx.narrow() ? 56 : 38;
       frameOffset(ctx, camera, 0.2, 0.2);
       ru.uPx.value = renderer.getPixelRatio();

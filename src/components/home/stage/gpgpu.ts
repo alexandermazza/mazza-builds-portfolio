@@ -34,6 +34,8 @@ export interface Ctx {
   small: boolean;
   narrow: () => boolean;
   pointer: Pointer;
+  /** the canvas's size in CSS pixels: on phones it's the full screen height, so it holds still when the address bar hides */
+  size: { w: number; h: number };
 }
 
 export interface StageState {
@@ -59,13 +61,15 @@ export const easeIO = (x: number) => {
   x = clamp01(x);
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
+/** Eases `from` toward `to` at `rate` per second, landing in the same place however the time is split into frames. */
+export const follow = (from: number, to: number, dt: number, rate: number) => to + (from - to) * Math.exp(-rate * dt);
 export const smooth = (x: number) => {
   x = clamp01(x);
   return x * x * (3 - 2 * x);
 };
 
 export function frameOffset(ctx: Ctx, cam: PerspectiveCamera, fx: number, fy: number) {
-  const w = innerWidth, h = innerHeight;
+  const { w, h } = ctx.size;
   if (ctx.narrow()) cam.setViewOffset(w, h, 0, h * fy, w, h);
   else cam.setViewOffset(w, h, -w * fx, 0, w, h);
   cam.updateProjectionMatrix();

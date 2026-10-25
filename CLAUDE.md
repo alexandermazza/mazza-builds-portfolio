@@ -66,6 +66,8 @@ Each scene is a plain TypeScript module ported from its mockup, exporting a `mou
 | `src/components/about/map.ts` | `mountStreetMap` | `StreetMap.tsx` (fetches `/about/city.json` within a viewport of the map) |
 | `src/components/contact/plane.ts` | `mountPlane` | `PlaneSky.tsx` |
 
+The home stage sizes itself from its canvas (`ctx.size`; the canvas is the full screen height, `100lvh`), not the window, so a phone's address bar hiding mid-scroll never resizes or reframes it. Its hero zoom eases toward the scroll position with `follow` instead of jumping with each scroll event.
+
 The client component dynamically imports its module inside `useEffect`, so three.js never runs on the server and never blocks content. Every module:
 - catches renderer creation and hides its canvas on failure (asking for the `webgl2` context first, as the sky, map and home stage do, keeps three.js from logging a console error)
 - caps the pixel ratio at 1.5, and at 1 on phones (`pointer: coarse` or under 820px) for the pixel-bound home stage, sky and plane: at 1.5 phone GPUs fall behind and scrolling stutters. The about map is bound by its vertices, so it keeps 1.5 and leaves out the streets past its fade (`REACH`)
