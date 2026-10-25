@@ -1,17 +1,17 @@
 import { TransitionLink } from "@/transitions";
 import { getProjectBySlug, projects } from "@/data/projects";
-import { buildConstellation } from "@/lib/constellation";
+import { buildTransit } from "@/lib/constellation";
 import { HomeStage } from "@/components/home/HomeStage";
 import { StatsSection } from "@/components/home/StatsSection";
 import { Ticker } from "@/components/home/Ticker";
+import { TransitMap } from "@/components/home/TransitMap";
 import styles from "@/components/home/Home.module.css";
 
 // Render per request so the stats see the usage DB (a mounted volume) and GITHUB_TOKEN (injected by Fly at runtime).
 export const dynamic = "force-dynamic";
 
 const TICKER = ["iOS Apps", "AI Agents", "Dashboards", "Web Crawlers", "Trading Bots", "Shopify Apps", "MCP Servers", "Attribution Engines", "GTM Tools"];
-const items = projects.map(({ slug, name, kind, line, half, tags }) => ({ slug, name, kind, line, half, tags }));
-const links = buildConstellation(projects);
+const transit = buildTransit(projects);
 
 function Work({ slug, proj }: { slug: string; proj: number }) {
   const p = getProjectBySlug(slug)!;
@@ -28,7 +28,7 @@ function Work({ slug, proj }: { slug: string; proj: number }) {
 
 export default function Home() {
   return (
-    <HomeStage items={items} links={links}>
+    <HomeStage>
       <div id="hero-wrap">
         <section className={`${styles.hero} ${styles.wrap}`} id="hero">
           <h1>
@@ -96,27 +96,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${styles.graph} ${styles.wrap}`} id="graph" aria-labelledby="graph-title">
-        <div className={styles.graphHead}>
-          <h2 id="graph-title">How it all connects</h2>
-          <p>
-            All {projects.length} projects, linked by the tools they share. Drag to spin it. Tap a project to see what it does.
-          </p>
-          <p className={styles.legend}>
-            <span className={`${styles.key} ${styles.work}`} />9 to 5 <span className={`${styles.key} ${styles.play}`} />5 to 9
-          </p>
-        </div>
-        <div className={styles.layer} id="graph-labels">
-          <div className={styles.card} id="graph-card" aria-live="polite" hidden>
-            <span className={styles.kind} data-card="kind" />
-            <h3 data-card="name" />
-            <p data-card="line" />
-            <p className={styles.tools} data-card="tools" />
-            {/* the stage sets href to the picked project */}
-            <a data-card="link">Open the project page</a>
-          </div>
-        </div>
-      </section>
+      <TransitMap lines={transit.lines} stops={transit.stops} />
 
       <section className={`${styles.foot} ${styles.wrap}`} id="foot" aria-labelledby="foot-title">
         <h2 id="foot-title">Let&apos;s build something.</h2>

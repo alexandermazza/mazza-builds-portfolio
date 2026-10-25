@@ -1,5 +1,6 @@
 // The homepage: section order, copy, the ticker, the Selected work links, and readable content without WebGL or JavaScript.
 import { openPage, assertNoOverflow, expectNoErrors } from "../check-site.mjs";
+import { projects } from "../../src/data/projects.ts";
 
 const SECTIONS = ["hero", "intro", "stats", "ticker", "work", "graph", "foot"];
 const TICKER = ["iOS Apps", "AI Agents", "Dashboards", "Web Crawlers", "Trading Bots", "Shopify Apps", "MCP Servers", "Attribution Engines", "GTM Tools"];
@@ -64,9 +65,7 @@ async function desktop() {
   const work = await page.locator('#work a[href^="/projects/"]').evaluateAll((els) => els.map((a) => a.getAttribute("href")));
   check(JSON.stringify(work) === JSON.stringify(WORK), `Selected work links are ${JSON.stringify(work)}`);
 
-  // the graph's labels live in a fixed layer that is hidden until the graph is on screen; tabbing must not land on them unseen
-  await page.locator("#graph-labels button").first().waitFor({ state: "attached", timeout: 15000 })
-    .catch(() => check(false, "the graph labels never mounted"));
+  // the transit map's chips and stops are tab stops; none may be focused while unseen
   // stop at the footer: tabbing out of the document stops headless Chromium drawing frames, which stalls the reveals
   await page.locator(`#work a[href="${WORK.at(-1)}"]`).focus();
   for (let i = 1; ; i++) {
@@ -79,7 +78,7 @@ async function desktop() {
     });
     check(seen.o > 0.1, `Tab ${i} after Selected work focused ${seen.what} at opacity ${seen.o.toFixed(2)}`);
     if (seen.footer) break;
-    check(i < 20, "20 Tabs after Selected work never reached the footer");
+    check(i < 40, "40 Tabs after Selected work never reached the footer");
   }
 
   await readable(page, "desktop");
@@ -97,6 +96,74 @@ async function phone() {
   expectNoErrors(errors, "/ (phone)");
 }
 
+const chips = (page) => page.locator("#graph button[aria-pressed]").evaluateAll((els) => els.filter((b) => b.offsetParent !== null).length);
+
+// "How it all connects" as a transit map: a stop per project, a chip per line, follow a line, open a stop
+async function transit() {
+  const { page, errors } = await openPage("/");
+  const stops = await page.locator('#graph a[href^="/projects/"]').evaluateAll((els) => els.map((a) => a.getAttribute("href")));
+  check(stops.length === projects.length, `the transit map has ${stops.length} stops, not ${projects.length}`);
+  check(projects.every((p) => stops.includes(`/projects/${p.slug}`)), "a project is missing from the transit map");
+  check((await chips(page)) === 10, `desktop shows ${await chips(page)} line chips, not 10`);
+
+  // a stop the drawing has not reached yet still shows the moment it takes focus
+  await page.locator("#graph h2").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  const last = page.locator('#graph a[href^="/projects/"]').last();
+  await last.focus();
+  const seen = (el) => { let o = 1; for (let n = el; n; n = n.parentElement) o *= +getComputedStyle(n).opacity; return o; };
+  await page.waitForFunction((sel) => { const el = [...document.querySelectorAll(sel)].pop(); let o = 1; for (let n = el; n; n = n.parentElement) o *= +getComputedStyle(n).opacity; return o > 0.5; },
+    '#graph a[href^="/projects/"]', { timeout: 2000 }).catch(() => {});
+  const o = await last.evaluate(seen);
+  check(o > 0.5, `a focused stop the drawing had not reached is at opacity ${o.toFixed(2)}`);
+
+  await page.getByRole("button", { name: /^Claude/ }).click();
+  check((await page.getByRole("button", { name: /^Claude/ }).getAttribute("aria-pressed")) === "true", "the Claude chip is not pressed after a click");
+  const note = (await page.locator("#graph [aria-live]").textContent()) ?? "";
+  check(note.includes("Claude runs through 5 projects"), `following Claude says "${note}"`);
+
+  await page.locator('#graph a[href="/projects/distill"]').click();
+  await page.waitForURL("**/projects/distill", { timeout: 10000 }).catch(() => check(false, `clicking the Distill stop went to ${page.url()}`));
+  await assertNoOverflow(page);
+  expectNoErrors(errors, "/ (transit map)");
+
+  const { page: p, errors: pe } = await openPage("/", { phone: true });
+  check((await chips(p)) === 6, `a phone shows ${await chips(p)} line chips, not 6`);
+  await p.locator("#graph").scrollIntoViewIfNeeded();
+  await p.waitForTimeout(500);
+  await assertNoOverflow(p);
+  expectNoErrors(pe, "/ (transit map, phone)");
+}
+
+// on phones the text sits under its shape: scroll a heading to a point on screen and read which shape is up
+// the stage updates on the scroll event, which waits for a frame; under swiftshader a frame can take a while, so poll
+async function shapeAt(page, name, at, want) {
+  const heading = page.locator("#work").getByRole("heading", { name, exact: true });
+  await heading.evaluate((el, at) => window.scrollBy(0, el.getBoundingClientRect().top - innerHeight * at), at);
+  await page.waitForFunction((want) => document.querySelector("main")?.dataset.shape === want, want, { timeout: 4000 }).catch(() => {});
+  // then hold a moment, so a shape that only flickers past is not taken for the settled one
+  await page.waitForTimeout(250);
+  return page.evaluate(() => document.querySelector("main")?.dataset.shape);
+}
+
+async function phoneShapes() {
+  const { page, errors } = await openPage("/", { phone: true });
+  const cases = [
+    // a project's shape is up while its text comes in under it
+    ["Distill", 0.75, "1"],
+    ["AI Web Tracker Scanner", 0.75, "2"],
+    ["Daily Roman", 0.75, "4"],
+    // the night shift waits until the scanner's text has gone, then lands with the 5 to 9 heading
+    ["5 to 9", 0.72, "2"],
+    ["5 to 9", 0.55, "3"],
+  ];
+  for (const [name, at, want] of cases) {
+    const got = await shapeAt(page, name, at, want);
+    check(got === want, `on a phone, with "${name}" ${Math.round(at * 100)}% down the screen the stage shows shape ${got}, not ${want}`);
+  }
+  expectNoErrors(errors, "/ (phone shapes)");
+}
+
 async function noWebgl() {
   const { page, errors } = await openPage("/", { webgl: false });
   await readable(page, "without WebGL");
@@ -109,6 +176,8 @@ async function noJs() {
   const { page } = await openPage("/", { js: false });
   await readable(page, "without JavaScript");
   check((await page.locator("#ticker-list").textContent()).includes("GTM Tools"), "ticker list missing without JavaScript");
+  const stops = await page.locator('#graph a[href^="/projects/"]').count();
+  check(stops === projects.length, `without JavaScript the transit map has ${stops} stops`);
 }
 
 // a failure names the run it came from, since Playwright's own messages don't name the route
@@ -123,6 +192,8 @@ async function run(label, fn) {
 export default async function home() {
   await run("desktop", desktop);
   await run("phone", phone);
+  await run("phone shapes", phoneShapes);
+  await run("transit map", transit);
   await run("without WebGL", noWebgl);
   await run("without JavaScript", noJs);
 }

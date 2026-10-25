@@ -1,0 +1,60 @@
+/* "How it all connects" as a transit map, from the approved transit-v1 mockup (colour per tool). */
+.transit { padding: 96px var(--gr) 112px var(--gl); }
+.head { display: grid; gap: 16px; max-width: 46ch; }
+.head h2 { font-size: clamp(56px, 7vw, 112px); }
+.head p { margin: 0; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.5; color: var(--ink-2); }
+.head .how { font-size: 14px; color: var(--ink-3); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 0; padding: 0; list-style: none; }
+.chips button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: none; cursor: pointer;
+  font: 600 14px/1 var(--text); color: var(--ink-2);
+  transition: border-color 250ms ease, color 250ms ease, opacity 250ms ease;
+}
+.chips button i { width: 18px; height: 4px; border-radius: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+.chips button b { font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.chips button:hover, .chips button[aria-pressed="true"] { border-color: var(--c); color: var(--ink); }
+.chipsFocus button[aria-pressed="false"] { opacity: 0.4; }
+.minor { display: none; }
+@media (min-width: 964px) { .minor { display: list-item; } }
+.note { min-height: 1.4em; margin: 14px 0 0; font-size: 15px; color: var(--ink-2); }
+.note b { color: var(--ink); font-weight: 600; }
+
+.box { position: relative; margin-top: 18px; }
+.map { display: block; width: 100%; overflow: visible; }
+.zone { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 5; }
+.zoneLabel { fill: var(--ink-3); font: 800 15px var(--display); letter-spacing: 0.08em; text-transform: uppercase; }
+.zoneGlyph { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.bed { stroke: var(--c); stroke-width: 1.5; stroke-dasharray: 1 6; stroke-linecap: round; opacity: 0.45; }
+.lineName { fill: var(--c); font: 800 15px var(--display); letter-spacing: 0.06em; text-transform: uppercase; }
+.glow { fill: none; stroke: var(--c); stroke-width: 10; stroke-linecap: round; opacity: 0.22; transition: opacity 300ms ease; }
+.track { fill: none; stroke: var(--c); stroke-width: 4.5; stroke-linecap: round; transition: opacity 300ms ease; }
+.terminus { fill: var(--c); transition: opacity 300ms ease; }
+.trainGlow { fill: var(--amber); }
+.trainCore { fill: #fff6dd; }
+
+.stop { cursor: pointer; transition: opacity 400ms ease; }
+.stop[data-wait] { opacity: 0; }
+.hit { fill: transparent; }
+.link { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.dot { fill: #000; stroke: var(--ink); stroke-width: 2.5; }
+.name { fill: var(--ink); font: 800 21px var(--display); text-transform: uppercase; letter-spacing: 0.01em; transition: fill 200ms ease; }
+.vertical .name { font-size: 19px; }
+.kind { fill: var(--ink-2); font: 13px var(--text); }
+.stop:hover .name, .stop:focus-visible .name { fill: var(--amber); }
+.stop:focus-visible { outline: none; }
+.stop:focus-visible .hit { stroke: var(--amber); stroke-width: 2; }
+
+/* following one line */
+.focus .line:not(.on) .track { opacity: 0.12; }
+.focus .line:not(.on) .glow, .focus .line:not(.on) .bed, .focus .line:not(.on) .train { opacity: 0; }
+.focus .line:not(.on) .lineName, .focus .line:not(.on) .terminus { opacity: 0.3; }
+.focus .stop:not(.on) { opacity: 0.25; }
+/* a stop the drawing hasn't reached stays hidden even while a line is followed */
+.focus .stop[data-wait] { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stop, .glow, .track, .terminus, .chips button { transition: none; }
+}
