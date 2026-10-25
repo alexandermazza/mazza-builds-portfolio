@@ -110,15 +110,20 @@ export function mountHomeStage(
     const s: Slot = foot.getBoundingClientRect().top < vh * 0.55 ? "footer"
       : graph.getBoundingClientRect().top < vh * 0.5 ? "graph"
       : intro.getBoundingClientRect().top < vh * (narrow() ? 0.85 : 0.5) ? "work" : "hero";
-    // which shape: on desktop the block nearest the middle; on phones the text sits under the shape,
-    // so a block takes over only once its heading reaches mid-screen
+    // which shape: on desktop the block nearest the middle. On phones the text sits under the shape, so a project
+    // takes over as its heading comes into the bottom fifth; the short 9 to 5 / 5 to 9 headers wait for mid-screen,
+    // or the shift would land while the last project's text is still showing
     let best = 0;
-    if (narrow()) shapes.forEach((el) => { if (el.querySelector("p, h2, h3, h4")!.getBoundingClientRect().top < vh * 0.6) best = +el.dataset.proj!; });
+    if (narrow()) shapes.forEach((el) => {
+      const at = el.tagName === "ARTICLE" ? 0.8 : 0.6;
+      if (el.querySelector("p, h2, h3, h4")!.getBoundingClientRect().top < vh * at) best = +el.dataset.proj!;
+    });
     else {
       let bd = 1e9;
       shapes.forEach((el) => { const r = el.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - vh / 2); if (d < bd) { bd = d; best = +el.dataset.proj!; } });
     }
     state.proj = best;
+    root.dataset.shape = String(best);
     root.toggleAttribute("data-day", s === "work" && (best === 1 || best === 2));
     layer.toggleAttribute("data-on", s === "graph");
     // the labels are buttons: while their layer is invisible they must not be tab stops either
@@ -150,6 +155,7 @@ export function mountHomeStage(
     removeEventListener("scroll", onScroll);
     removeEventListener("resize", onResize);
     root.removeAttribute("data-day");
+    delete root.dataset.shape;
     layer.removeAttribute("data-on");
     layer.inert = false;
     canvas.removeAttribute("data-fade");

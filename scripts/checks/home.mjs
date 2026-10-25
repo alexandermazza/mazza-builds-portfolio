@@ -97,6 +97,32 @@ async function phone() {
   expectNoErrors(errors, "/ (phone)");
 }
 
+// on phones the text sits under its shape: scroll a heading to a point on screen and read which shape is up
+async function shapeAt(page, name, at) {
+  const heading = page.locator("#work").getByRole("heading", { name, exact: true });
+  await heading.evaluate((el, at) => window.scrollBy(0, el.getBoundingClientRect().top - innerHeight * at), at);
+  await page.waitForTimeout(300);
+  return page.evaluate(() => document.querySelector("main")?.dataset.shape);
+}
+
+async function phoneShapes() {
+  const { page, errors } = await openPage("/", { phone: true });
+  const cases = [
+    // a project's shape is up while its text comes in under it
+    ["Distill", 0.75, "1"],
+    ["AI Web Tracker Scanner", 0.75, "2"],
+    ["Daily Roman", 0.75, "4"],
+    // the night shift waits until the scanner's text has gone, then lands with the 5 to 9 heading
+    ["5 to 9", 0.72, "2"],
+    ["5 to 9", 0.55, "3"],
+  ];
+  for (const [name, at, want] of cases) {
+    const got = await shapeAt(page, name, at);
+    check(got === want, `on a phone, with "${name}" ${Math.round(at * 100)}% down the screen the stage shows shape ${got}, not ${want}`);
+  }
+  expectNoErrors(errors, "/ (phone shapes)");
+}
+
 async function noWebgl() {
   const { page, errors } = await openPage("/", { webgl: false });
   await readable(page, "without WebGL");
@@ -123,6 +149,7 @@ async function run(label, fn) {
 export default async function home() {
   await run("desktop", desktop);
   await run("phone", phone);
+  await run("phone shapes", phoneShapes);
   await run("without WebGL", noWebgl);
   await run("without JavaScript", noJs);
 }
