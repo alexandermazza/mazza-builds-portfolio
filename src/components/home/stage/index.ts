@@ -36,7 +36,8 @@ export function mountHomeStage(canvas: HTMLCanvasElement, root: HTMLElement): ()
     gl.getExtension("WEBGL_lose_context")?.loseContext();
     return hide();
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  // phones draw at 1x: at 1.5x their GPUs fall behind and scrolling stutters, and soft glowing points look the same
+  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1 : 1.5));
   renderer.setClearColor(0x000000, 1);
   renderer.toneMapping = ACESFilmicToneMapping;
   const composer = new EffectComposer(renderer);

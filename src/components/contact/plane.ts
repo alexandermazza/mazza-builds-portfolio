@@ -99,7 +99,7 @@ export function mountPlane(canvas: HTMLCanvasElement, box: HTMLElement): PlaneSk
     box.style.display = "none"; // no WebGL: the note still works, just without the plane
     return NOOP;
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1 : 1.5)); // phones at 1x, as on the home stage
   renderer.setClearColor(0x000000, 1);
 
   const N = small ? 12000 : 26000;

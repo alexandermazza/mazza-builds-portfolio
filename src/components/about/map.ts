@@ -37,13 +37,16 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
   labelsEl.setAttribute("aria-hidden", "true");
   wrap.prepend(canvas, labelsEl);
 
+  const CENTER = new THREE.Vector2(-60, 40); // between River North and the West Loop, so downtown sits in the middle
+  const REACH = 520; // the plan has faded out completely this far from the centre, so streets beyond it are left out
+  const near = (x: number, z: number) => Math.hypot(x / 10 - CENTER.x, z / 10 - CENTER.y) < REACH;
   const segs: number[] = [];
   city.streets.forEach((p, i) => {
     let x = 0, z = 0, px = 0, pz = 0;
     for (let k = 0; k < p.length; k += 2) {
       x += p[k];
       z += p[k + 1];
-      if (k) segs.push(px / 10, pz / 10, x / 10, z / 10, city.major[i]);
+      if (k && (near(px, pz) || near(x, z))) segs.push(px / 10, pz / 10, x / 10, z / 10, city.major[i]);
       px = x;
       pz = z;
     }
@@ -57,10 +60,9 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   geo.setAttribute("aMajor", new THREE.BufferAttribute(maj, 1));
-  const CENTER = new THREE.Vector2(-60, 40); // between River North and the West Loop, so downtown sits in the middle
   const U = {
     uCur: { value: new THREE.Vector2(0, 0) }, uAmt: { value: 0 }, uLift: { value: 0 }, uR: { value: 52 }, uCenter: { value: CENTER },
-    uFade: { value: new THREE.Vector2(330, 520) }, uBase: { value: new THREE.Color("#4f86c6") }, uInk: { value: new THREE.Color("#f0f6fb") },
+    uFade: { value: new THREE.Vector2(330, REACH) }, uBase: { value: new THREE.Color("#4f86c6") }, uInk: { value: new THREE.Color("#f0f6fb") },
   };
   // two copies: the flat street plan, and the same streets lifted into a ridge around the cursor
   const make = (lifted: boolean) => new THREE.LineSegments(geo, new THREE.ShaderMaterial({
@@ -105,7 +107,7 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
     camera.updateProjectionMatrix();
     // tilted back about 50 degrees, close enough that downtown fills the frame
     base.set(CENTER.x, narrow ? 470 : 430, CENTER.y + (narrow ? 420 : 380));
-    U.uFade.value.set(narrow ? 250 : 330, narrow ? 420 : 520);
+    U.uFade.value.set(narrow ? 250 : 330, narrow ? 420 : REACH);
   }
   const ro = new ResizeObserver(resize);
   ro.observe(wrap);
