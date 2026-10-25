@@ -95,7 +95,7 @@ export function mountShiftSky(canvas: HTMLCanvasElement, head: HTMLElement, init
     canvas.style.display = "none"; // the page works the same without the sky
     return { setHalf() {}, dispose() {} };
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, small ? 1 : 1.5)); // phones at 1x, as on the home stage
   renderer.setClearColor(0x000000, 1);
 
   const N = small ? 14000 : 30000;

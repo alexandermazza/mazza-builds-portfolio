@@ -68,7 +68,7 @@ Each scene is a plain TypeScript module ported from its mockup, exporting a `mou
 
 The client component dynamically imports its module inside `useEffect`, so three.js never runs on the server and never blocks content. Every module:
 - catches renderer creation and hides its canvas on failure (asking for the `webgl2` context first, as the sky, map and home stage do, keeps three.js from logging a console error)
-- caps the pixel ratio at 1.5
+- caps the pixel ratio at 1.5, and at 1 on phones (`pointer: coarse` or under 820px) for the pixel-bound home stage, sky and plane: at 1.5 phone GPUs fall behind and scrolling stutters. The about map is bound by its vertices, so it keeps 1.5 and leaves out the streets past its fade (`REACH`)
 - pauses when off screen or when the tab is hidden
 - respects `prefers-reduced-motion` exactly as its mockup does
 - disposes fully: cancels the animation frame, disconnects observers, removes listeners, disposes geometries, materials, render targets and composer, then calls `renderer.dispose()` and `renderer.forceContextLoss()`
@@ -86,7 +86,7 @@ The client component dynamically imports its module inside `useEffect`, so three
 
 - `npm test`: unit tests (`node --test` on `src/**/*.test.ts`; Node 23 strips types)
 - `npm run build && npx next start -p 3000`: verify against a production build. Avoid `next dev` here (Turbopack has a stray-lockfile cache problem on this machine).
-- `npm run check:site -- http://localhost:3000 [group...]`: end-to-end checks in headless Chromium, one group per `scripts/checks/<group>.mjs` (chrome, home, nav-loop, projects, project, about, contact). The contact group intercepts every `/api/contact` request, so it never sends email.
+- `npm run check:site -- http://localhost:3000 [group...]`: end-to-end checks in headless Chromium, one group per `scripts/checks/<group>.mjs` (chrome, home, nav-loop, projects, project, about, contact, perf). The contact group intercepts every `/api/contact` request, so it never sends email.
 - `npm run check:resilience -- http://localhost:3000/`: the homepage stays readable in a normal browser, with storage blocked, and with JavaScript off.
 - `npm run lint`
 
