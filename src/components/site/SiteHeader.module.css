@@ -17,14 +17,23 @@
   padding-block: 14px;
 }
 
+/* the logo, pulled into the old wordmark's line height so the bar stays the mockup's height */
 .mark {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 22px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  text-decoration: none;
+  display: block;
+  margin-block: -5px;
+  transition: opacity 400ms var(--ease), visibility 400ms;
+}
+
+.mark img {
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+/* home: hidden while the hero shows its own logo */
+.bar[data-hero] .mark {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .nav {

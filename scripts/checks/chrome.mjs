@@ -19,7 +19,6 @@ function check(ok, route, message) {
 }
 
 // textContent, not innerText: the links are uppercased with CSS
-const texts = (locator) => locator.evaluateAll((els) => els.map((el) => el.textContent.trim()));
 
 async function footer(page, route) {
   const foot = page.getByRole("contentinfo").last();
@@ -86,10 +85,19 @@ async function desktop(route) {
   const bar = page.getByRole("banner").first();
   const mark = bar.locator('a[href="/"]');
   check(
-    (await mark.count()) === 1 && /^mazza builds$/i.test((await texts(mark))[0]),
+    (await mark.count()) === 1 && (await mark.locator("img").getAttribute("alt")) === "Mazza Builds",
     route,
-    'header link to "/" reading "Mazza Builds" not found',
+    'header link to "/" with the "Mazza Builds" logo not found',
   );
+  if (route === "/") {
+    // the hero already shows the logo, so the bar's waits until the intro takes over
+    check(!(await mark.isVisible()), route, "the header logo shows over the hero");
+    await page.locator("#intro").evaluate((el) => el.scrollIntoView());
+    await mark.waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
+    check(await mark.isVisible(), route, "the header logo is still hidden after scrolling to the intro");
+  } else {
+    check(await mark.isVisible(), route, "the header logo is not visible");
+  }
   for (const name of NAV) {
     const link = bar.getByRole("link", { name, exact: true });
     check(await link.isVisible(), route, `header link "${name}" not visible at desktop`);

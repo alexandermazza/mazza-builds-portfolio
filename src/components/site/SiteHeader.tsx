@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { TransitionLink } from "@/transitions";
 import { lockOverflow, unlockOverflow } from "@/lib/overflow-lock";
@@ -20,6 +21,8 @@ function current(pathname: string, href: string) {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const home = pathname === "/";
+  const bar = useRef<HTMLElement>(null);
   // remembering which page the menu opened on closes it on any route change, Back included
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
@@ -61,12 +64,30 @@ export function SiteHeader() {
     };
   }, [open]);
 
+  // the hero already shows the logo, so on the home page the bar's waits for the point where the stage swaps the
+  // hero logo for the intro's hammer (onScroll in home/stage/index.ts); an attribute, so scrolling never re-renders
+  useEffect(() => {
+    if (!home) return;
+    const onScroll = () => {
+      const intro = document.getElementById("intro");
+      const hero = !!intro && intro.getBoundingClientRect().top >= innerHeight * (innerWidth < 820 ? 0.85 : 0.5);
+      bar.current?.toggleAttribute("data-hero", hero);
+    };
+    onScroll();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+    };
+  }, [home]);
+
   return (
     <>
       {/* the home page's scene runs under a fixed bar, as in its mockup; other pages scroll it away */}
-      <header className={pathname === "/" ? `${styles.bar} ${styles.over}` : styles.bar}>
+      <header ref={bar} className={home ? `${styles.bar} ${styles.over}` : styles.bar} data-hero={home ? "" : undefined}>
         <TransitionLink href="/" className={styles.mark}>
-          Mazza Builds
+          <Image src="/logo-mark.png" alt="Mazza Builds" width={36} height={36} />
         </TransitionLink>
         <nav className={styles.nav} aria-label="Main">
           {NAV.map((item) => (
@@ -95,7 +116,7 @@ export function SiteHeader() {
         <div ref={dialog} className={styles.menu} role="dialog" aria-modal="true" aria-label="Menu">
           <div className={styles.menuTop}>
             <span className={styles.mark} aria-hidden="true">
-              Mazza Builds
+              <Image src="/logo-mark.png" alt="" width={36} height={36} />
             </span>
             <button type="button" className={styles.button} onClick={close}>
               Close

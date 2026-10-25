@@ -74,8 +74,11 @@ export function TransitMap({ lines, stops }: { lines: TransitLine[]; stops: Tran
     let edge = span, onScreen = true, raf = 0;
     const onScroll = () => {
       const r = box.current!.getBoundingClientRect(), vh = innerHeight;
-      // phones: fully drawn as the map's end comes up past 78% of the screen; wide screens: over half a screen
-      const p = L.vertical ? (vh * 0.78 - r.top) / Math.max(1, r.height) : (vh * 0.85 - r.top) / Math.max(1, vh * 0.5);
+      // phones: fully drawn as the map's end comes up past 78% of the screen; wide screens: from its top at 85% to its
+      // end at 90%, so a screen tall enough for the whole section finishes the drawing with the heading still in view
+      const p = L.vertical
+        ? (vh * 0.78 - r.top) / Math.max(1, r.height)
+        : (vh * 0.85 - r.top) / Math.max(vh * 0.25, r.height - vh * 0.05);
       edge = (reduce || revealAll.current ? 1 : Math.min(1, Math.max(0, p))) * span;
       const c = clip.current;
       if (c) {
