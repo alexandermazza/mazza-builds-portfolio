@@ -38,6 +38,8 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
   wrap.prepend(canvas, labelsEl);
 
   const CENTER = new THREE.Vector2(-60, 40); // between River North and the West Loop, so downtown sits in the middle
+  // a phone is too narrow for both, so it looks east instead: River North on the left, Lake Shore Drive, Navy Pier and the lake
+  const EAST = new THREE.Vector2(110, 40);
   const REACH = 520; // the plan has faded out completely this far from the centre, so streets beyond it are left out
   const near = (x: number, z: number) => Math.hypot(x / 10 - CENTER.x, z / 10 - CENTER.y) < REACH;
   const segs: number[] = [];
@@ -80,7 +82,7 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
   const scene = new THREE.Scene(), flat = make(false), lift = make(true);
   flat.frustumCulled = lift.frustumCulled = false;
   scene.add(flat, lift);
-  const camera = new THREE.PerspectiveCamera(36, 1, 1, 4000), target = new THREE.Vector3(CENTER.x, 0, CENTER.y), base = new THREE.Vector3();
+  const camera = new THREE.PerspectiveCamera(36, 1, 1, 4000), target = new THREE.Vector3(), base = new THREE.Vector3();
 
   // neighbourhood names in white, a red heart on River North (no label: the heart says it)
   const labels: { el: HTMLElement; v: THREE.Vector3; heart?: boolean }[] = city.labels.filter((l) => l[0] !== "River North").map(([name, x, z]) => {
@@ -106,7 +108,10 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
     camera.fov = narrow ? 50 : 36;
     camera.updateProjectionMatrix();
     // tilted back about 50 degrees, close enough that downtown fills the frame
-    base.set(CENTER.x, narrow ? 470 : 430, CENTER.y + (narrow ? 420 : 380));
+    const c = narrow ? EAST : CENTER;
+    U.uCenter.value = c; // the plan and the names fade out from the middle of the view
+    target.set(c.x, 0, c.y);
+    base.set(c.x, narrow ? 470 : 430, c.y + (narrow ? 420 : 380));
     U.uFade.value.set(narrow ? 250 : 330, narrow ? 420 : REACH);
   }
   const ro = new ResizeObserver(resize);
@@ -155,10 +160,11 @@ export function mountStreetMap(wrap: HTMLElement, data: unknown): () => void {
     for (const L of labels) {
       tmp.copy(L.v).project(camera);
       const sx = ((tmp.x + 1) / 2) * W, sy = ((1 - tmp.y) / 2) * H;
-      const d = Math.hypot(L.v.x - CENTER.x, L.v.z - CENTER.y), vis = 1 - Math.min(1, Math.max(0, (d - f0) / (f1 - f0)));
+      const d = Math.hypot(L.v.x - U.uCenter.value.x, L.v.z - U.uCenter.value.y), vis = 1 - Math.min(1, Math.max(0, (d - f0) / (f1 - f0)));
       L.el.style.left = `${sx}px`;
       L.el.style.top = `${sy}px`;
-      L.el.style.opacity = L.heart ? "1" : String(vis * (sx < 30 || sx > W - 30 || sy < 20 || sy > H - 20 ? 0 : 1));
+      // names near an edge hide; along the bottom they clear the hint
+      L.el.style.opacity = L.heart ? "1" : String(vis * (sx < 30 || sx > W - 30 || sy < 20 || sy > H - 52 ? 0 : 1));
     }
   }
   raf = requestAnimationFrame(frame);

@@ -95,6 +95,27 @@ async function phone() {
   const { page, errors } = await openPage(ROUTE, { phone: true });
   await page.locator("#map-wrap").scrollIntoViewIfNeeded();
   await page.locator("#map-wrap canvas").waitFor({ state: "attached", timeout: 20000 }).catch(() => check(false, "no map canvas at phone width"));
+  // a phone looks east of downtown, so Lake Shore Drive, Navy Pier and the lake are in view, with River North's heart still on the map
+  await page.waitForTimeout(1500);
+  const seen = await page.locator("#map-wrap").evaluate((wrap) => {
+    const box = wrap.getBoundingClientRect();
+    const at = (el) => {
+      const r = el.getBoundingClientRect(), x = r.left + r.width / 2 - box.left;
+      return { inside: x > 0 && x < box.width, opacity: +getComputedStyle(el).opacity };
+    };
+    const names = [...wrap.querySelectorAll("[data-labels] span:not([data-heart])")];
+    const named = Object.fromEntries(names.map((s) => [s.textContent, at(s)]));
+    // a name showing over the "Tap the map" hint along the bottom
+    const hint = wrap.querySelector("[data-hint]").getBoundingClientRect();
+    const overHint = names.filter((s) => {
+      const r = s.getBoundingClientRect();
+      return +getComputedStyle(s).opacity > 0.05 && r.bottom > hint.top && r.top < hint.bottom && r.right > hint.left && r.left < hint.right;
+    }).map((s) => s.textContent);
+    return { pier: named["Navy Pier"], heart: at(wrap.querySelector("[data-heart]")), overHint };
+  });
+  for (const [name, s] of [["Navy Pier", seen.pier], ["the heart", seen.heart]])
+    check(s && s.inside && s.opacity > 0.5, `on a phone ${name} is not in view on the map (${JSON.stringify(s)})`);
+  check(seen.overHint.length === 0, `on a phone ${seen.overHint.join(", ")} shows over the map's hint`);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(300);
   await assertNoOverflow(page);
