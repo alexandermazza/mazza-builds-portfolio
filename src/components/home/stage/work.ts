@@ -199,14 +199,32 @@ export function workPiece(ctx: Ctx): Piece {
     { rad: 0.45, acc: 0.4, lit: 0.8, pts: back(Array.from({ length: 141 }, (_, i): P3 => { const th = i / 140 * 7 * Math.PI; return [10.5 * Math.cos(th), -81 - i / 140 * 17, 10.5 * Math.sin(th)]; })) },
     { rad: 0.35, acc: 0.9, lit: 1.5, pts: back([[-5, -79, 0], [-6, -56, 0], ...Array.from({ length: 39 }, (_, i): P3 => [-6 + (i + 1) * 0.3, -56 + 3 * Math.sin((i + 1) / 40 * 6 * Math.PI), 0]), [6, -56, 0], [5, -79, 0]]) },
   ] });
-  // SecondRound: a fanned hand of resumes, one per job; the front one is written out
-  const fan = (pts: P3[], ang: number, dz: number): P3[] => pts.map(([x, y, z]) => { const c = Math.cos(ang), s = Math.sin(ang), py = y + 130; return [x * c - py * s + 34, x * s + py * c - 130, z + dz]; });
-  const secondRound = (): ShapeDef => ({ tilt: 0.06, sway: 0.3, yaw: -0.2, bundles: [
-    ...[0.36, 0.22, 0.09].map((a, j): Bundle => ({ rad: 0.6, pts: fan(rrect(128, 172, 8), a, -54 + j * 18) })),
-    { rad: 0.65, pts: fan(rrect(128, 172, 8), -0.04, 0) },
-    { rad: 0.4, acc: 0.65, lit: 0.8, pts: fan(move(rrect(64, 9, 4), -20, 66), -0.04, 1) },
-    ...[[50, 8], [30, 48], [19, 40], [8, 22], [-14, 48], [-25, 32], [-36, 44], [-58, 36], [-69, 14]].map(([y, x1]): Bundle => ({ rad: 0.32, lit: 0.55, pts: fan(back(seg([-52, y, 0], [x1, y, 0])), -0.04, 1) })),
-  ] });
+  // SecondRound: a thick target, one arrow dead in the amber bullseye: one resume aimed at one job. The target is
+  // turned toward the copy so the arrow shows in profile as it sways
+  const secondRound = (): ShapeDef => {
+    const c = Math.cos(-0.55), s = Math.sin(-0.55);
+    const turn = (pts: P3[]): P3[] => pts.map(([x, y, z]) => [x * c + z * s, y, z * c - x * s]);
+    const face = (r: number, z: number, n = 200) => turn(ring(n, (th): P3 => [r * Math.cos(th), r * Math.sin(th), z]));
+    const n = Math.hypot(-0.16, 0.14, 1), d: P3 = [-0.16 / n, 0.14 / n, 1 / n], tail = d.map((v) => v * 104) as P3;
+    // a vane: a thin triangle off the shaft at the tail, spun around it; u0 and u1 are perpendicular to the shaft
+    const m = Math.hypot(1 - d[0] * d[0], d[0] * d[1], d[0] * d[2]), u0: P3 = [(1 - d[0] * d[0]) / m, -d[0] * d[1] / m, -d[0] * d[2] / m];
+    const u1: P3 = [d[1] * u0[2] - d[2] * u0[1], d[2] * u0[0] - d[0] * u0[2], d[0] * u0[1] - d[1] * u0[0]];
+    const vane = (a: number): P3[] => {
+      const p = (t: number, o: number) => tail.map((v, k) => v + d[k] * t + (u0[k] * Math.cos(a) + u1[k] * Math.sin(a)) * o) as P3;
+      return turn([p(-34, 0), p(-8, 12), p(2, 12), p(0, 0)]);
+    };
+    return { tilt: 0.12, sway: 0.32, yaw: 0, bundles: [
+      { rad: 0.6, pts: face(104, 0) }, { rad: 0.6, lit: 0.6, pts: face(104, -16) },
+      { rad: 0.5, lit: 0.85, pts: face(84, 0) }, { rad: 0.5, lit: 0.5, pts: face(84, -16) },
+      { rad: 0.5, lit: 0.85, pts: face(64, 0) }, { rad: 0.5, lit: 0.9, pts: face(44, 0) },
+      { rad: 0.5, acc: 0.5, pts: face(25, 0, 120) },
+      { rad: 0.55, acc: 1, lit: 1.6, pts: face(9, 0, 60) }, { rad: 0.4, acc: 0.8, lit: 0.5, pts: face(16, 2, 80) },
+      { rad: 0.4, lit: 1, pts: turn(back(seg([0, 0, 0], tail, 30))) },
+      // a vane is tiny for its share of particles, so it stays dim or it blooms into a cloud
+      ...[0, 1, 2].map((k): Bundle => ({ rad: 0.35, acc: 0.25, lit: 0.45, pts: vane(k * TAU / 3) })),
+      { rad: 3, lit: 0.14, pts: face(124, -8) },
+    ] };
+  };
   // Daily Roman: the Colosseum, tiers of arches with the outer wall broken low at the front
   const colosseum = (): ShapeDef => {
     const A = 132, Bz = 92, b0 = 0.9 * Math.PI, b1 = 2.1 * Math.PI;
