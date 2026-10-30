@@ -93,6 +93,7 @@ async function desktop() {
   await readable(page, "desktop");
   await assertNoOverflow(page);
   expectNoErrors(errors, "/ (desktop)");
+  await page.context().close();
 }
 
 async function phone() {
@@ -115,6 +116,7 @@ async function phone() {
     await assertNoOverflow(page);
   }
   expectNoErrors(errors, "/ (phone)");
+  await page.context().close();
 }
 
 const chips = (page) => page.locator("#graph button[aria-pressed]").evaluateAll((els) => els.filter((b) => b.offsetParent !== null).length);
@@ -147,6 +149,7 @@ async function transit() {
   await page.waitForURL("**/projects/distill", { timeout: 10000 }).catch(() => check(false, `clicking the Distill stop went to ${page.url()}`));
   await assertNoOverflow(page);
   expectNoErrors(errors, "/ (transit map)");
+  await page.context().close();
 
   const { page: p, errors: pe } = await openPage("/", { phone: true });
   check((await chips(p)) === 8, `a phone shows ${await chips(p)} line chips, not 8`);
@@ -154,6 +157,7 @@ async function transit() {
   await p.waitForTimeout(500);
   await assertNoOverflow(p);
   expectNoErrors(pe, "/ (transit map, phone)");
+  await p.context().close();
 }
 
 // a screen tall enough for the whole section must finish the drawing while the heading is still in view under the bar
@@ -164,6 +168,7 @@ async function tallTransit() {
   const waiting = await page.locator("#graph [data-wait]").count();
   check(waiting === 0, `with its heading 110px down a 1300px screen, ${waiting} stops are still undrawn`);
   expectNoErrors(errors, "/ (transit map, tall screen)");
+  await page.context().close();
 }
 
 // on phones the text sits under its shape: scroll a heading to a point on screen and read which shape is up
@@ -193,6 +198,7 @@ async function phoneShapes() {
     check(got === want, `on a phone, with "${name}" ${Math.round(at * 100)}% down the screen the stage shows shape ${got}, not ${want}`);
   }
   expectNoErrors(errors, "/ (phone shapes)");
+  await page.context().close();
 }
 
 async function noWebgl() {
@@ -205,6 +211,7 @@ async function noWebgl() {
   check(layers.blend === "screen", `a homepage film blends as ${layers.blend}, not screen`);
   check(layers.z === "auto", `the homepage main has z-index ${layers.z}, so its films can't blend with the page`);
   expectNoErrors(errors, "/ (without WebGL)");
+  await page.context().close();
 }
 
 async function noJs() {
@@ -214,6 +221,9 @@ async function noJs() {
   const stops = await page.locator('#graph a[href^="/projects/"]').count();
   check(stops === projects.length, `without JavaScript the transit map has ${stops} stops`);
 }
+
+// each sub-check closes its pages when it passes: one left open keeps its stage, and any film on screen, running
+// beside the next check, and under software WebGL that starves it
 
 // a failure names the run it came from, since Playwright's own messages don't name the route
 async function run(label, fn) {
