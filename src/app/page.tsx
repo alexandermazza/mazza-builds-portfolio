@@ -1,6 +1,7 @@
 import { TransitionLink } from "@/transitions";
 import { getProjectBySlug, projects } from "@/data/projects";
 import { buildTransit } from "@/lib/constellation";
+import { HomeFilm } from "@/components/home/HomeFilm";
 import { HomeStage } from "@/components/home/HomeStage";
 import { StatsSection } from "@/components/home/StatsSection";
 import { Ticker } from "@/components/home/Ticker";
@@ -22,6 +23,7 @@ function Work({ slug, proj }: { slug: string; proj: number }) {
         <TransitionLink href={`/projects/${p.slug}`}>{p.name}</TransitionLink>
       </h4>
       <p>{p.line}</p>
+      {p.video && <HomeFilm src={p.video} poster={p.poster} name={p.name} />}
     </article>
   );
 }

@@ -65,6 +65,15 @@ async function desktop() {
   const work = await page.locator('#work a[href^="/projects/"]').evaluateAll((els) => els.map((a) => a.getAttribute("href")));
   check(JSON.stringify(work) === JSON.stringify(WORK), `Selected work links are ${JSON.stringify(work)}`);
 
+  // the films: one each for Distill and Path; with reduced motion they hold on their posters
+  const films = page.locator("#work video");
+  check((await films.count()) === 2, `Selected work has ${await films.count()} films, not 2`);
+  for (const film of await films.all()) {
+    await film.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
+    check(await film.evaluate((v) => v.paused && !!v.poster), "with reduced motion a homepage film plays, or has no poster");
+  }
+
   // the transit map's chips and stops are tab stops; none may be focused while unseen
   // stop at the footer: tabbing out of the document stops headless Chromium drawing frames, which stalls the reveals
   await page.locator(`#work a[href="${WORK.at(-1)}"]`).focus();
@@ -88,6 +97,18 @@ async function desktop() {
 
 async function phone() {
   const { page, errors } = await openPage("/", { phone: true });
+  // a film plays while it's on screen and stops once it's scrolled away, so phones don't stream films nobody sees
+  const film = page.locator("#work article", { has: page.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await film.scrollIntoViewIfNeeded();
+  const playing = await film.evaluate((v) => new Promise((done) => {
+    if (!v.paused) return done(true);
+    v.addEventListener("playing", () => done(true), { once: true });
+    setTimeout(() => done(!v.paused), 4000);
+  }));
+  check(playing, "on a phone, Path's film does not play once it is on screen");
+  await page.locator("#foot").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  check(await page.locator("#work video").evaluateAll((vs) => vs.every((v) => v.paused)), "a homepage film keeps playing after it is scrolled away");
   for (const id of ["intro", "ticker", "work", "graph", "foot"]) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
@@ -179,6 +200,10 @@ async function noWebgl() {
   await readable(page, "without WebGL");
   const shown = await page.locator("canvas").evaluateAll((els) => els.filter((c) => getComputedStyle(c).display !== "none").length);
   check(shown === 0, "a canvas is still shown without WebGL");
+  // the film blends with the page itself, so the homepage's main must not be a stacking context
+  const layers = await page.evaluate(() => ({ blend: getComputedStyle(document.querySelector("#work video")).mixBlendMode, z: getComputedStyle(document.querySelector("main")).zIndex }));
+  check(layers.blend === "screen", `a homepage film blends as ${layers.blend}, not screen`);
+  check(layers.z === "auto", `the homepage main has z-index ${layers.z}, so its films can't blend with the page`);
   expectNoErrors(errors, "/ (without WebGL)");
 }
 
