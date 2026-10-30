@@ -12,19 +12,27 @@ export function HomeFilm({ src, poster, name }: { src: string; poster?: string; 
 
   useEffect(() => {
     const v = video.current!;
-    const offFull = () => { if (!document.fullscreenElement) v.controls = false; };
-    document.addEventListener("fullscreenchange", offFull);
-    // it plays on its own only without reduced motion; otherwise the poster stays
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return () => document.removeEventListener("fullscreenchange", offFull);
     v.muted = true;
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting && e.intersectionRatio >= 0.35) v.play().catch(() => {}); else v.pause(); },
-      { threshold: [0, 0.35] },
-    );
-    io.observe(v);
+    // it plays on its own only without reduced motion; otherwise the poster stays
+    const io = matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? null
+      : new IntersectionObserver(
+          ([e]) => { if (e.isIntersecting && e.intersectionRatio >= 0.35) v.play().catch(() => {}); else v.pause(); },
+          { threshold: [0, 0.35] },
+        );
+    io?.observe(v);
+    // back from fullscreen, decide afresh: re-observing re-runs the on-screen check, and reduced motion means paused
+    const back = () => {
+      if (document.fullscreenElement === v) return;
+      v.controls = false;
+      if (io) { io.unobserve(v); io.observe(v); } else v.pause();
+    };
+    document.addEventListener("fullscreenchange", back);
+    v.addEventListener("webkitendfullscreen", back); // iPhone's own player
     return () => {
-      io.disconnect();
-      document.removeEventListener("fullscreenchange", offFull);
+      io?.disconnect();
+      document.removeEventListener("fullscreenchange", back);
+      v.removeEventListener("webkitendfullscreen", back);
     };
   }, []);
 

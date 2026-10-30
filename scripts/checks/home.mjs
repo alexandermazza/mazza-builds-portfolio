@@ -222,6 +222,42 @@ async function noJs() {
   check(stops === projects.length, `without JavaScript the transit map has ${stops} stops`);
 }
 
+// fullscreen is the big version: the whole film, unblended; leaving it puts the film back the way the page wants it
+async function fullscreen() {
+  // with reduced motion: a film the visitor started in fullscreen does not keep playing inline afterwards
+  const { page, errors } = await openPage("/", { reducedMotion: "reduce" });
+  const film = page.locator("#work article", { has: page.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await film.scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Watch the Path film" }).click();
+  await page.waitForFunction(() => document.fullscreenElement?.tagName === "VIDEO", null, { timeout: 4000 }).catch(() => {});
+  const full = await film.evaluate((v) => ({ on: document.fullscreenElement === v, fit: getComputedStyle(v).objectFit, blend: getComputedStyle(v).mixBlendMode }));
+  check(full.on, "clicking Path's film does not open it fullscreen");
+  check(full.fit === "contain", `a fullscreen film is drawn with object-fit ${full.fit}, which crops it on screens that aren't 16:9`);
+  check(full.blend === "normal", `a fullscreen film still blends as ${full.blend}`);
+  await film.evaluate((v) => v.play());
+  await page.evaluate(() => document.exitFullscreen());
+  await page.waitForTimeout(600);
+  const after = await film.evaluate((v) => ({ paused: v.paused, blend: getComputedStyle(v).mixBlendMode }));
+  check(after.blend === "screen", `after fullscreen the film blends as ${after.blend}, not screen`);
+  check(after.paused, "with reduced motion, a film started in fullscreen keeps playing inline after it closes");
+  expectNoErrors(errors, "/ (fullscreen, reduced motion)");
+  await page.context().close();
+
+  // with motion: a film paused in fullscreen picks up again once it's back on screen inline
+  const { page: m, errors: me } = await openPage("/");
+  const mfilm = m.locator("#work article", { has: m.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await mfilm.scrollIntoViewIfNeeded();
+  await m.waitForFunction(() => [...document.querySelectorAll("#work video")].some((v) => !v.paused), null, { timeout: 4000 }).catch(() => {});
+  await m.getByRole("button", { name: "Watch the Path film" }).click();
+  await m.waitForFunction(() => document.fullscreenElement?.tagName === "VIDEO", null, { timeout: 4000 }).catch(() => {});
+  await mfilm.evaluate((v) => v.pause());
+  await m.evaluate(() => document.exitFullscreen());
+  await m.waitForTimeout(800);
+  check(!(await mfilm.evaluate((v) => v.paused)), "a film paused in fullscreen stays frozen on screen after it closes");
+  expectNoErrors(me, "/ (fullscreen)");
+  await m.context().close();
+}
+
 // each sub-check closes its pages when it passes: one left open keeps its stage, and any film on screen, running
 // beside the next check, and under software WebGL that starves it
 
@@ -238,6 +274,7 @@ export default async function home() {
   await run("desktop", desktop);
   await run("phone", phone);
   await run("phone shapes", phoneShapes);
+  await run("fullscreen", fullscreen);
   await run("transit map", transit);
   await run("transit map, tall screen", tallTransit);
   await run("without WebGL", noWebgl);

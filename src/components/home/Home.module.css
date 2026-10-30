@@ -72,7 +72,8 @@
   mask: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(transparent, #000 6%, #000 94%, transparent);
   mask-composite: intersect;
 }
-.film video:fullscreen { mix-blend-mode: normal; filter: none; -webkit-mask: none; mask: none; }
+/* contain: the page's cover would beat the browser's own fullscreen style and crop the captions off any screen that isn't 16:9 */
+.film video:fullscreen { object-fit: contain; mix-blend-mode: normal; filter: none; -webkit-mask: none; mask: none; }
 
 .foot { min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; gap: 20px; padding-block: 120px 40px; }
 .foot h2 { font-size: clamp(64px, 11vw, 176px); max-width: 9ch; }
