@@ -72,8 +72,10 @@ export function TransitMap({ lines, stops }: { lines: TransitLine[]; stops: Tran
     if (!live) return;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let edge = span, onScreen = true, raf = 0;
+    // held here, not read from the ref: leaving the page clears the ref before this cleanup drops the listener
+    const el = box.current!;
     const onScroll = () => {
-      const r = box.current!.getBoundingClientRect(), vh = innerHeight;
+      const r = el.getBoundingClientRect(), vh = innerHeight;
       // phones: fully drawn as the map's end comes up past 78% of the screen; wide screens: from its top at 85% to its
       // end at 90%, so a screen tall enough for the whole section finishes the drawing with the heading still in view
       const p = L.vertical
@@ -89,7 +91,7 @@ export function TransitMap({ lines, stops }: { lines: TransitLine[]; stops: Tran
       stopRefs.current.forEach((s, k) => s?.toggleAttribute("data-wait", L.stopPos(k) > edge + 4));
     };
     const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }, { rootMargin: "100px" });
-    io.observe(box.current!);
+    io.observe(el);
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (!onScreen || document.hidden) return;
