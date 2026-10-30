@@ -1,6 +1,7 @@
 import { TransitionLink } from "@/transitions";
 import { getProjectBySlug, projects } from "@/data/projects";
 import { buildTransit } from "@/lib/constellation";
+import { HomeFilm } from "@/components/home/HomeFilm";
 import { HomeStage } from "@/components/home/HomeStage";
 import { StatsSection } from "@/components/home/StatsSection";
 import { Ticker } from "@/components/home/Ticker";
@@ -22,6 +23,7 @@ function Work({ slug, proj }: { slug: string; proj: number }) {
         <TransitionLink href={`/projects/${p.slug}`}>{p.name}</TransitionLink>
       </h4>
       <p>{p.line}</p>
+      {p.video && <HomeFilm src={p.video} poster={p.poster} name={p.name} />}
     </article>
   );
 }
@@ -43,9 +45,10 @@ export default function Home() {
       <section className={`${styles.intro} ${styles.wrap}`} id="intro" data-proj="0" aria-label="About Alex">
         <div className={styles.col}>
           <p className={`${styles.lede} ${styles.reveal}`}>
-            I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d rather write the software than evaluate it.
-            AI-powered apps, automation systems, and tools end-to-end - iOS, web, trading systems, the works. Day job:
-            Senior GTM Engineer, AI, at a healthcare SaaS company. Side projects: whatever I can&apos;t stop thinking about.
+            I&apos;m Alex Mazza. I&apos;ve spent years as an operator at different startups. I realized that I&apos;m
+            better off building great tools than working within the confines of rigid ones. Now I&apos;m building my own
+            tools that reduce friction, turn hours of work into minutes, and are genuinely fun to use. Day job: GTM
+            Engineer at a healthcare SaaS company. Side projects: whatever I can&apos;t stop thinking about.
           </p>
         </div>
         <p className={`${styles.dict} ${styles.col} ${styles.reveal}`}>
@@ -81,7 +84,7 @@ export default function Home() {
             <p>Tools I build for the team at Freshpaint.</p>
           </header>
           <Work slug="distill" proj={1} />
-          <Work slug="web-tracker-scanner" proj={2} />
+          <Work slug="path" proj={2} />
         </div>
         <div>
           <header className={styles.halfHead} data-proj="3">

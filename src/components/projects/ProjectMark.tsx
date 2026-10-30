@@ -41,6 +41,14 @@ const ICONS: Record<IconName, ReactNode> = {
       <path d="M50 36v50M30 52H14M30 66H12M33 80l-13 10M70 52h16M70 66h18M67 80l13 10M44 20l-8-10M56 20l8-10" />
     </>
   ),
+  "roi-calculator": (
+    <>
+      <rect x="10" y="12" width="80" height="58" rx="6" />
+      <path d="M50 70v12M34 92l16-10 16 10" />
+      <path d="M28 56v-8M42 56V40M56 56V32" />
+      <path d="M66 44l12-14M68 30h10v10" />
+    </>
+  ),
 };
 
 /** The project's mark in its tile ink (`--mk`), inside a decorative wrapper the caller styles. */

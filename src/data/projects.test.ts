@@ -5,15 +5,15 @@ import { fileURLToPath } from "node:url";
 import { projects, projectsByHalf, nextProject } from "./projects.ts";
 
 const slugs = (list: { slug: string }[]) => list.map((p) => p.slug);
-const DAY = ["distill", "web-tracker-scanner", "pipeline-attribution", "event-hub", "vendor-fingerprint", "trailmix", "persona-automator", "semrush-enricher", "event-attributor"];
+const DAY = ["distill", "path", "roi-calculator", "pipeline-attribution", "event-hub", "web-tracker-scanner", "vendor-fingerprint", "persona-automator", "trailmix", "semrush-enricher", "event-attributor"];
 const NIGHT = ["secondround", "daily-roman", "kalshi-trader", "shopify-app", "shakedown", "kalshi-mcp", "f1-globe"];
 
-test("projects has 16 entries with unique slugs", () => {
-  assert.equal(projects.length, 16);
-  assert.equal(new Set(slugs(projects)).size, 16);
+test("projects has 18 entries with unique slugs", () => {
+  assert.equal(projects.length, 18);
+  assert.equal(new Set(slugs(projects)).size, 18);
 });
 
-test("day order is distill, web-tracker-scanner, pipeline-attribution, event-hub, vendor-fingerprint, trailmix, persona-automator, semrush-enricher, event-attributor", () => {
+test("day order is distill, path, roi-calculator, pipeline-attribution, event-hub, web-tracker-scanner, vendor-fingerprint, persona-automator, trailmix, semrush-enricher, event-attributor", () => {
   assert.deepEqual(slugs(projectsByHalf("day")), DAY);
 });
 
@@ -52,11 +52,17 @@ test("each half fills whole bento rows", () => {
   }
 });
 
-test("nextProject walks all 16, crosses from event-attributor to secondround, and wraps from f1-globe to distill", () => {
+test("nextProject walks all 18, crosses from event-attributor to secondround, and wraps from f1-globe to distill", () => {
   assert.equal(nextProject("event-attributor").slug, "secondround");
   assert.equal(nextProject("f1-globe").slug, "distill");
   const walk = ["distill"];
-  while (walk.length < 16) walk.push(nextProject(walk[walk.length - 1]).slug);
+  while (walk.length < 18) walk.push(nextProject(walk[walk.length - 1]).slug);
   assert.deepEqual(walk, [...DAY, ...NIGHT]);
   assert.equal(nextProject("f1-globe").slug, walk[0]);
+});
+
+test("the five proprietary screenshots are gone", () => {
+  for (const slug of ["event-hub", "pipeline-attribution", "trailmix", "vendor-fingerprint", "semrush-enricher"]) {
+    assert.equal(projects.find((p) => p.slug === slug)!.image, undefined, `${slug} still has an image`);
+  }
 });

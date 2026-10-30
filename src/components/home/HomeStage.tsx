@@ -24,12 +24,13 @@ export function HomeStage({ children }: { children: ReactNode }) {
   }, []);
 
   // A fresh canvas per mount, on body: outside the transition container, so the transition's idle snapshots never
-  // read back a full-screen WebGL frame, and never one whose context an earlier mount already released.
+  // read back a full-screen WebGL frame, and never one whose context an earlier mount already released. First in body,
+  // so the page paints above it with no z-index of its own (one would stop the films blending with it).
   useEffect(() => {
     const canvas = document.createElement("canvas");
     canvas.className = styles.stage;
     canvas.setAttribute("aria-hidden", "true");
-    document.body.appendChild(canvas);
+    document.body.prepend(canvas);
     let dispose: (() => void) | undefined;
     let gone = false;
     import("./stage")

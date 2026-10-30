@@ -12,6 +12,8 @@ const SRC: Item[] = [["hubspot", "HubSpot", "The sales system"], ["gong", "Gong"
 const TEAMS: Item[] = [["lead", "Leadership", "CEO and department heads"], ["sales", "Sales", "Reps and SDRs"], ["am", "Account managers", "Existing customers"], ["mkt", "Marketing", "Campaigns and lists"], ["events", "Events team", "Conferences and dinners"]];
 const TOOLS: Tool[] = [
   ["distill", "Distill", "Every number in one place", ["hubspot", "gong", "web"], ["lead", "sales", "am", "mkt"]],
+  ["path", "Path", "Who's warm, and what to do next", ["hubspot", "web"], ["sales", "mkt", "lead"]],
+  ["roi", "ROI Calculator", "A business case for every deal", ["hubspot", "gong"], ["sales"]],
   ["pipeline", "Pipeline Attribution Agent", "Where each deal came from", ["hubspot"], ["lead", "sales"]],
   ["persona", "Persona Automator", "Who every contact is", ["hubspot"], ["sales", "mkt"]],
   ["eventhub", "Event Hub", "What each event did for sales", ["hubspot"], ["events", "lead"]],

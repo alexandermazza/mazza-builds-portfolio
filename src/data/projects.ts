@@ -5,7 +5,7 @@ export type Bento = "xl" | "wide" | "tall" | "sm";
 export type Mark =
   | { type: "stencil"; src: string }
   | { type: "vector"; viewBox: string; paths: string[] }
-  | { type: "icon"; name: "web-tracker-scanner" | "kalshi-trader" | "kalshi-mcp" | "shakedown" };
+  | { type: "icon"; name: "web-tracker-scanner" | "kalshi-trader" | "kalshi-mcp" | "shakedown" | "roi-calculator" };
 
 export interface Project {
   slug: string;
@@ -71,36 +71,62 @@ export const projects: Project[] = [
     links: [],
   },
   {
-    slug: "web-tracker-scanner",
+    slug: "path",
     half: "day",
-    name: "AI Web Tracker Scanner",
-    kind: "Web app at Freshpaint",
-    line: "Finds the hidden trackers on healthcare websites that can leak patient data.",
+    name: "Path",
+    kind: "Internal app at Freshpaint",
+    line: "Shows sales who's warming up and what to do next, and shows marketing what works.",
     what:
-      "It visits a hospital or clinic website the way a patient would and records every tracker that fires in the background. Each one is checked against a list of more than 200 and flagged if it can collect private health information.",
+      "Path gathers every email, form, website visit, ad click and meeting with each target account into one timeline. It scores how warm every account is right now, tells each rep who to reach out to today and what to do next, and shows marketing which content actually comes before demos and deals.",
     why:
-      "These trackers are invisible to the people who run the site, and the privacy rules around patient data are strict. Checking by hand misses most of them. The scanner catches them and explains the risk in plain terms.",
+      "Every rep had about 40 accounts and no way to see which ones were warming up. The paid tool Path replaced was hard to set up and never answered the question marketing cared about most: did the ads lead to demos? Now sales and marketing work from the same picture.",
     impact:
-      "It scans one site or hundreds at once, and every finding lands in the sales team's records, so a privacy conversation starts with real evidence.",
-    stat: ["200+", "trackers it knows how to spot"],
-    link: ["Open the scanner", "https://ai-web-tracker-scanner.fly.dev"],
-    fill: "#2ec4a6",
-    markColor: "#052f27",
-    textColor: "#052f27",
-    bento: "wide",
-    mark: { type: "icon", name: "web-tracker-scanner" },
-    image: "/projects/web-tracker-scanner/scannerhome.jpg",
+      "Tested against past deals, the accounts Path ranks warmest turned into deals 9.5 times as often as average, so a rep's list for the day is one worth working.",
+    stat: ["9.5x", "as likely to turn into a deal, for the accounts Path ranks warmest"],
+    fill: "#ff8b3d",
+    markColor: "#2e1400",
+    textColor: "#261100",
+    bento: "xl",
+    mark: { type: "stencil", src: "/projects/path/stencil.png" },
+    video: "/projects/path/clip.mp4",
+    poster: "/projects/path/poster.jpg",
     context:
-      "Healthcare sites routinely leak PHI through tracking pixels, and HIPAA compliance audits are manual and miss the 200+ trackers now in common use.",
+      "Freshpaint's marketing and sales touches lived in HubSpot as millions of disconnected events: emails, form fills, page views, ad impressions, meetings. Reps managing about 40 accounts each had no way to tell which were warming up, and the paid attribution tool the team used was hard to set up and never answered whether ad impressions led to demo requests. When its subscription lapsed, the per-account timeline was the part worth keeping, and Path rebuilds it in-house.",
     build:
-      "A FastAPI backend with a React 19 dashboard that crawls medical pages with headless Chromium, captures outgoing network requests, and matches them against a database of 200+ trackers flagged for risk level, PHI collection, and BAA support. URL triage uses Gemini Flash 2.5 via OpenRouter to classify medical vs. non-medical pages before scanning. Generates per-domain compliance summaries, PDF reports, and writes findings back to HubSpot company records via webhook.",
+      "A Next.js 15 and React 19 app on Fly.io, with a separate worker that syncs HubSpot into Postgres every night in 13 read-only phases: about 2.6 million touchpoints of 25 types across roughly 19,600 accounts. Warmth is a sum of decaying touches, each type weighted with its own half-life (21 days for a page view, 90 for a meeting), and the weights live in a config table so a week-over-week change is only ever compared against a night scored the same way. The next-move list is deterministic, with no LLM in the loop: plays are ranked by the lower bound of their measured lift, and each carries a one-line reason. Lift compares converting accounts against matched controls on tier, activity and date window, with a 95% interval on every figure, across four goals from demo requests to closed won, and a fixed 10% holdout never sees recommendations so their effect can be measured. LLMs stay at the edges: Gemini classifies forms and content offline for human review, and an SDR research hub runs in the worker on a capped budget. A build check fails if any code outside one module can reach HubSpot, so nothing Path computes can write to the CRM.",
     result:
-      "Live at ai-web-tracker-scanner.fly.dev. Scans trigger single-domain from the dashboard, CSV batches up to hundreds of sites, or automatically from HubSpot.",
-    tags: ["FastAPI", "React", "Playwright", "Gemini"],
-    links: [
-      { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
-      { label: "Source", url: "https://github.com/alexandermazza/AI-Web-Tracker-Scanner" },
-    ],
+      "Live on Fly.io behind Freshpaint's Google sign-in. Sales gets a warmth-ranked account list, a weekly list of who moved and a timeline for every account; marketing gets a scorecard of which content lifts each goal. In a backtest over 24,631 account snapshots, the warmest tenth of accounts converted at 9.5 times the base rate, and the scoring weights only change when a challenger beats them on held-out data.",
+    tags: ["Next.js", "Postgres", "HubSpot", "OpenRouter"],
+    links: [],
+  },
+  {
+    slug: "roi-calculator",
+    half: "day",
+    name: "ROI Calculator",
+    kind: "Internal app at Freshpaint",
+    line: "Turns a prospect's numbers into a business case deck, and an order form when they're ready to sign.",
+    what:
+      "A rep types in a prospect's numbers and the calculator works out what Freshpaint is worth to them: revenue won back, risk taken off the table, tools they can drop. Those numbers fill a client-ready slide deck that AI helps write, and when the deal is ready, an order form priced from the same package.",
+    why:
+      "A business case used to take a rep days of spreadsheets and slides, and decks written with general AI tools went out with numbers that were simply wrong. Here every number comes from the calculator, and the AI is never allowed to write one.",
+    impact:
+      "From discovery call to client-ready business case in one sitting, with every figure in the deck traceable back to the calculator.",
+    stat: ["0", "numbers written by the AI. Every figure in the deck comes from the calculator"],
+    fill: "#85d7bf",
+    markColor: "#01232d",
+    textColor: "#01232d",
+    bento: "xl",
+    mark: { type: "icon", name: "roi-calculator" },
+    video: "/projects/roi-calculator/clip.mp4",
+    poster: "/projects/roi-calculator/poster.jpg",
+    context:
+      "Business cases are the sales team's most important asset on any serious deal, and they were being built by hand: a spreadsheet for the math, slides for the story, and a general-purpose AI assistant to write it up. That assistant couldn't do math reliably, so decks reached prospects with wrong numbers.",
+    build:
+      "A FastAPI service on Fly.io in three environments, each with its own Postgres, behind Freshpaint's Google sign-in. The brief pulls the deal from HubSpot and call transcripts from Gong, and Claude extracts each figure together with the quote it came from. The ROI model is one pure function over four value levers (revenue growth through the funnel, retention, risk and tool consolidation), across 11 healthcare sub-verticals and three scenarios, with risk scaled from eight real pixel-tracking settlements. Decks are built from 21 HTML slide templates with fixed text slots and character budgets: Claude Opus writes the copy section by section, but numbers only ever appear as placeholders the calculator fills in, and a server-side guard rejects any stray quantity in the model's output. Text that overflows its box is shortened, export is blocked until everything fits, and headless Chromium renders each slide to PDF and PPTX, with the model exported to Excel with live formulas. Pricing is versioned and immutable, and each deal is pinned to the version it was quoted on, so the order form always matches the business case. 910 tests, including byte-for-byte parity fixtures, gate every deploy.",
+    result:
+      "Live on Fly.io for Freshpaint's sales team. A rep goes from call notes to a client-ready deck, an Excel model and an order form in one sitting, and every number a prospect sees traces back to the calculator.",
+    tags: ["Python", "FastAPI", "Claude API", "Playwright"],
+    links: [],
   },
   {
     slug: "pipeline-attribution",
@@ -120,7 +146,6 @@ export const projects: Project[] = [
     textColor: "#2e052a",
     bento: "tall",
     mark: { type: "stencil", src: "/projects/pipeline-attribution/stencil.png" },
-    image: "/projects/pipeline-attribution/dashboard.jpg",
     context:
       "Every new sales deal at Freshpaint needs a source tag (paid ads, outbound, partnerships, and so on) so leadership can see what's actually driving revenue. The old setup was a stack of about 15 HubSpot rules that fired on the first match. They couldn't weigh competing signals, couldn't explain their decisions, and quietly broke whenever a field name changed. The result was attribution data the team didn't trust.",
     build:
@@ -150,7 +175,6 @@ export const projects: Project[] = [
     textColor: "#2d0b0a",
     bento: "wide",
     mark: { type: "stencil", src: "/projects/event-hub/stencil.png" },
-    image: "/projects/event-hub/video-poster.jpg",
     context:
       "Freshpaint's events team tracks every conference, House Call, and field event in HubSpot, but the numbers they're judged on don't live on the event record. They're scattered across events, deals, pipelines, stages, and companies, and have to be re-derived every time someone asks. Every quarterly review turned into a manual export-and-reconcile exercise.",
     build:
@@ -159,6 +183,39 @@ export const projects: Project[] = [
       "Live and used by the team on one always-on Fly.io machine. The quarterly 'what did events do for pipeline' reconciliation is now a page: pick a quarter and every event is there with its KPIs already deduped and attributed, each number drilling down to its source deals in HubSpot.",
     tags: ["Next.js", "TypeScript", "SQLite", "HubSpot"],
     links: [],
+  },
+  {
+    slug: "web-tracker-scanner",
+    half: "day",
+    name: "AI Web Tracker Scanner",
+    kind: "Web app at Freshpaint",
+    line: "Finds the hidden trackers on healthcare websites that can leak patient data.",
+    what:
+      "It visits a hospital or clinic website the way a patient would and records every tracker that fires in the background. Each one is checked against a list of more than 200 and flagged if it can collect private health information.",
+    why:
+      "These trackers are invisible to the people who run the site, and the privacy rules around patient data are strict. Checking by hand misses most of them. The scanner catches them and explains the risk in plain terms.",
+    impact:
+      "It scans one site or hundreds at once, and every finding lands in the sales team's records, so a privacy conversation starts with real evidence.",
+    stat: ["200+", "trackers it knows how to spot"],
+    link: ["Open the scanner", "https://ai-web-tracker-scanner.fly.dev"],
+    fill: "#2ec4a6",
+    markColor: "#052f27",
+    textColor: "#052f27",
+    bento: "wide",
+    mark: { type: "icon", name: "web-tracker-scanner" },
+    video: "/projects/web-tracker-scanner/clip.mp4",
+    poster: "/projects/web-tracker-scanner/poster.jpg",
+    context:
+      "Healthcare sites routinely leak PHI through tracking pixels, and HIPAA compliance audits are manual and miss the 200+ trackers now in common use.",
+    build:
+      "A FastAPI backend with a React 19 dashboard that crawls medical pages with headless Chromium, captures outgoing network requests, and matches them against a database of 200+ trackers flagged for risk level, PHI collection, and BAA support. URL triage uses Gemini Flash 2.5 via OpenRouter to classify medical vs. non-medical pages before scanning. Generates per-domain compliance summaries, PDF reports, and writes findings back to HubSpot company records via webhook.",
+    result:
+      "Live at ai-web-tracker-scanner.fly.dev. Scans trigger single-domain from the dashboard, CSV batches up to hundreds of sites, or automatically from HubSpot.",
+    tags: ["FastAPI", "React", "Playwright", "Gemini"],
+    links: [
+      { label: "Live", url: "https://ai-web-tracker-scanner.fly.dev" },
+      { label: "Source", url: "https://github.com/alexandermazza/AI-Web-Tracker-Scanner" },
+    ],
   },
   {
     slug: "vendor-fingerprint",
@@ -178,7 +235,6 @@ export const projects: Project[] = [
     textColor: "#ffffff",
     bento: "wide",
     mark: { type: "stencil", src: "/projects/vendor-fingerprint/stencil.png" },
-    image: "/projects/vendor-fingerprint/image.png",
     context:
       "Identifying which scheduling software a healthcare company uses is slow, manual work. Sales and BD teams need it at list scale.",
     build:
@@ -188,38 +244,6 @@ export const projects: Project[] = [
     tags: ["Python", "Playwright", "Claude API"],
     links: [
       { label: "Source", url: "https://github.com/alexandermazza/booking-vendor-scraper" },
-    ],
-  },
-  {
-    slug: "trailmix",
-    half: "day",
-    name: "Trailmix",
-    kind: "Web app",
-    line: "Turns meeting notes into to-do items in Slack.",
-    what:
-      "Trailmix watches your meeting notes, pulls out the action items, and sends each one to Slack with approve and reject buttons. Approved items can drop straight into monday.com, already assigned.",
-    why:
-      "The to-dos people agree to in meetings usually die in the notes. Trailmix puts them where work actually happens, seconds after the meeting ends.",
-    impact:
-      "Follow-ups stop slipping. It checks for new notes every 30 seconds and filters out duplicates, so the team only sees what matters.",
-    stat: ["30 sec", "from meeting notes to Slack"],
-    link: ["Visit trailmix.fly.dev", "https://trailmix.fly.dev"],
-    fill: "#e9a23b",
-    markColor: "#2e1a03",
-    textColor: "#2e1a03",
-    bento: "sm",
-    mark: { type: "stencil", src: "/projects/trailmix/stencil.png" },
-    image: "/projects/trailmix/trailmixslack.jpg",
-    context:
-      "Granola captures rich meeting notes, but action items die inside the transcript. Nothing routes them into the tools where work actually happens.",
-    build:
-      "Trailmix is a Next.js 16 app with a background worker that polls Granola every 30 seconds, runs extracted action items through an LLM for confidence scoring and deduplication, then delivers them to Slack with approve/reject buttons. Approvals optionally create monday.com items via GraphQL with mapped columns, groups, and assignees. Built on Drizzle ORM, NextAuth with Google OAuth, AES-256-GCM for stored credentials, and a circuit breaker that disables polling after repeated Slack failures.",
-    result:
-      "Live on Fly.io with a 3D-scene landing page. Operates in two modes, monday.com routing or Slack-only delivery, selected during a multi-step onboarding flow.",
-    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
-    links: [
-      { label: "Live", url: "https://trailmix.fly.dev" },
-      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
     ],
   },
   {
@@ -249,6 +273,37 @@ export const projects: Project[] = [
     links: [],
   },
   {
+    slug: "trailmix",
+    half: "day",
+    name: "Trailmix",
+    kind: "Web app",
+    line: "Turns meeting notes into to-do items in Slack.",
+    what:
+      "Trailmix watches your meeting notes, pulls out the action items, and sends each one to Slack with approve and reject buttons. Approved items can drop straight into monday.com, already assigned.",
+    why:
+      "The to-dos people agree to in meetings usually die in the notes. Trailmix puts them where work actually happens, seconds after the meeting ends.",
+    impact:
+      "Follow-ups stop slipping. It checks for new notes every 30 seconds and filters out duplicates, so the team only sees what matters.",
+    stat: ["30 sec", "from meeting notes to Slack"],
+    link: ["Visit trailmix.fly.dev", "https://trailmix.fly.dev"],
+    fill: "#e9a23b",
+    markColor: "#2e1a03",
+    textColor: "#2e1a03",
+    bento: "sm",
+    mark: { type: "stencil", src: "/projects/trailmix/stencil.png" },
+    context:
+      "Granola captures rich meeting notes, but action items die inside the transcript. Nothing routes them into the tools where work actually happens.",
+    build:
+      "Trailmix is a Next.js 16 app with a background worker that polls Granola every 30 seconds, runs extracted action items through an LLM for confidence scoring and deduplication, then delivers them to Slack with approve/reject buttons. Approvals optionally create monday.com items via GraphQL with mapped columns, groups, and assignees. Built on Drizzle ORM, NextAuth with Google OAuth, AES-256-GCM for stored credentials, and a circuit breaker that disables polling after repeated Slack failures.",
+    result:
+      "Live on Fly.io with a 3D-scene landing page. Operates in two modes, monday.com routing or Slack-only delivery, selected during a multi-step onboarding flow.",
+    tags: ["Next.js", "Drizzle", "Slack API", "monday.com"],
+    links: [
+      { label: "Live", url: "https://trailmix.fly.dev" },
+      { label: "Source", url: "https://github.com/alexandermazza/trailmix" },
+    ],
+  },
+  {
     slug: "semrush-enricher",
     half: "day",
     name: "Semrush Enricher",
@@ -266,7 +321,6 @@ export const projects: Project[] = [
     textColor: "#210a00",
     bento: "sm",
     mark: { type: "stencil", src: "/projects/semrush-enricher/stencil.png" },
-    image: "/projects/semrush-enricher/semrush.jpg",
     context:
       "HubSpot company exports list domains but carry no traffic data. Enriching a list manually means one lookup per domain.",
     build:

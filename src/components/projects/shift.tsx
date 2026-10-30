@@ -6,7 +6,7 @@ export const HALF: Record<Half, { label: string; intro: ReactNode }> = {
     label: "9 to 5",
     intro: (
       <>
-        Built at my day job, for the people who sell, market and run the company. <b>9 projects.</b>
+        Built at my day job, for the people who sell, market and run the company. <b>11 projects.</b>
       </>
     ),
   },

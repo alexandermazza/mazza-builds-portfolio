@@ -4,7 +4,7 @@ import { projects } from "../../src/data/projects.ts";
 
 const SECTIONS = ["hero", "intro", "stats", "ticker", "work", "graph", "foot"];
 const TICKER = ["iOS Apps", "AI Agents", "Dashboards", "Web Crawlers", "Trading Bots", "Shopify Apps", "MCP Servers", "Attribution Engines", "GTM Tools"];
-const WORK = ["distill", "web-tracker-scanner", "secondround", "daily-roman"].map((s) => `/projects/${s}`);
+const WORK = ["distill", "path", "secondround", "daily-roman"].map((s) => `/projects/${s}`);
 
 function check(ok, message) {
   if (!ok) throw new Error(`/: ${message}`);
@@ -39,7 +39,7 @@ async function desktop() {
   const expected = SECTIONS.filter((id) => id !== "stats" || ids.includes("stats"));
   check(JSON.stringify(ids) === JSON.stringify(expected), `sections are ${JSON.stringify(ids)}`);
 
-  check((await page.locator("#intro").textContent()).includes("Senior GTM Engineer, AI"), 'intro lacks "Senior GTM Engineer, AI"');
+  check((await page.locator("#intro").textContent()).includes("GTM Engineer at a healthcare SaaS company"), 'intro lacks "GTM Engineer at a healthcare SaaS company"');
   if (ids.includes("stats")) {
     check(/so far/i.test(await page.locator("#stats h2").textContent()), "stats heading missing");
     check((await page.locator("#stats figure").count()) > 0, "stats section has no figure");
@@ -65,6 +65,15 @@ async function desktop() {
   const work = await page.locator('#work a[href^="/projects/"]').evaluateAll((els) => els.map((a) => a.getAttribute("href")));
   check(JSON.stringify(work) === JSON.stringify(WORK), `Selected work links are ${JSON.stringify(work)}`);
 
+  // the films: one each for Distill and Path; with reduced motion they hold on their posters
+  const films = page.locator("#work video");
+  check((await films.count()) === 2, `Selected work has ${await films.count()} films, not 2`);
+  for (const film of await films.all()) {
+    await film.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
+    check(await film.evaluate((v) => v.paused && !!v.poster), "with reduced motion a homepage film plays, or has no poster");
+  }
+
   // the transit map's chips and stops are tab stops; none may be focused while unseen
   // stop at the footer: tabbing out of the document stops headless Chromium drawing frames, which stalls the reveals
   await page.locator(`#work a[href="${WORK.at(-1)}"]`).focus();
@@ -84,16 +93,30 @@ async function desktop() {
   await readable(page, "desktop");
   await assertNoOverflow(page);
   expectNoErrors(errors, "/ (desktop)");
+  await page.context().close();
 }
 
 async function phone() {
   const { page, errors } = await openPage("/", { phone: true });
+  // a film plays while it's on screen and stops once it's scrolled away, so phones don't stream films nobody sees
+  const film = page.locator("#work article", { has: page.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await film.scrollIntoViewIfNeeded();
+  const playing = await film.evaluate((v) => new Promise((done) => {
+    if (!v.paused) return done(true);
+    v.addEventListener("playing", () => done(true), { once: true });
+    setTimeout(() => done(!v.paused), 4000);
+  }));
+  check(playing, "on a phone, Path's film does not play once it is on screen");
+  await page.locator("#foot").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  check(await page.locator("#work video").evaluateAll((vs) => vs.every((v) => v.paused)), "a homepage film keeps playing after it is scrolled away");
   for (const id of ["intro", "ticker", "work", "graph", "foot"]) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
     await assertNoOverflow(page);
   }
   expectNoErrors(errors, "/ (phone)");
+  await page.context().close();
 }
 
 const chips = (page) => page.locator("#graph button[aria-pressed]").evaluateAll((els) => els.filter((b) => b.offsetParent !== null).length);
@@ -120,19 +143,21 @@ async function transit() {
   await page.getByRole("button", { name: /^Claude/ }).click();
   check((await page.getByRole("button", { name: /^Claude/ }).getAttribute("aria-pressed")) === "true", "the Claude chip is not pressed after a click");
   const note = (await page.locator("#graph [aria-live]").textContent()) ?? "";
-  check(note.includes("Claude runs through 5 projects"), `following Claude says "${note}"`);
+  check(note.includes("Claude runs through 6 projects"), `following Claude says "${note}"`);
 
   await page.locator('#graph a[href="/projects/distill"]').click();
   await page.waitForURL("**/projects/distill", { timeout: 10000 }).catch(() => check(false, `clicking the Distill stop went to ${page.url()}`));
   await assertNoOverflow(page);
   expectNoErrors(errors, "/ (transit map)");
+  await page.context().close();
 
   const { page: p, errors: pe } = await openPage("/", { phone: true });
-  check((await chips(p)) === 6, `a phone shows ${await chips(p)} line chips, not 6`);
+  check((await chips(p)) === 8, `a phone shows ${await chips(p)} line chips, not 8`);
   await p.locator("#graph").scrollIntoViewIfNeeded();
   await p.waitForTimeout(500);
   await assertNoOverflow(p);
   expectNoErrors(pe, "/ (transit map, phone)");
+  await p.context().close();
 }
 
 // a screen tall enough for the whole section must finish the drawing while the heading is still in view under the bar
@@ -143,6 +168,7 @@ async function tallTransit() {
   const waiting = await page.locator("#graph [data-wait]").count();
   check(waiting === 0, `with its heading 110px down a 1300px screen, ${waiting} stops are still undrawn`);
   expectNoErrors(errors, "/ (transit map, tall screen)");
+  await page.context().close();
 }
 
 // on phones the text sits under its shape: scroll a heading to a point on screen and read which shape is up
@@ -161,9 +187,9 @@ async function phoneShapes() {
   const cases = [
     // a project's shape is up while its text comes in under it
     ["Distill", 0.75, "1"],
-    ["AI Web Tracker Scanner", 0.75, "2"],
+    ["Path", 0.75, "2"],
     ["Daily Roman", 0.75, "4"],
-    // the night shift waits until the scanner's text has gone, then lands with the 5 to 9 heading
+    // the night shift waits until Path's text has gone, then lands with the 5 to 9 heading
     ["5 to 9", 0.72, "2"],
     ["5 to 9", 0.55, "3"],
   ];
@@ -172,6 +198,7 @@ async function phoneShapes() {
     check(got === want, `on a phone, with "${name}" ${Math.round(at * 100)}% down the screen the stage shows shape ${got}, not ${want}`);
   }
   expectNoErrors(errors, "/ (phone shapes)");
+  await page.context().close();
 }
 
 async function noWebgl() {
@@ -179,7 +206,12 @@ async function noWebgl() {
   await readable(page, "without WebGL");
   const shown = await page.locator("canvas").evaluateAll((els) => els.filter((c) => getComputedStyle(c).display !== "none").length);
   check(shown === 0, "a canvas is still shown without WebGL");
+  // the film blends with the page itself, so the homepage's main must not be a stacking context
+  const layers = await page.evaluate(() => ({ blend: getComputedStyle(document.querySelector("#work video")).mixBlendMode, z: getComputedStyle(document.querySelector("main")).zIndex }));
+  check(layers.blend === "screen", `a homepage film blends as ${layers.blend}, not screen`);
+  check(layers.z === "auto", `the homepage main has z-index ${layers.z}, so its films can't blend with the page`);
   expectNoErrors(errors, "/ (without WebGL)");
+  await page.context().close();
 }
 
 async function noJs() {
@@ -189,6 +221,46 @@ async function noJs() {
   const stops = await page.locator('#graph a[href^="/projects/"]').count();
   check(stops === projects.length, `without JavaScript the transit map has ${stops} stops`);
 }
+
+// fullscreen is the big version: the whole film, unblended; leaving it puts the film back the way the page wants it
+async function fullscreen() {
+  // with reduced motion: a film the visitor started in fullscreen does not keep playing inline afterwards
+  const { page, errors } = await openPage("/", { reducedMotion: "reduce" });
+  const film = page.locator("#work article", { has: page.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await film.scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Watch the Path film" }).click();
+  await page.waitForFunction(() => document.fullscreenElement?.tagName === "VIDEO", null, { timeout: 4000 }).catch(() => {});
+  const full = await film.evaluate((v) => ({ on: document.fullscreenElement === v, fit: getComputedStyle(v).objectFit, blend: getComputedStyle(v).mixBlendMode }));
+  check(full.on, "clicking Path's film does not open it fullscreen");
+  check(full.fit === "contain", `a fullscreen film is drawn with object-fit ${full.fit}, which crops it on screens that aren't 16:9`);
+  check(full.blend === "normal", `a fullscreen film still blends as ${full.blend}`);
+  await film.evaluate((v) => v.play());
+  await page.evaluate(() => document.exitFullscreen());
+  // the exit lands a frame or more later, and a frame can take a while under software WebGL: wait for the outcome
+  await film.evaluate((v) => new Promise((done) => { const t0 = Date.now(); const tick = () => (v.paused || Date.now() - t0 > 3000 ? done() : setTimeout(tick, 50)); tick(); }));
+  const after = await film.evaluate((v) => ({ paused: v.paused, blend: getComputedStyle(v).mixBlendMode }));
+  check(after.blend === "screen", `after fullscreen the film blends as ${after.blend}, not screen`);
+  check(after.paused, "with reduced motion, a film started in fullscreen keeps playing inline after it closes");
+  expectNoErrors(errors, "/ (fullscreen, reduced motion)");
+  await page.context().close();
+
+  // with motion: a film paused in fullscreen picks up again once it's back on screen inline
+  const { page: m, errors: me } = await openPage("/");
+  const mfilm = m.locator("#work article", { has: m.getByRole("heading", { name: "Path", exact: true }) }).locator("video");
+  await mfilm.scrollIntoViewIfNeeded();
+  await m.waitForFunction(() => [...document.querySelectorAll("#work video")].some((v) => !v.paused), null, { timeout: 4000 }).catch(() => {});
+  await m.getByRole("button", { name: "Watch the Path film" }).click();
+  await m.waitForFunction(() => document.fullscreenElement?.tagName === "VIDEO", null, { timeout: 4000 }).catch(() => {});
+  await mfilm.evaluate((v) => v.pause());
+  await m.evaluate(() => document.exitFullscreen());
+  await mfilm.evaluate((v) => new Promise((done) => { const t0 = Date.now(); const tick = () => (!v.paused || Date.now() - t0 > 3000 ? done() : setTimeout(tick, 50)); tick(); }));
+  check(!(await mfilm.evaluate((v) => v.paused)), "a film paused in fullscreen stays frozen on screen after it closes");
+  expectNoErrors(me, "/ (fullscreen)");
+  await m.context().close();
+}
+
+// each sub-check closes its pages when it passes: one left open keeps its stage, and any film on screen, running
+// beside the next check, and under software WebGL that starves it
 
 // a failure names the run it came from, since Playwright's own messages don't name the route
 async function run(label, fn) {
@@ -203,6 +275,7 @@ export default async function home() {
   await run("desktop", desktop);
   await run("phone", phone);
   await run("phone shapes", phoneShapes);
+  await run("fullscreen", fullscreen);
   await run("transit map", transit);
   await run("transit map, tall screen", tallTransit);
   await run("without WebGL", noWebgl);

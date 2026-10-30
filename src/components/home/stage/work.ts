@@ -129,9 +129,10 @@ export function particlePiece(ctx: Ctx, cfg: PieceCfg): Piece {
 
 type P3 = [number, number, number];
 interface Bundle { pts: P3[]; rad?: number; acc?: number; lit?: number; rain?: number }
-interface ShapeDef { tilt: number; sway: number; yaw: number; size?: number; bundles: Bundle[] }
+// wide: an extra scale on desktop only, for a shape that crowds the copy there
+interface ShapeDef { tilt: number; sway: number; yaw: number; size?: number; wide?: number; bundles: Bundle[] }
 type Key = "den" | "rad" | "acc" | "rain";
-type Shape = { pts: Float32Array; tilt: number; sway: number; yaw: number; size: number } & Record<Key, Float32Array>;
+type Shape = { pts: Float32Array; tilt: number; sway: number; yaw: number; size: number; wide: number } & Record<Key, Float32Array>;
 
 /* INTRO + SELECTED WORK: one filament shape per section. 14 bundles per shape. Each bundle is a closed curve of
    M control points (an open stroke is traced there and back), stored in a float texture and blended point by
@@ -222,36 +223,52 @@ export function workPiece(ctx: Ctx): Piece {
       { rad: 0.6, acc: 0.55, pts: ell(72, 40, -60) }, { rad: 0.5, pts: ell(44, 16, -60) },
     ] };
   };
-  // AI Web Tracker Scanner: a magnifying glass over a web page; the trackers it found glow amber under the lens
-  const scanner = (): ShapeDef => {
-    const lx = 24, ly = -4, R = 46, ca = Math.SQRT1_2, sa = -Math.SQRT1_2;
-    const circ = (cx: number, cy: number, r: number, z: number, n = 120) => ring(n, (th) => [cx + r * Math.cos(th), cy + r * Math.sin(th), z]);
-    const diag = (pts: P3[], d: number): P3[] => pts.map(([x, y]) => [lx + d * ca + x * ca - y * sa, ly + d * sa + x * sa + y * ca, 30]); // laid along the handle's 45-degree line
-    return { tilt: 0.06, sway: 0.3, yaw: 0.15, bundles: [
-      { rad: 0.6, pts: move(rrect(180, 128, 8), -22, 4, -20) },
-      { rad: 0.35, lit: 0.6, pts: back(seg([-112, 50, -20], [68, 50, -20])) },
-      ...[[30, 40], [16, 10], [2, 30], [-12, -6]].map(([y, x1]): Bundle => ({ rad: 0.32, lit: 0.4, pts: back(seg([-98, y, -20], [x1, y, -20])) })),
-      { rad: 0.6, pts: circ(lx, ly, R, 30, 160) }, { rad: 0.5, pts: circ(lx, ly, R - 6, 30, 160) },
-      { rad: 0.55, pts: diag(rrect(12, 24, 3), R + 6) }, { rad: 0.6, pts: diag(rrect(56, 18, 8), R + 40) },
-      ...[[-14, 12, 6], [12, -8, 5], [-2, -24, 4.5]].map(([dx, dy, r]): Bundle => ({ rad: 0.4, acc: 0.8, lit: 3, pts: circ(lx + dx, ly + dy, r, -19, 60) })),
-      { rad: 0.4, lit: 0.7, pts: back(arc(40, 2.1, 2.9, (th): P3 => [lx + (R - 14) * Math.cos(th), ly + (R - 14) * Math.sin(th), 30])) },
+  // Path: a trail switchbacks up a hill of contour rings, touchpoints standing along it as waypoints, to the amber
+  // flag where the meeting gets booked. A touchpoint is drawn like the film's icons: ring, diamond or square
+  const glyph = (kind: "ring" | "diamond" | "square", [x, y, z]: P3, r: number): P3[] =>
+    kind === "ring" ? ring(64, (th): P3 => [x + r * Math.cos(th), y + r * Math.sin(th), z])
+      : kind === "diamond" ? [[x, y + r * 1.2, z], [x + r * 1.2, y, z], [x, y - r * 1.2, z], [x - r * 1.2, y, z]]
+      : move(rrect(r * 1.8, r * 1.8, 2), x, y, z);
+  const trail = (): ShapeDef => {
+    const rx = (u: number) => 18 + 108 * Math.pow(1 - u, 1.4), y = (u: number) => -84 + 118 * u, k = 0.62, top = y(1);
+    const contour = (u: number) => ring(200, (th): P3 => [rx(u) * Math.cos(th), y(u), k * rx(u) * Math.sin(th)]);
+    const on = (u: number, lift = 0): P3 => {
+      const r = rx(u) * 1.03, a = Math.PI / 2 + 0.75 * Math.sin(u * 5.5 * Math.PI);
+      return [r * Math.cos(a), y(u) + 1.5 + lift, k * r * Math.sin(a)];
+    };
+    const path: P3[] = [...Array.from({ length: 241 }, (_, i) => on(0.02 + 0.98 * i / 240)), [0, top + 1.5, 0]];
+    const cloth = (inset: number): P3[] => {
+      const w = 36 - inset * 2, x0 = inset * 0.6, wave = (x: number) => 3.5 * Math.sin(x / 36 * Math.PI * 1.6);
+      const edge = (yy: number, rev: boolean) => Array.from({ length: 21 }, (_, i): P3 => { const x = x0 + w * (rev ? 1 - i / 20 : i / 20); return [x, yy - x * 0.08 + wave(x) * 0.4, wave(x)]; });
+      return [...edge(top + 54 - inset, false), ...edge(top + 32 + inset, true)];
+    };
+    return { tilt: 0.28, sway: 0.35, yaw: -0.15, wide: 0.95, bundles: [
+      { rad: 0.55, lit: 0.8, pts: contour(0) },
+      ...[0.25, 0.5, 0.75].map((u): Bundle => ({ rad: 0.5, lit: 0.85, pts: contour(u) })),
+      { rad: 0.45, acc: 0.3, pts: contour(1) },
+      { rad: 0.35, lit: 0.75, pts: back(path) },
+      { rad: 0.28, acc: 0.3, rain: 1, pts: back(path) },
+      ...([[0.091, "ring", 0.1], [0.273, "diamond", 0.25], [0.455, "square", 0.45], [0.636, "ring", 0.65]] as const).map(([u, kind, acc]): Bundle => ({ rad: 0.4, lit: 2, acc, pts: glyph(kind, on(u, 12), 8) })),
+      { rad: 0.4, lit: 0.8, pts: back(seg([0, top, 0], [0, top + 56, 0], 20)) },
+      { rad: 0.45, acc: 1, lit: 1.4, pts: cloth(0) },
+      { rad: 0.4, acc: 1, lit: 1.2, pts: cloth(5) },
     ] };
   };
 
   const keys: Key[] = ["den", "rad", "acc", "rain"];
-  const T: Shape[] = [hammer(), distill(), scanner(), secondRound(), colosseum()].map((S) => {
+  const T: Shape[] = [hammer(), distill(), trail(), secondRound(), colosseum()].map((S) => {
     console.assert(S.bundles.length === B, "shape needs 14 bundles", S.bundles.length);
     const rs = S.bundles.map((b) => resample(b.pts)), mean = rs.reduce((a, r) => a + r.len, 0) / B, pts = new Float32Array(M * B * 3);
     rs.forEach((r, b) => pts.set(r.pts, b * M * 3));
     return {
-      pts, tilt: S.tilt, sway: S.sway, yaw: S.yaw, size: S.size ?? 1,
+      pts, tilt: S.tilt, sway: S.sway, yaw: S.yaw, size: S.size ?? 1, wide: S.wide ?? 1,
       den: Float32Array.from(rs, (r, b) => r.len / mean * (S.bundles[b].lit ?? 1)),
       rad: Float32Array.from(S.bundles, (b) => b.rad ?? 1),
       acc: Float32Array.from(S.bundles, (b) => b.acc ?? 0),
       rain: Float32Array.from(S.bundles, (b) => b.rain ?? 0),
     };
   });
-  const copy = (S: Shape): Shape => ({ pts: S.pts.slice(), tilt: S.tilt, sway: S.sway, yaw: S.yaw, size: S.size, den: S.den.slice(), rad: S.rad.slice(), acc: S.acc.slice(), rain: S.rain.slice() });
+  const copy = (S: Shape): Shape => ({ pts: S.pts.slice(), tilt: S.tilt, sway: S.sway, yaw: S.yaw, size: S.size, wide: S.wide, den: S.den.slice(), rad: S.rad.slice(), acc: S.acc.slice(), rain: S.rain.slice() });
   const now = copy(T[0]);
   const ctl = new Float32Array(M * B * 4), tCtl = floatTex(ctl, M, B);
   const write = () => {
@@ -315,7 +332,7 @@ export function workPiece(ctx: Ctx): Piece {
         const k = easeIO(mk), to = T[cur], L = (a: number, b: number) => a + (b - a) * k;
         for (let i = 0; i < now.pts.length; i++) now.pts[i] = L(from.pts[i], to.pts[i]);
         keys.forEach((n) => { for (let b = 0; b < B; b++) now[n][b] = L(from[n][b], to[n][b]); });
-        now.tilt = L(from.tilt, to.tilt); now.sway = L(from.sway, to.sway); now.yaw = L(from.yaw, to.yaw); now.size = L(from.size, to.size);
+        now.tilt = L(from.tilt, to.tilt); now.sway = L(from.sway, to.sway); now.yaw = L(from.yaw, to.yaw); now.size = L(from.size, to.size); now.wide = L(from.wide, to.wide);
         write();
       }
       sim.u.uSpring.value = reduce ? 9 : 9 * smooth((t - 0.1) / 2.0);
@@ -325,8 +342,9 @@ export function workPiece(ctx: Ctx): Piece {
       sim.step();
       ru.tPos.value = sim.pos();
       ru.tVel.value = sim.vel();
-      grp.scale.setScalar(fit * now.size);
-      ru.uLit.value = now.size * now.size; // a smaller shape packs the same particles tighter, so dim it by its area
+      const scale = now.size * (ctx.narrow() ? 1 : now.wide);
+      grp.scale.setScalar(fit * scale);
+      ru.uLit.value = scale * scale; // a smaller shape packs the same particles tighter, so dim it by its area
       grp.rotation.x = now.tilt + Math.sin(t * 0.04) * 0.05;
       grp.rotation.y = now.yaw + Math.sin(t * 0.22) * now.sway;
       camera.position.set(Math.sin(t * 0.05) * 20, 20 + Math.cos(t * 0.04) * 10, 360);
