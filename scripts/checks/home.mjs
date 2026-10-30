@@ -4,7 +4,7 @@ import { projects } from "../../src/data/projects.ts";
 
 const SECTIONS = ["hero", "intro", "stats", "ticker", "work", "graph", "foot"];
 const TICKER = ["iOS Apps", "AI Agents", "Dashboards", "Web Crawlers", "Trading Bots", "Shopify Apps", "MCP Servers", "Attribution Engines", "GTM Tools"];
-const WORK = ["distill", "web-tracker-scanner", "secondround", "daily-roman"].map((s) => `/projects/${s}`);
+const WORK = ["distill", "path", "secondround", "daily-roman"].map((s) => `/projects/${s}`);
 
 function check(ok, message) {
   if (!ok) throw new Error(`/: ${message}`);
@@ -120,7 +120,7 @@ async function transit() {
   await page.getByRole("button", { name: /^Claude/ }).click();
   check((await page.getByRole("button", { name: /^Claude/ }).getAttribute("aria-pressed")) === "true", "the Claude chip is not pressed after a click");
   const note = (await page.locator("#graph [aria-live]").textContent()) ?? "";
-  check(note.includes("Claude runs through 5 projects"), `following Claude says "${note}"`);
+  check(note.includes("Claude runs through 6 projects"), `following Claude says "${note}"`);
 
   await page.locator('#graph a[href="/projects/distill"]').click();
   await page.waitForURL("**/projects/distill", { timeout: 10000 }).catch(() => check(false, `clicking the Distill stop went to ${page.url()}`));
@@ -128,7 +128,7 @@ async function transit() {
   expectNoErrors(errors, "/ (transit map)");
 
   const { page: p, errors: pe } = await openPage("/", { phone: true });
-  check((await chips(p)) === 6, `a phone shows ${await chips(p)} line chips, not 6`);
+  check((await chips(p)) === 8, `a phone shows ${await chips(p)} line chips, not 8`);
   await p.locator("#graph").scrollIntoViewIfNeeded();
   await p.waitForTimeout(500);
   await assertNoOverflow(p);
@@ -161,9 +161,9 @@ async function phoneShapes() {
   const cases = [
     // a project's shape is up while its text comes in under it
     ["Distill", 0.75, "1"],
-    ["AI Web Tracker Scanner", 0.75, "2"],
+    ["Path", 0.75, "2"],
     ["Daily Roman", 0.75, "4"],
-    // the night shift waits until the scanner's text has gone, then lands with the 5 to 9 heading
+    // the night shift waits until Path's text has gone, then lands with the 5 to 9 heading
     ["5 to 9", 0.72, "2"],
     ["5 to 9", 0.55, "3"],
   ];

@@ -81,7 +81,7 @@ export default function Home() {
             <p>Tools I build for the team at Freshpaint.</p>
           </header>
           <Work slug="distill" proj={1} />
-          <Work slug="web-tracker-scanner" proj={2} />
+          <Work slug="path" proj={2} />
         </div>
         <div>
           <header className={styles.halfHead} data-proj="3">
