@@ -236,7 +236,8 @@ async function fullscreen() {
   check(full.blend === "normal", `a fullscreen film still blends as ${full.blend}`);
   await film.evaluate((v) => v.play());
   await page.evaluate(() => document.exitFullscreen());
-  await page.waitForTimeout(600);
+  // the exit lands a frame or more later, and a frame can take a while under software WebGL: wait for the outcome
+  await film.evaluate((v) => new Promise((done) => { const t0 = Date.now(); const tick = () => (v.paused || Date.now() - t0 > 3000 ? done() : setTimeout(tick, 50)); tick(); }));
   const after = await film.evaluate((v) => ({ paused: v.paused, blend: getComputedStyle(v).mixBlendMode }));
   check(after.blend === "screen", `after fullscreen the film blends as ${after.blend}, not screen`);
   check(after.paused, "with reduced motion, a film started in fullscreen keeps playing inline after it closes");
@@ -252,7 +253,7 @@ async function fullscreen() {
   await m.waitForFunction(() => document.fullscreenElement?.tagName === "VIDEO", null, { timeout: 4000 }).catch(() => {});
   await mfilm.evaluate((v) => v.pause());
   await m.evaluate(() => document.exitFullscreen());
-  await m.waitForTimeout(800);
+  await mfilm.evaluate((v) => new Promise((done) => { const t0 = Date.now(); const tick = () => (!v.paused || Date.now() - t0 > 3000 ? done() : setTimeout(tick, 50)); tick(); }));
   check(!(await mfilm.evaluate((v) => v.paused)), "a film paused in fullscreen stays frozen on screen after it closes");
   expectNoErrors(me, "/ (fullscreen)");
   await m.context().close();
