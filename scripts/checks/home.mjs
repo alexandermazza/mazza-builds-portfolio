@@ -39,7 +39,7 @@ async function desktop() {
   const expected = SECTIONS.filter((id) => id !== "stats" || ids.includes("stats"));
   check(JSON.stringify(ids) === JSON.stringify(expected), `sections are ${JSON.stringify(ids)}`);
 
-  check((await page.locator("#intro").textContent()).includes("Senior GTM Engineer, AI"), 'intro lacks "Senior GTM Engineer, AI"');
+  check((await page.locator("#intro").textContent()).includes("GTM Engineer at a healthcare SaaS company"), 'intro lacks "GTM Engineer at a healthcare SaaS company"');
   if (ids.includes("stats")) {
     check(/so far/i.test(await page.locator("#stats h2").textContent()), "stats heading missing");
     check((await page.locator("#stats figure").count()) > 0, "stats section has no figure");

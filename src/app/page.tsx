@@ -43,9 +43,10 @@ export default function Home() {
       <section className={`${styles.intro} ${styles.wrap}`} id="intro" data-proj="0" aria-label="About Alex">
         <div className={styles.col}>
           <p className={`${styles.lede} ${styles.reveal}`}>
-            I&apos;m Alex Mazza. Spent years in GTM ops. Turns out I&apos;d rather write the software than evaluate it.
-            AI-powered apps, automation systems, and tools end-to-end - iOS, web, trading systems, the works. Day job:
-            Senior GTM Engineer, AI, at a healthcare SaaS company. Side projects: whatever I can&apos;t stop thinking about.
+            I&apos;m Alex Mazza. I&apos;ve spent years as an operator at different startups. I realized that I&apos;m
+            better off building great tools than working within the confines of rigid ones. Now I&apos;m building my own
+            tools that reduce friction, turn hours of work into minutes, and are genuinely fun to use. Day job: GTM
+            Engineer at a healthcare SaaS company. Side projects: whatever I can&apos;t stop thinking about.
           </p>
         </div>
         <p className={`${styles.dict} ${styles.col} ${styles.reveal}`}>
